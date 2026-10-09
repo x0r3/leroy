@@ -1,0 +1,42 @@
+name: leroy-test
+services:
+  postgres:
+    ports: ["127.0.0.1:55439:5432"]
+  controller:
+    networks: !override
+      default:
+        ipv4_address: 10.231.88.10
+    volumes:
+      - ./.sources:/sources:ro
+  docker:
+    image: docker:29.8.1-dind
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    command: ["--insecure-registry=registry:5000"]
+    volumes:
+      - test-docker:/var/lib/docker
+      - ./.sources:/sources:ro
+      - ./.local/test-secrets:/test-secrets:ro
+      - ./.local/music:/test-music:ro
+    healthcheck:
+      test: [CMD, docker, info]
+      interval: 5s
+      retries: 30
+  runner:
+    environment:
+      DOCKER_HOST: tcp://docker:2375
+      LEROY_RUNNER_ID: runner-isolated
+    volumes: !override
+      - ./.local/runner.test.toml:/config/runner.toml:ro
+      - ./.local/test-secrets:/test-secrets:ro
+    depends_on:
+      docker: {condition: service_healthy}
+volumes:
+  test-docker:
+networks:
+  default:
+    ipam:
+      config: [{subnet: 10.231.88.0/24}]
+  jobs:
+    name: leroy-test-outer-jobs

@@ -1,0 +1,14 @@
+# Linux runtime files must retain LF through Windows checkouts.
+* text=auto
+*.sh text eol=lf
+*.py text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+Dockerfile.* text eol=lf
+
+# Preserve the recorded bytes of historical evidence and application patches.
+docs/acceptance.json -text whitespace=cr-at-eol
+docs/jenkins-inventory.json -text whitespace=cr-at-eol
+src/leroy/inventory.json -text whitespace=cr-at-eol
+# Patch context can intentionally contain a single whitespace-only line.
+docs/upstream-patches/*.patch -text -whitespace

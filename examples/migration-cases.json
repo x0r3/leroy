@@ -1,0 +1,128 @@
+[
+  {
+    "pipeline": "gitea-bootstrap-repo",
+    "parameters": {
+      "GITEA_URL": "http://gitea-test:3000",
+      "GITEA_REPO": "leroy-migrated",
+      "GITEA_OWNER": "test-admin",
+      "GITEA_ADMIN_EMAIL": "admin@leroy.test",
+      "GITEA_REPO_PRIVATE": true,
+      "GITEA_WAIT_SECONDS": 60,
+      "GITEA_CONTAINER_NAME": "gitea-test",
+      "GITEA_DEFAULT_BRANCH": "main",
+      "ENSURE_GITEA_ADMIN_LOGIN": true
+    }
+  },
+  {
+    "pipeline": "paperless-ngx-bootstrap-rules",
+    "parameters": {
+      "DRY_RUN": false,
+      "TIMEOUT_SECONDS": 30,
+      "PAPERLESS_API_URL": "http://paperless-test:8000"
+    }
+  },
+  {
+    "pipeline": "music-library-sync-smartphone",
+    "parameters": {
+      "DRY_RUN": false,
+      "PHONE_HOST": "music-target",
+      "PHONE_PORT": "22",
+      "PHONE_USER": "root",
+      "SOURCE_DIRS": "/test-music",
+      "PHONE_DEST_DIR": "/root/Music",
+      "TIMEOUT_SECONDS": "30",
+      "EXCLUDE_PATTERNS": "# One pattern per line (rsync syntax).\n*.tmp\n.DS_Store\n.Trashes\n",
+      "SSH_CREDENTIALS_ID": "phone-music-sync-ssh"
+    }
+  },
+  {
+    "pipeline": "nikicas-hub-bootstrap-host",
+    "parameters": {
+      "DRY_RUN": false,
+      "DEPLOY_DIR": "/opt/nikicas-hub",
+      "DEPLOY_USER": "nikicas-hub-deploy",
+      "TARGET_HOST": "hub-target",
+      "TARGET_PORT": "22",
+      "PUBLIC_ORIGIN": "https://hub.test",
+      "BOOTSTRAP_USER": "root",
+      "ACME_STORAGE_PATH": "/opt/nikicas-hub/letsencrypt/acme.json",
+      "TRAEFIK_HOST_RULE": "hub.test",
+      "CONFIGURE_FIREWALL": true,
+      "DEPLOY_SSH_CREDENTIALS_ID": "nikicas-hub-deploy-ssh",
+      "BOOTSTRAP_SSH_CREDENTIALS_ID": "nikicas-hub-bootstrap-ssh"
+    }
+  },
+  {
+    "pipeline": "home-lab-ci",
+    "commit": "d77449890b1e0f597f55b477e7c99c3ea1f68735",
+    "parameters": {}
+  },
+  {
+    "pipeline": "home-lab-ci",
+    "parameters": {}
+  },
+  {
+    "pipeline": "nikicas-hub-ci",
+    "parameters": {}
+  },
+  {
+    "pipeline": "nikicas-hub-deploy",
+    "parameters": {
+      "DRY_RUN": false,
+      "GIT_URL": "/sources/nikicas-hub",
+      "IMAGE_TAG": "f7fcfcf78e8f-20260619",
+      "ACME_EMAIL": "",
+      "DEPLOY_DIR": "/opt/nikicas-hub",
+      "GIT_BRANCH": "master",
+      "IMAGE_NAME": "nikicas-hub",
+      "DEPLOY_HOST": "hub-target",
+      "DEPLOY_PORT": "22",
+      "DEPLOY_USER": "nikicas-hub-deploy",
+      "REGISTRY_URL": "registry:5000",
+      "PUBLIC_ORIGIN": "https://hub.test",
+      "ALLOWED_ORIGINS": "https://hub.test",
+      "TRUST_PROXY_HOPS": "1",
+      "ACME_STORAGE_PATH": "/opt/nikicas-hub/letsencrypt/acme.json",
+      "TRAEFIK_HOST_RULE": "hub.test",
+      "DEFAULT_ADMIN_USER": "admin",
+      "GIT_CREDENTIALS_ID": "gitea-http",
+      "REGISTRY_NAMESPACE": "home-lab",
+      "SSH_CREDENTIALS_ID": "nikicas-hub-deploy-ssh",
+      "APP_SALT_CREDENTIALS_ID": "nikicas-hub-app-salt",
+      "REGISTRY_CREDENTIALS_ID": "local-registry",
+      "EVENT_HASH_SALT_CREDENTIALS_ID": "nikicas-hub-event-hash-salt",
+      "DEFAULT_ADMIN_LOGIN_SECRET_CREDENTIALS_ID": "nikicas-hub-default-admin-login-secret"
+    }
+  },
+  {
+    "pipeline": "graphato-bootstrap-host",
+    "parameters": {
+      "DOMAIN": "graphato.test",
+      "TARGET_HOST": "graphato-vm",
+      "GRAPHATO_REF": "master",
+      "APPLY_CHANGES": false
+    }
+  },
+  {
+    "pipeline": "graphato-bootstrap-host",
+    "parameters": {
+      "DOMAIN": "graphato.test",
+      "TARGET_HOST": "graphato-vm",
+      "APPLY_CHANGES": true
+    }
+  },
+  {
+    "pipeline": "graphato-ci",
+    "parameters": {}
+  },
+  {
+    "pipeline": "graphato-release-acceptance",
+    "parameters": {
+      "RELEASE_COMMIT": "ffd4be75f36f4590272832691df04b06ae9e388a"
+    }
+  },
+  {
+    "pipeline": "antares-ci",
+    "parameters": {}
+  }
+]

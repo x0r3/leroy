@@ -1,0 +1,3239 @@
+{
+  "checked_at": "2026-10-03T12:18:20.764664+00:00",
+  "complete": true,
+  "pipelines": [
+    {
+      "pipeline": "antares-ci",
+      "run": "1ba237df6e034ab29d4aef92393da68b",
+      "number": 132,
+      "status": "succeeded",
+      "commit": "2af9555e41aeae1bb145fa253a79b2a6b6e6cc2a",
+      "complete_workload_passed": true,
+      "note": "Korrekturstand erfolgreich: Audit, Lint, Typen, 635 Unit- und 102 Integrationstests, Produktionsimage und gesamte Browsermatrix (26 bestanden, drei urspr\u00fcngliche Skips).",
+      "original_run": {
+        "run": "c8055eb73b2d44c69080dd9f37daa91b",
+        "number": 65,
+        "status": "failed",
+        "commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398"
+      }
+    },
+    {
+      "pipeline": "gitea-bootstrap-repo",
+      "run": "620af719cd884087baf3a03efcd7d63e",
+      "number": 8,
+      "status": "succeeded",
+      "commit": null,
+      "complete_workload_passed": true,
+      "note": "Erfolgreich: echtes privates Repository per API nachgewiesen."
+    },
+    {
+      "pipeline": "graphato-bootstrap-host",
+      "run": "dfa925a4729f4474ad34b8708f1f2624",
+      "number": 134,
+      "status": "succeeded",
+      "commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+      "complete_workload_passed": true,
+      "note": "Vollst\u00e4ndiger Apply-Modus auf der frisch provisionierten Ubuntu-VM: Firewall, SSH, AppArmor und echtes lokales ACME/HTTPS erfolgreich.",
+      "original_run": {
+        "run": "651e7f735e5e42e5982ea80c967cadd9",
+        "number": 120,
+        "status": "succeeded",
+        "commit": "9fb528a1bb4b736d53d294510b374d516e973a03"
+      }
+    },
+    {
+      "pipeline": "graphato-ci",
+      "run": "6ed894d4ea1e4f12b75dd7bc131b3015",
+      "number": 135,
+      "status": "succeeded",
+      "commit": "e4e31e6a28d6fe6d9762830524c4276d257d2f7f",
+      "complete_workload_passed": true,
+      "note": "Korrekturstand erfolgreich: Server, Worker und Windows-Client gebaut; neue VM mit neuer Datenbank ausgeliefert; HTTPS, API, AppArmor und Paketver\u00f6ffentlichung gepr\u00fcft. Beide nachgelagerten Testsuiten und gemeinsame Release-Abnahme erfolgreich.",
+      "original_run": {
+        "run": "569b469d6eb7459a893825c6b9cacf5c",
+        "number": 121,
+        "status": "succeeded",
+        "commit": "ffd4be75f36f4590272832691df04b06ae9e388a"
+      }
+    },
+    {
+      "pipeline": "graphato-postdeploy-quality",
+      "run": "a340c4585a6b4f42851a3ca0be3a6eb7",
+      "number": 138,
+      "status": "succeeded",
+      "commit": "e4e31e6a28d6fe6d9762830524c4276d257d2f7f",
+      "complete_workload_passed": true,
+      "note": "Alle acht Qualit\u00e4tsgruppen erfolgreich: Frontend/Deployment, Rust-Format/Clippy/Tests (1504 bestanden, 29 urspr\u00fcngliche Auslassungen), Entwicklungsprofile, Repository-Verwaltung, Reset und Host-Laufzeit.",
+      "original_run": {
+        "run": "83ff3b84c3e047d6ab2805cdef298066",
+        "number": 129,
+        "status": "timed_out",
+        "commit": "ffd4be75f36f4590272832691df04b06ae9e388a"
+      }
+    },
+    {
+      "pipeline": "graphato-postdeploy-web",
+      "run": "1a6f06a7d5644fabaac391f8127f4713",
+      "number": 137,
+      "status": "succeeded",
+      "commit": "e4e31e6a28d6fe6d9762830524c4276d257d2f7f",
+      "complete_workload_passed": true,
+      "note": "Vollst\u00e4ndig erfolgreich: alle 21 Gruppen inklusive vier Tabs/120 Prompts/\u00fcber f\u00fcnf Minuten Lasttest; Cleanup best\u00e4tigt, keine wiederverwendeten Teilnachweise.",
+      "original_run": {
+        "run": "0227a252e796470ba466ccd66e93f3d6",
+        "number": 124,
+        "status": "failed",
+        "commit": "ffd4be75f36f4590272832691df04b06ae9e388a"
+      }
+    },
+    {
+      "pipeline": "graphato-release-acceptance",
+      "run": "2fe74374e65242ceb9967e6f85c718fe",
+      "number": 136,
+      "status": "succeeded",
+      "commit": "e4e31e6a28d6fe6d9762830524c4276d257d2f7f",
+      "complete_workload_passed": true,
+      "note": "Vollst\u00e4ndige Web- und Qualit\u00e4tsnachweise f\u00fcr dieselbe Release-Identit\u00e4t gepr\u00fcft; beide Kindl\u00e4ufe erfolgreich.",
+      "original_run": {
+        "run": "3d244e7923b24924bf16a659b5b749da",
+        "number": 123,
+        "status": "failed",
+        "commit": "ffd4be75f36f4590272832691df04b06ae9e388a"
+      }
+    },
+    {
+      "pipeline": "home-lab-ci",
+      "run": "ec789c32d14546a7bfc33e7296a86d20",
+      "number": 20,
+      "status": "succeeded",
+      "commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+      "complete_workload_passed": true,
+      "note": "Erfolgreich: beide betroffenen Images gebaut und in Test-Registry ver\u00f6ffentlicht."
+    },
+    {
+      "pipeline": "music-library-sync-smartphone",
+      "run": "a728f2223c924eff9e964419da78c527",
+      "number": 5,
+      "status": "succeeded",
+      "commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+      "complete_workload_passed": true,
+      "note": "Erfolgreich: rsync \u00fcber SSH; Inhalt und Pr\u00fcfsumme am Ziel stimmen."
+    },
+    {
+      "pipeline": "nikicas-hub-bootstrap-host",
+      "run": "ac710a28c9ed4679bbb57d4d721fd23b",
+      "number": 66,
+      "status": "succeeded",
+      "commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+      "complete_workload_passed": true,
+      "note": "Erfolgreich: Ansible, Docker, Deploy-Benutzer, Persistenzrechte und Firewall."
+    },
+    {
+      "pipeline": "nikicas-hub-ci",
+      "run": "d9bba9e7eb1542719afcad7b21ef2920",
+      "number": 4,
+      "status": "succeeded",
+      "commit": "f7fcfcf78e8f3717217f841734be824a8e97bbd2",
+      "complete_workload_passed": true,
+      "note": "Erfolgreich: getaggtes Image gebaut und ver\u00f6ffentlicht."
+    },
+    {
+      "pipeline": "nikicas-hub-deploy",
+      "run": "f24b00107cfb4804b2ef3d081a8498db",
+      "number": 40,
+      "status": "succeeded",
+      "commit": "f7fcfcf78e8f3717217f841734be824a8e97bbd2",
+      "complete_workload_passed": true,
+      "note": "Erfolgreich: echter Deploy; App-Healthcheck gesund."
+    },
+    {
+      "pipeline": "paperless-ngx-bootstrap-rules",
+      "run": "b4ad8508c1b1436d9c931392f3df43e2",
+      "number": 10,
+      "status": "succeeded",
+      "commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+      "complete_workload_passed": true,
+      "note": "Erfolgreich: 64 Tags, 31 Korrespondenten und 15 Dokumenttypen per API gepr\u00fcft."
+    }
+  ],
+  "additional_runs": {
+    "antares-validation": "30f2f8860ee94660bf45db7ed23b06c8",
+    "graphato-bootstrap-apply": "b9c96c1faf08470eb0b5586deebba019",
+    "hub-bootstrap-firewall": "ac710a28c9ed4679bbb57d4d721fd23b"
+  },
+  "implementation_review": {
+    "checked_at": "2026-10-03T12:00:25.098410+00:00",
+    "python_postgres_tests": 38,
+    "browser_scenarios": 4,
+    "database_revision": "0003",
+    "concurrent_waiting_parents": 12,
+    "distinct_same_pipeline_children": 6,
+    "child_timeout": "passed",
+    "session_stream_revocation": "passed",
+    "visual_review": "desktop and mobile screenshots reviewed",
+    "pipeline_acceptance_changed": true,
+    "execution_evidence": {
+      "transitive_failure": "3b2e6b0e065a42d6874c804641ae3336",
+      "child_wait_resume": "787f8696fcbd404e9fd651763c4143be",
+      "controller_runner_restart": "2cb360da0ebb4656883974c378e124e8",
+      "active_cancellation": "aa03fd9656bd4c0fbe23c1be4c889603",
+      "replace_active_run": [
+        "b0d8d2d2403f49ab9eef062025bbe6ec",
+        "c61fefc20a2745b3b8bc058456e42844"
+      ],
+      "worker_crash": "e7f79118cc3d4d6998e98e43faac6969",
+      "pipeline_timeout": "c4ad936e64ff4e2098153325034c53e6"
+    },
+    "children_evidence": {
+      "parents": [
+        "47fa81ebb48c4238af493d7c241aad17",
+        "a35f4e0d0bdb4d558d79dcc41f7fe411",
+        "1029a897e926470f82f21d15f82eb345",
+        "afec0a7941ac458d833621916bc237f8",
+        "dc11d963cae84799b1f6673fc96afaf1",
+        "4728dce6892c4be38bd7a78fff367325",
+        "a55de226e5fb491e9c6a275783e0aefb",
+        "d5d562ccad2c43139df40ef95f33244c",
+        "406ae2709f124403b865c770e732e3bb",
+        "93a9685323374fd886df2dc7e91b9495",
+        "48e7b712519d4bad9241264fd6a88ca3",
+        "0c276f4792ee4d0c9ab4eb958e2e3f07"
+      ],
+      "peak_waiting_parents": 12,
+      "six_distinct_children": "15b5338852794360aa838c7531b0c6af",
+      "child_step_timeout": "9641c0ee284443eaa184afc09c9b21fc"
+    },
+    "offline_restore": {
+      "artifacts_verified": 362,
+      "logs_verified": 365,
+      "status": "passed"
+    },
+    "parent_wait_budget": "Corrected both Graphato child waits to 25200 seconds, preserving Jenkins 28800-second overall acceptance limit; definition tests passed.",
+    "live_log_progress": "be45f2af62ed4d6aaab6f9f60f3d05c4",
+    "cancellation_cause": "Preserved across completion/heartbeat races; PostgreSQL regression passed."
+  },
+  "local_linux_vm": {
+    "checked_at": "2026-10-03T10:47:10.653944+00:00",
+    "kernel": "6.8.0-142-generic",
+    "os": "Ubuntu 24.04.5 LTS",
+    "virtualization": "kvm",
+    "apparmor_enabled": true,
+    "docker": "29.8.0",
+    "docker_security": [
+      "name=apparmor,profile=default",
+      "name=seccomp,profile=builtin",
+      "name=cgroupns"
+    ],
+    "apparmor_enforcement": "unconfined read succeeded; confined read denied",
+    "original_graphato_profile": "loaded and enforced",
+    "private_network_egress": "blocked in the QEMU network namespace",
+    "published_ports": {
+      "2222/tcp": [
+        {
+          "HostIp": "127.0.0.1",
+          "HostPort": "2224"
+        }
+      ],
+      "8080/tcp": [
+        {
+          "HostIp": "127.0.0.1",
+          "HostPort": "8089"
+        }
+      ],
+      "8443/tcp": [
+        {
+          "HostIp": "127.0.0.1",
+          "HostPort": "8444"
+        }
+      ]
+    },
+    "status": "passed",
+    "restart": {
+      "graceful_restart": "passed",
+      "disk_persistence": "passed",
+      "apparmor_after_restart": true,
+      "offline_disk_snapshot": "baseline-7ffe12d7",
+      "shutdown": {
+        "finished_at": 1791028733.6840925,
+        "forced": false,
+        "qemu_exit_code": 0
+      },
+      "application_https_before_and_after": 200,
+      "manual_runtime_recovery_during_restart": false
+    },
+    "full_graphato_acceptance_passed": true,
+    "memory_gib": 10,
+    "external_services": "DNS and Pebble ACME simulated only inside VM; real challenge and trust verification",
+    "latest_shutdown": {
+      "finished_at": 1791028733.6840925,
+      "forced": false,
+      "qemu_exit_code": 0
+    },
+    "application_recovery": "Neue unabh\u00e4ngige VM vollst\u00e4ndig abgenommen; gesunde Anwendung nach geordnetem Neustart automatisch erreichbar. Alte Platte und Runtime-Sperre unver\u00e4ndert erhalten.",
+    "fresh_provision": {
+      "created_at": "2026-10-03T10:44:04.274392+00:00",
+      "previous_disk_preserved": "leroy-vm_disk",
+      "fresh_disk": "leroy-vm_acceptance-9c69406dbcbf",
+      "source": {
+        "filename": "ubuntu-24.04-server-cloudimg-amd64.img",
+        "url": "https://cloud-images.ubuntu.com/releases/noble/release/ubuntu-24.04-server-cloudimg-amd64.img",
+        "sha256": "6a81c37564db9b1ee84e141922625e1d7c5b389b99bb3c572e0243607d5bb4d2",
+        "resolved_at": "2026-10-03T00:22:24.662048+00:00"
+      },
+      "reason": "Independent clean-room acceptance; previous runtime guard left untouched"
+    },
+    "fresh_bootstrap": [
+      {
+        "run": "0b8d1e86ffde41d5a314c638a0466ec0",
+        "apply": false,
+        "status": "succeeded"
+      },
+      {
+        "run": "dfa925a4729f4474ad34b8708f1f2624",
+        "apply": true,
+        "status": "succeeded"
+      }
+    ]
+  },
+  "antares_repair_candidate": {
+    "run": "1ba237df6e034ab29d4aef92393da68b",
+    "commit": "2af9555e41aeae1bb145fa253a79b2a6b6e6cc2a",
+    "repository": "/sources/antares-validation",
+    "status": "succeeded",
+    "previous_run": "2edcbfca5c104f6bb474c42060aea659",
+    "previous_result": {
+      "unit_passed": 635,
+      "integration_passed": 101,
+      "browser_passed": 24,
+      "browser_failed": 2,
+      "browser_skipped": 3
+    },
+    "focused_repairs": {
+      "arena_unit_passed": 29,
+      "real_http_abort_regression_passed": 1,
+      "admin_browser_flows_passed": 3,
+      "log": "test-results/antares-focused-check.log"
+    },
+    "note": "Vollst\u00e4ndige originale Pipeline mit dokumentierten Quellkorrekturen erfolgreich; keine Assertions oder Grenzwerte gelockert.",
+    "result": {
+      "unit_passed": 635,
+      "integration_passed": 102,
+      "browser_passed": 26,
+      "browser_failed": 0,
+      "browser_skipped": 3
+    }
+  },
+  "graphato_repair_candidate": {
+    "commit": "e4e31e6a28d6fe6d9762830524c4276d257d2f7f",
+    "status": "succeeded",
+    "repairs": [
+      "typed HTTP 429 fixture retry",
+      "explicit file lease unlock"
+    ],
+    "run": "6ed894d4ea1e4f12b75dd7bc131b3015",
+    "children": {
+      "acceptance": "2fe74374e65242ceb9967e6f85c718fe",
+      "web": "1a6f06a7d5644fabaac391f8127f4713",
+      "quality": "a340c4585a6b4f42851a3ca0be3a6eb7"
+    },
+    "web": {
+      "passed": true,
+      "checks_passed": 21,
+      "reused": []
+    },
+    "rust": {
+      "passed": 1504,
+      "failed": 0,
+      "ignored": 29,
+      "check_duration_seconds": 1163.253
+    },
+    "quality": {
+      "passed": true,
+      "checks_passed": 8,
+      "reused": []
+    }
+  },
+  "scope": "Historical local technical acceptance of all 13 migrated jobs on isolated targets, using the explicitly identified application repair revisions. The top-level complete flag describes that local run only. Current NAS comparison evidence and readiness are recorded separately in original_revision_nas_parity and nas_followup. Production cutover is not performed.",
+  "validated_catalog": [
+    {
+      "pipeline": "antares-ci",
+      "repository": "/sources/antares-validation",
+      "commit": "2af9555e41aeae1bb145fa253a79b2a6b6e6cc2a"
+    },
+    {
+      "pipeline": "graphato-ci",
+      "repository": "/sources/graphato-validation",
+      "commit": "e4e31e6a28d6fe6d9762830524c4276d257d2f7f"
+    },
+    {
+      "pipeline": "graphato-release-acceptance",
+      "repository": "/sources/graphato-validation",
+      "commit": "e4e31e6a28d6fe6d9762830524c4276d257d2f7f"
+    },
+    {
+      "pipeline": "graphato-postdeploy-web",
+      "repository": "/sources/graphato-validation",
+      "commit": "e4e31e6a28d6fe6d9762830524c4276d257d2f7f"
+    },
+    {
+      "pipeline": "graphato-postdeploy-quality",
+      "repository": "/sources/graphato-validation",
+      "commit": "e4e31e6a28d6fe6d9762830524c4276d257d2f7f"
+    }
+  ],
+  "pipeline_acceptance_checked_at": "2026-10-03T12:00:25.098410+00:00",
+  "followup_review": {
+    "checked_at": "2026-10-03T12:18:20.764664+00:00",
+    "status": "passed",
+    "scope": "Leroy execution, authentication, logs and UI regressions; previously accepted application source revisions unchanged",
+    "python_postgres_tests": 47,
+    "browser_scenarios": 5,
+    "browser_duration_seconds": 59.6,
+    "visual_review": "Desktop and mobile reviewed; active counters and project counts contrast corrected",
+    "execution_edges": {
+      "descendant_timeout": "aebbd8e8c6d14577810f8866ef190e4c",
+      "descendant_cancel": "e5e3c776f29d4c10a5a50ab3f99b234b",
+      "closed_stdout": "c35d6bb7af9d4dcfaa949d64232c7af4",
+      "resource_wait": "177344ff9cfc42a5b4fb1ffe4b2809b1",
+      "cycle": "e8774848258640b48916b6cc4fc8d701"
+    },
+    "before_reproduction": {
+      "before_timeout_left_descendant_running": "1cc6ae6d10054e27be7f835b4acc0576"
+    },
+    "execution": {
+      "transitive_failure": "c4d91593453243939ab36e8a2b6e1155",
+      "child_wait_resume": "1934454b288a4ad188fc9ed938280869",
+      "controller_runner_restart": "17b9ee956bb7473ba9f4b90d75abac68",
+      "active_cancellation": "bd7533b8b55f4d23b5c3e78bf9f1d490",
+      "replace_active_run": [
+        "af2e6e9415004cf2bdbdd61f467ee60e",
+        "af738c3c6b6d48ddaefc0e1069561dc0"
+      ],
+      "worker_crash": "03535c01f93544a0895813cd9157f3b6",
+      "pipeline_timeout": "db22624fcf9f4bd3a6c9eeb896eb378d"
+    },
+    "children": {
+      "parents": [
+        "eeb564ba6828416283d6b6870e7cd3e1",
+        "45617b7c7da440a790519007f18a073c",
+        "c42ab125a24348f59c8804cb5335d3f7",
+        "6a32a8fbdf464400be929db5b47b6094",
+        "3145165ee15f4d55a332685e812dee0e",
+        "2f9f161d63c94da1b37bcb770c7a533f",
+        "fd4ba132c3924d1fb138d62e58bdb991",
+        "2cea7fea688a438282448c22f04ddc5f",
+        "8d882ccc2f194c48a8d5b5bf56a41686",
+        "83412658489944049df4bd0e3913c89f",
+        "c1f48aa76d7a48eeac82a33cd882b75b",
+        "290a56abd24d4c57ad4e5369e56f0428"
+      ],
+      "peak_waiting_parents": 12,
+      "six_distinct_children": "b071b18014d04fbcb07257ce7ab5759e",
+      "child_step_timeout": "172ee4179163454f94442a0cc0cf6907"
+    },
+    "source_sha256": {
+      "src/leroy/api.py": "49ed428c75ace360df5676f77d821b5d34096193ef2e6e13fe26c42117a1afa0",
+      "src/leroy/engine.py": "85024d903ab23c83b25541afa093503e6f2bc001e434fdbfdcd2b8f69cc22571",
+      "src/leroy/worker.py": "a1699075669304e29c9981a7a9a01051b1fa00a8c3f52ff3b6863d3263affb57",
+      "web/src/App.svelte": "a191c68226efe78f17a74042cf74f65352fbeea0c2b449c02ab1a8e27ca75739",
+      "web/src/style.css": "9ddbd9b6d16ebf42881bafbf9413ad3247254e4ba99bb22133e436e380597e43"
+    },
+    "images": {
+      "controller": "sha256:bcf2331c173676cf5e4e68a7aad2776139482db254e154381a3c15d181439d90",
+      "runner": "sha256:7dbae1eae13deded37bc0371cd520b24304e18b9131558986919057ff9bfc23f",
+      "job": "sha256:5e41f6072359a51aee84e7920fb77717785072d20d82ce038fdbf7fd4dfde898"
+    },
+    "queue_drained": true,
+    "automatic_triggers_paused": true
+  },
+  "original_revision_nas_parity": {
+    "complete": false,
+    "status": "aligned_comparison_completed_with_failures_and_gaps",
+    "baseline": "test-results/nas-parity/baseline.json",
+    "application_patches_applied": false,
+    "nas_runs_started": true,
+    "note": "The existing complete flag is scoped to isolated workloads with the identified application repair revisions; unchanged-source Jenkins/Leroy equivalence on the NAS has not been demonstrated.",
+    "controller_url": "http://192.168.178.97:8088",
+    "automatic_triggers_paused": true,
+    "authentication_verified": true,
+    "production_services_modified": false,
+    "ui_checks": {
+      "screenshots": 45,
+      "javascript_errors": 0,
+      "horizontal_overflow": false
+    },
+    "comparisons": {
+      "antares-ci": {
+        "pipeline": "antares-ci",
+        "commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "jenkins_build": 1,
+        "leroy_run": "f9c15a5eebe94b6a9256d8515025e6b6",
+        "image": "sha256:7036632df5ae7dd01cc050c3c89167fb05228aea6a840ac7a1d39de4babe49e4",
+        "round": "aligned",
+        "failing_gate": "npm audit --omit=dev --audit-level=high",
+        "gate_exit_code": 1,
+        "high_vulnerabilities": 6,
+        "same_advisories": true,
+        "advisories": [
+          "GHSA-2x7j-588g-ccc2",
+          "GHSA-3m5p-2c4r-xxw2",
+          "GHSA-4mh8-r7rc-xpvc",
+          "GHSA-5jgf-p345-68v8",
+          "GHSA-667r-xxjv-c9mm",
+          "GHSA-6j4f-fj2g-mc7p",
+          "GHSA-6vj9-mwq6-2f5v",
+          "GHSA-7p8r-x3mc-p8w7",
+          "GHSA-83w8-p2f5-377r",
+          "GHSA-8m3c-c648-2xjj",
+          "GHSA-8pvw-jcv7-9cmj",
+          "GHSA-8vvx-rff5-p5rq",
+          "GHSA-9q9j-q6p8-xq58",
+          "GHSA-c96f-x56v-gq3h",
+          "GHSA-cc9r-2j5m-2m83",
+          "GHSA-f65p-4m7j-42xc",
+          "GHSA-fph4-wmhf-6fwf",
+          "GHSA-hrr3-gc8f-f4qj",
+          "GHSA-hwr6-493r-vm6h",
+          "GHSA-jqff-g426-hqxp",
+          "GHSA-mh99-v99m-4gvg",
+          "GHSA-p68q-wchp-6fh7",
+          "GHSA-q2hr-2g5m-vwhr",
+          "GHSA-qhr7-859c-m2p7",
+          "GHSA-qw65-cvwx-89v3",
+          "GHSA-rgw5-rvv9-x895",
+          "GHSA-v2hh-gcrm-f6hx",
+          "GHSA-v53p-9fqp-m79j",
+          "GHSA-w2qp-rph6-63g4",
+          "GHSA-wmmp-3585-3rmp"
+        ],
+        "compared_stages": [
+          "checkout",
+          "toolchain",
+          "postgres",
+          "dependencies",
+          "cleanup"
+        ],
+        "uncompared_stages": [
+          "static",
+          "tests",
+          "build",
+          "browsers"
+        ],
+        "complete_pipeline_parity": false,
+        "workload_success": false,
+        "application_patches_applied": false
+      },
+      "home-lab-ci": {
+        "pipeline": "home-lab-ci",
+        "commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+        "jenkins_build": 1,
+        "leroy_run": "e0d321ad9e2c4849af6fb0d81cfcf819",
+        "image": "sha256:7036632df5ae7dd01cc050c3c89167fb05228aea6a840ac7a1d39de4babe49e4",
+        "round": "aligned",
+        "diff_base": "9fb528a1bb4b736d53d294510b374d516e973a03",
+        "changed_files": [],
+        "build_publish_skipped_both": true,
+        "observed_scenario_parity": true,
+        "workload_success": true,
+        "complete_pipeline_parity": false,
+        "uncompared_paths": [
+          "actual_image_build_and_push"
+        ],
+        "application_patches_applied": false
+      },
+      "nikicas-hub-ci": {
+        "pipeline": "nikicas-hub-ci",
+        "commit": "f7fcfcf78e8f3717217f841734be824a8e97bbd2",
+        "jenkins_build": 1,
+        "leroy_run": "5e5bc152147a414fbafd8c92e46a1e96",
+        "round": "aligned",
+        "workload_success": true,
+        "observed_scenario_parity": true,
+        "complete_pipeline_parity": true,
+        "application_patches_applied": false,
+        "artifacts": {
+          "jenkins_image": "sha256:8c8801acf4c8a51f36c158a837bf21c227db937b5db8ef923755a7eb7490267a",
+          "leroy_image": "sha256:224eb8ef9cb6895b2ceb2929707941d5fbde8e76dbae953672d4d3ad802372c9",
+          "same_runtime_configuration": true,
+          "application_entries": 4262,
+          "different_application_entries": [],
+          "same_application_contents_and_permissions": true,
+          "image_timestamps_and_layer_metadata_excluded": true
+        },
+        "scope": "image build and push into isolated registry; deployment compared separately"
+      },
+      "gitea-bootstrap-repo": {
+        "pipeline": "gitea-bootstrap-repo",
+        "commit": null,
+        "supporting_repository_commit": null,
+        "jenkins_build": 2,
+        "leroy_run": "0e03da19f8e24deba87d18094ca68df7",
+        "round": "aligned",
+        "workload_success": true,
+        "observed_scenario_parity": true,
+        "complete_pipeline_parity": true,
+        "application_patches_applied": false,
+        "parameters": {
+          "GITEA_URL": "http://gitea:3000",
+          "GITEA_CONTAINER_NAME": "gitea",
+          "ENSURE_GITEA_ADMIN_LOGIN": true,
+          "GITEA_ADMIN_EMAIL": "admin@leroy.test",
+          "GITEA_OWNER": "gitea-admin",
+          "GITEA_REPO": "home-lab-service-collection",
+          "GITEA_REPO_PRIVATE": true,
+          "GITEA_DEFAULT_BRANCH": "master",
+          "GITEA_WAIT_SECONDS": "60",
+          "GITEA_CREDENTIALS_ID": "gitea-http"
+        },
+        "target_states_equal": true,
+        "setup_attempts": [
+          {
+            "build": {
+              "_class": "org.jenkinsci.plugins.workflow.job.WorkflowRun",
+              "actions": [
+                {
+                  "_class": "hudson.model.ParametersAction"
+                },
+                {
+                  "_class": "hudson.model.CauseAction"
+                },
+                {
+                  "_class": "jenkins.metrics.impl.TimeInQueueAction"
+                },
+                {
+                  "_class": "org.jenkinsci.plugins.workflow.libs.LibrariesAction"
+                },
+                {},
+                {},
+                {},
+                {},
+                {},
+                {
+                  "_class": "org.jenkinsci.plugins.displayurlapi.actions.RunDisplayAction"
+                },
+                {
+                  "_class": "org.jenkinsci.plugins.pipeline.modeldefinition.actions.RestartDeclarativePipelineAction"
+                },
+                {},
+                {
+                  "_class": "org.jenkinsci.plugins.workflow.job.views.FlowGraphAction"
+                },
+                {},
+                {}
+              ],
+              "building": false,
+              "duration": 28327,
+              "number": 1,
+              "result": "FAILURE",
+              "timestamp": 1791041408780
+            },
+            "retry_reason": "First attempt overlapped fresh Gitea database migration; API readiness now verified before the admin operation."
+          }
+        ],
+        "scope": "prepared scenario on separate fresh test destinations"
+      },
+      "music-library-sync-smartphone": {
+        "pipeline": "music-library-sync-smartphone",
+        "commit": null,
+        "supporting_repository_commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+        "jenkins_build": 1,
+        "leroy_run": "3f8712da388645eb98b11418155d620a",
+        "round": "aligned",
+        "workload_success": true,
+        "observed_scenario_parity": true,
+        "complete_pipeline_parity": true,
+        "application_patches_applied": false,
+        "parameters": {
+          "DRY_RUN": false,
+          "PHONE_HOST": "parity-vm",
+          "PHONE_PORT": "12225",
+          "PHONE_USER": "root",
+          "SOURCE_DIRS": "/test-music/library\n/test-music/downloads",
+          "PHONE_DEST_DIR": "/var/tmp/leroy-parity-music/Music",
+          "TIMEOUT_SECONDS": "30",
+          "EXCLUDE_PATTERNS": "# One pattern per line (rsync syntax).\n*.tmp\n.DS_Store\n.Trashes\n",
+          "SSH_CREDENTIALS_ID": "phone-music-sync-ssh"
+        },
+        "target_states_equal": true,
+        "setup_attempts": [],
+        "scope": "prepared scenario on separate fresh test destinations"
+      },
+      "paperless-ngx-bootstrap-rules": {
+        "pipeline": "paperless-ngx-bootstrap-rules",
+        "commit": null,
+        "supporting_repository_commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+        "jenkins_build": 1,
+        "leroy_run": "de7c64eaa520407e9fd8a6a354746d34",
+        "round": "aligned",
+        "workload_success": true,
+        "observed_scenario_parity": true,
+        "complete_pipeline_parity": true,
+        "application_patches_applied": false,
+        "parameters": {
+          "DRY_RUN": false,
+          "TIMEOUT_SECONDS": 30,
+          "PAPERLESS_API_URL": "http://paperless-test:8000",
+          "PAPERLESS_API_TOKEN_CREDENTIALS_ID": "",
+          "PAPERLESS_API_USER_CREDENTIALS_ID": "paperless-api-user"
+        },
+        "target_states_equal": true,
+        "setup_attempts": [],
+        "scope": "prepared scenario on separate fresh test destinations"
+      },
+      "graphato-bootstrap-host": {
+        "pipeline": "graphato-bootstrap-host",
+        "commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+        "supporting_repository_commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+        "jenkins_build": 1,
+        "leroy_run": "490579340b2f4b8192e386b941adc4ae",
+        "round": "aligned",
+        "workload_success": true,
+        "observed_scenario_parity": true,
+        "complete_pipeline_parity": true,
+        "application_patches_applied": false,
+        "parameters": {
+          "TARGET_HOST": "graphato-vm",
+          "DOMAIN": "graphato.test",
+          "GRAPHATO_REF": "48b741264f3b8353400649f6b05abf6a9c129233",
+          "APPLY_CHANGES": true
+        },
+        "target_states_equal": true,
+        "setup_attempts": [],
+        "scope": "prepared scenario on separate fresh test destinations"
+      },
+      "nikicas-hub-bootstrap-host": {
+        "pipeline": "nikicas-hub-bootstrap-host",
+        "commit": null,
+        "supporting_repository_commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+        "jenkins_build": 1,
+        "leroy_run": "022fdbb5264347688c5c88b2bf46f0e2",
+        "round": "aligned",
+        "comparison_completed": true,
+        "complete_pipeline_parity": false,
+        "application_patches_applied": false,
+        "observed_behavior_difference": "Leroy aligns bind mount permissions with runtime UID and waits for application health",
+        "leroy_runtime_correction_validated": true,
+        "same_deployed_image": "sha256:224eb8ef9cb6895b2ceb2929707941d5fbde8e76dbae953672d4d3ad802372c9",
+        "same_compose_source": "714b0e4ccb1b057ac888dccf7e0a3e865f7bd55c70a5cbe6ddd919ed2c0d7f58",
+        "jenkins_job_success_but_application_unhealthy": true,
+        "leroy_application_healthy": true,
+        "scope": "fresh test VM where deploy UID is 1001 and image UID is 1000; public ACME blocked"
+      },
+      "nikicas-hub-deploy": {
+        "pipeline": "nikicas-hub-deploy",
+        "commit": null,
+        "supporting_repository_commit": "f7fcfcf78e8f3717217f841734be824a8e97bbd2",
+        "jenkins_build": 1,
+        "leroy_run": "4976313f3af34032b3bb3fdef1b2219a",
+        "round": "aligned",
+        "comparison_completed": true,
+        "complete_pipeline_parity": false,
+        "application_patches_applied": false,
+        "observed_behavior_difference": "Leroy aligns bind mount permissions with runtime UID and waits for application health",
+        "leroy_runtime_correction_validated": true,
+        "same_deployed_image": "sha256:224eb8ef9cb6895b2ceb2929707941d5fbde8e76dbae953672d4d3ad802372c9",
+        "same_compose_source": "714b0e4ccb1b057ac888dccf7e0a3e865f7bd55c70a5cbe6ddd919ed2c0d7f58",
+        "jenkins_job_success_but_application_unhealthy": true,
+        "leroy_application_healthy": true,
+        "scope": "fresh test VM where deploy UID is 1001 and image UID is 1000; public ACME blocked"
+      },
+      "graphato-ci": {
+        "pipeline": "graphato-ci",
+        "commit": "48b741264f3b8353400649f6b05abf6a9c129233",
+        "round": "aligned",
+        "jenkins_build": 1,
+        "leroy_run": "d84285fa8f38432b91a78b291275ce6d",
+        "comparison_completed": true,
+        "workload_success": true,
+        "observed_scenario_parity": true,
+        "complete_pipeline_parity": true,
+        "application_patches_applied": false,
+        "same_verification_sources_and_release_policy": true,
+        "same_base_image_digests": [
+          "docker.io/library/debian:bookworm-slim@sha256:3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251",
+          "docker.io/library/docker:28.5.2-cli@sha256:625d9431a9f54c5a2bc90f24f0e1c3d55b1349fd857dd85035f98c2c9acbdd4d",
+          "docker.io/library/docker:28.5.2-dind@sha256:2a232a42256f70d78e3cc5d2b5d6b3276710a0de0596c145f627ecfae90282ac",
+          "docker.io/library/node:24.14.1-bookworm-slim@sha256:b506e7321f176aae77317f99d67a24b272c1f09f1d10f1761f2773447d8da26c",
+          "docker.io/library/rust:1.94.1-slim-bookworm@sha256:cf9dd0ec73e75f827fe59123fff9dc65af1a1c8363c3c31ee8d7f8ad0b6a5fb2",
+          "ghcr.io/astral-sh/uv:0.12.13@sha256:b485bd65cc2cf1c9a93b3554012c9c3778cf7b1b5fd3d3096ce9e1226c97e1e6"
+        ],
+        "compared_files": {
+          "compose.prod.yaml": "415e2ea01a811048a36182fde72ad1e807e0fcf11884a742d1cf93086cd7f73a",
+          "deployments/linux/compose.host.yaml": "84e0738a28ef5bff6b4d34fc5644e8fa63fcbab163684c57bf059874717fbe06",
+          "compose.agent-tests.yaml": "8062a67d6a1031cb21df25ebba917133f2b6543c7f3a3daef4da04a03a2c00e4",
+          "deployments/linux/compose.agent-tests.prod.yaml": "b27a9fd3308df5c8d2e75d9aeecb8f6b0dfcd253df9216015e0492175a073867",
+          "deployments/linux/seccomp-bubblewrap.json": "602b5e464b4fa3eeb94d3e21267fa325d247818e7db8152f5ef18ee1cd2b720a",
+          "deployments/linux/host/init-database.sql": "5051a356a060d999fb3eeede9cb0e0afe518952e63d69a8c59aad599ef05fe87",
+          "deployments/linux/host/release.py": "bcf9bd14edc7f22e217fe966db6cfeb89a7d3df1e01478ee7bb6d02fb69cae34",
+          "deployments/linux/host/https.py": "8e489fd739d69d1bd5a2b6d469c5bcfdaa944ef0cf79a1ecd349860f64ce64c3",
+          "deployments/linux/host/preview-unavailable.html": "a4245ef8bd8238530cf2109a2d5a9d1d52da48aa9519130e24c5e0d8bc558c5e",
+          "deployments/linux/host/schema.py": "bdbc03e573d22ccfa5e526d60a06b3eb8e8757cf027c71be29c36c122996484e",
+          "deployments/linux/host/registry.py": "a35f788f512f4b6367f030f1986592601aa5479d8a00ff1c47ac71f80a5af79a",
+          "deployments/linux/host/postdeploy.py": "bd42f8f21da9ca8fb8923cb4d0bd3666d6e65e35a4f9f8074feead15d62f35a5",
+          "schema.json": "8a591ca5a0a2d1e58ddd4cd6a64f924b4e4d7aab0345dd537a62da12fd778d23",
+          "verification-source.tar.gz": "4385b1770c2ba8f702924d365a17ca90f10b31a81c84be1113630eb2cf2d234f"
+        },
+        "same_healthy_runtime_policy": true,
+        "desktop_publications_verified": true,
+        "scope": "build, original release boundaries, deployment and portable publication; downstream suites evaluated separately",
+        "binary_byte_identity_asserted": false,
+        "build_timestamps_differ": true,
+        "timings_are_not_a_performance_comparison": true
+      },
+      "graphato-postdeploy-web": {
+        "pipeline": "graphato-postdeploy-web",
+        "commit": "48b741264f3b8353400649f6b05abf6a9c129233",
+        "round": "aligned",
+        "jenkins_build": 1,
+        "leroy_run": "d12f8af64975416da5d5ff526cf50f5d",
+        "comparison_completed": true,
+        "workload_success": false,
+        "observed_scenario_parity": true,
+        "complete_pipeline_parity": false,
+        "application_patches_applied": false,
+        "same_startup_failure": {
+          "directory": "/var/lib/graphato-host/postdeploy",
+          "mode": "0o755",
+          "uid": 0,
+          "error": "Run markers require root-private directories",
+          "maintenance_umask": "0022",
+          "checks_started": false,
+          "application_patches_applied": false
+        },
+        "additional_leroy_transport_failure": false,
+        "transport_failure_evidence": null,
+        "uncompared_checks": {
+          "web": [
+            "browser-core",
+            "browser-merge",
+            "browser-media",
+            "browser-voice",
+            "browser-permission",
+            "browser-cleanup",
+            "browser-drop",
+            "browser-clipboard",
+            "browser-skills",
+            "browser-providers",
+            "browser-database",
+            "browser-expiry",
+            "browser-rotation",
+            "browser-dev-services",
+            "browser-dev-environments",
+            "browser-previews",
+            "browser-git-device",
+            "browser-release-switch",
+            "browser-lifecycle",
+            "browser-backup",
+            "browser-soak"
+          ]
+        },
+        "scope": "matched rejection before test execution; no browser or quality check passed"
+      },
+      "graphato-postdeploy-quality": {
+        "pipeline": "graphato-postdeploy-quality",
+        "commit": "48b741264f3b8353400649f6b05abf6a9c129233",
+        "round": "aligned",
+        "jenkins_build": 1,
+        "leroy_run": "1e198c89b1b44014b0eb232aeceb8050",
+        "comparison_completed": true,
+        "workload_success": false,
+        "observed_scenario_parity": false,
+        "complete_pipeline_parity": false,
+        "application_patches_applied": false,
+        "same_startup_failure": {
+          "directory": "/var/lib/graphato-host/postdeploy",
+          "mode": "0o755",
+          "uid": 0,
+          "error": "Run markers require root-private directories",
+          "maintenance_umask": "0022",
+          "checks_started": false,
+          "application_patches_applied": false
+        },
+        "additional_leroy_transport_failure": true,
+        "transport_failure_evidence": "aligned/graphato-ci/leroy-postdeploy-ssh-rate-limit.json",
+        "uncompared_checks": {
+          "quality": [
+            "frontend-and-deployment",
+            "server-fmt",
+            "server-clippy",
+            "server-test",
+            "dev-profiles-smoke",
+            "dev-repositories-smoke",
+            "dev-reset-smoke",
+            "host-runtime-smoke"
+          ]
+        },
+        "scope": "same postdeploy directory rejection; additional Leroy SSH rate-limit timeout during diagnostics/status; no checks passed"
+      },
+      "graphato-release-acceptance": {
+        "pipeline": "graphato-release-acceptance",
+        "commit": "48b741264f3b8353400649f6b05abf6a9c129233",
+        "round": "aligned",
+        "jenkins_build": 1,
+        "leroy_run": "2d6bef89379740bbbc8ae9929ccd57ba",
+        "comparison_completed": true,
+        "workload_success": false,
+        "observed_scenario_parity": false,
+        "complete_pipeline_parity": false,
+        "application_patches_applied": false,
+        "same_startup_failure": {
+          "directory": "/var/lib/graphato-host/postdeploy",
+          "mode": "0o755",
+          "uid": 0,
+          "error": "Run markers require root-private directories",
+          "maintenance_umask": "0022",
+          "checks_started": false,
+          "application_patches_applied": false
+        },
+        "additional_leroy_transport_failure": true,
+        "transport_failure_evidence": "aligned/graphato-ci/leroy-postdeploy-ssh-rate-limit.json",
+        "uncompared_checks": {
+          "web": [
+            "browser-core",
+            "browser-merge",
+            "browser-media",
+            "browser-voice",
+            "browser-permission",
+            "browser-cleanup",
+            "browser-drop",
+            "browser-clipboard",
+            "browser-skills",
+            "browser-providers",
+            "browser-database",
+            "browser-expiry",
+            "browser-rotation",
+            "browser-dev-services",
+            "browser-dev-environments",
+            "browser-previews",
+            "browser-git-device",
+            "browser-release-switch",
+            "browser-lifecycle",
+            "browser-backup",
+            "browser-soak"
+          ],
+          "quality": [
+            "frontend-and-deployment",
+            "server-fmt",
+            "server-clippy",
+            "server-test",
+            "dev-profiles-smoke",
+            "dev-repositories-smoke",
+            "dev-reset-smoke",
+            "host-runtime-smoke"
+          ]
+        },
+        "scope": "same postdeploy directory rejection; additional Leroy SSH rate-limit timeout during diagnostics/status; no checks passed"
+      }
+    },
+    "jenkins_alignment": "test-results/nas-parity/jenkins-aligned-versions.json",
+    "checked_at": "2026-10-06T15:12:51.155072+00:00",
+    "ui_regression_reports": [
+      "test-results/nas-parity/visual/report.json",
+      "test-results/nas-parity/visual-operations/report.json",
+      "test-results/nas-parity/visual-route-loading/report.json",
+      "test-results/nas-parity/visual-detail-loading/report.json",
+      "test-results/nas-parity/visual-populated-details/report.json",
+      "test-results/nas-parity/visual-graphato-live/report.json",
+      "test-results/nas-parity/visual-retry/report.json",
+      "test-results/nas-parity/visual-transport-retry/report.json",
+      "test-results/nas-parity/visual-graphato-final/report.json",
+      "test-results/nas-parity/visual-diagnostics/report.json"
+    ],
+    "comparison_completed": true,
+    "evaluated_pipeline_count": 13,
+    "production_replacement_ready": false
+  },
+  "nas_followup": {
+    "checked_at": "2026-10-06T15:12:51.796335+00:00",
+    "checks": {
+      "ssh_transport": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/ssh-acceptance-after-pressure/report.json"
+      },
+      "lifecycle": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/nas-lifecycle/state.json"
+      },
+      "backup_restore": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/nas-backup/report.json"
+      },
+      "full_stack_restart": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/nas-stack-restart/report.json"
+      },
+      "recovered_services": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/nas-stack-services/run.json"
+      },
+      "parallel_workers": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/nas-parallel/state.json"
+      },
+      "home_lab_build": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/home-lab-build/comparison.json"
+      },
+      "ui": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-followup-ops/report.json"
+      },
+      "ui_followup_results": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-followup-results/report.json"
+      },
+      "ui_graphato_live": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-graphato-78e92e09fa5f-live/report.json"
+      },
+      "ui_graphato_candidate": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-graphato-78e92e09fa5f/report.json"
+      },
+      "ui_graphato_rate_limit_candidate": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-graphato-9968c226f943/report.json"
+      },
+      "artifact_concurrency_local": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/artifact-concurrency-tests.json"
+      },
+      "artifact_concurrency_deployed": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/artifact-concurrency-deployment.json"
+      },
+      "ui_graph_focus_local": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-graph-focus-production/report.json"
+      },
+      "ui_graph_focus_nas": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-graph-focus/report.json"
+      },
+      "ui_antares_timeout": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-antares-cpu2-timeout/report.json"
+      },
+      "ui_log_heartbeat": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-log-heartbeat/report.json"
+      },
+      "ui_interrupted": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-interrupted-status/report.json"
+      },
+      "ui_timeline_deployed": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/timeline-status-ui.json"
+      },
+      "cancel_cleanup_nas": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/cancel-cleanup-tcp-ready/report.json"
+      },
+      "postgres_readiness_local": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/antares-database-readiness/after.json"
+      },
+      "runner_nested_cleanup_local": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/runner-nested-cleanup/local.json"
+      },
+      "runner_nested_cleanup_nas": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/runner-nested-cleanup/nas.json"
+      },
+      "ui_cancel_cleanup": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-cancel-cleanup/report.json"
+      },
+      "antares_buildx": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/antares-buildx/applied.json"
+      },
+      "log_heartbeat_local": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/log-heartbeat-tests.json"
+      },
+      "log_heartbeat_deployed": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/log-heartbeat-deployment.json"
+      },
+      "log_heartbeat_nas": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/log-heartbeat-under-load/report.json"
+      },
+      "linux_pool_preflight": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/linux-pool/preflight.json"
+      },
+      "ui_linux_pool": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-linux-pool/report.json"
+      },
+      "linux_pool_complete_pair": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/linux-pool/complete-pair.json"
+      },
+      "ui_antares_complete": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-antares-3afb3b4f534448779cfa7dca15593147/report.json"
+      },
+      "production_source_review": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/production-source-review/review.json"
+      },
+      "newer_graphato_pipeline_contract": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/production-source-review/newer-pipeline-contract.json"
+      },
+      "nas_only_scope": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/production-source-review/nas-only-scope.json"
+      },
+      "ui_nas_scope": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-nas-scope-after-budget-relief-v2/report.json"
+      },
+      "ui_nas_scope_after_reserve": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-nas-scope-after-fixture-reserve/report.json"
+      },
+      "nas_fixture_budget": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/parent-budget-correction.json"
+      },
+      "nas_original_builder_swap": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/original-builder-swap-alignment.json"
+      },
+      "nas_fixture_swap_reserve": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/fixture-swap-reserve.json"
+      },
+      "nas_fixture_compose_validation": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/compose-budget-validation.json"
+      },
+      "production_quality_failure_diagnosis": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/production-source-review/failed-groups/failure-signatures.json"
+      },
+      "production_merge_failure_observation": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/production-source-review/failed-groups/browser-merge-observation.json"
+      },
+      "original_quality_test_evidence": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/production-source-review/failed-groups/original-quality-test-evidence.json"
+      },
+      "control_residency_tests": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/control-residency-tests.json"
+      },
+      "control_residency_deployment": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/control-residency-deployment.json"
+      },
+      "control_residency_original_workload": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/control-residency-workload.json"
+      },
+      "control_plane_residency": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/control-plane-residency-deployment.json"
+      },
+      "control_plane_real_workload": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/control-plane-residency-workload/report.json"
+      },
+      "control_plane_full_workload": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/scenarios/root-private-existing-host/analysis.json"
+      },
+      "marker_precondition_reproduction": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/marker-precondition-reproduction.json"
+      },
+      "ui_current_graphato_interrupted": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-graphato-ed21c2e6346a-interrupted-4123408f/report.json"
+      },
+      "graphato_current_source_analysis": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/current-source-analysis.json"
+      },
+      "graphato_original_full_suite_comparison": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/scenarios/root-private-existing-host/analysis.json"
+      },
+      "ui_current_graphato_fresh": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-graphato-ed21c2e6346a/report.json"
+      },
+      "ui_current_graphato_existing_host": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-graphato-ed21c2e6346a-existing-host/report.json"
+      },
+      "child_failure_reason_tests": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/child-failure-reason-tests.json"
+      },
+      "child_failure_reason_deployment": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/child-failure-reason-deployment.json"
+      },
+      "child_failure_reason_nas": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/followup/child-failure-reason-nas/report.json"
+      },
+      "ui_child_failure_reason": {
+        "passed": true,
+        "evidence": "test-results/nas-parity/visual-child-failure-reason/report.json"
+      }
+    },
+    "candidates": [
+      {
+        "repository": "antares",
+        "commit": "096f6e8c990eb27e72013700fee3221614b700bc",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-096f6e8c990e.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": "test-results/nas-parity/followup/candidates/antares/096f6e8c990eb27e72013700fee3221614b700bc/comparison.json",
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "antares",
+        "commit": "23ec36f8fc84e6d2d8e495044b422a44d57d956d",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-23ec36f8fc84.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": null,
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "antares",
+        "commit": "4837546dc6e0a0d516b9536850a1babd355d1e89",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-4837546dc6e0.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": null,
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "antares",
+        "commit": "48f0c7c6845f717e301715dceeb791f076fdd879",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-48f0c7c6845f.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": null,
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "antares",
+        "commit": "58da3ef5d112f58bc0a3d1cbd75179eb71d421c1",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-58da3ef5d112.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": true,
+        "comparison": "test-results/nas-parity/followup/candidates/antares/58da3ef5d112f58bc0a3d1cbd75179eb71d421c1/comparison.json",
+        "execution_host": "Docker Desktop Linux VM on Windows"
+      },
+      {
+        "repository": "antares",
+        "commit": "8607cfd438c7645012bf0482a5da83acb122d6dd",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-8607cfd438c7.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": null,
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "antares",
+        "commit": "88382cc055a84452f31317ad8087712a48428769",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-88382cc055a8.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": "test-results/nas-parity/followup/candidates/antares/88382cc055a84452f31317ad8087712a48428769/comparison.json",
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "antares",
+        "commit": "8f8b50e3b5816e5c8ed8fed960f7460c087bdbcb",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-8f8b50e3b581.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": "test-results/nas-parity/followup/candidates/antares/8f8b50e3b5816e5c8ed8fed960f7460c087bdbcb/comparison.json",
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "antares",
+        "commit": "8fdbbeeeb625b2632cb9aa666aac8d8205f1105e",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-8fdbbeeeb625.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": null,
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "antares",
+        "commit": "9f05b7f1aa56d709f269c37700a65785385a8391",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-9f05b7f1aa56.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": "test-results/nas-parity/followup/candidates/antares/9f05b7f1aa56d709f269c37700a65785385a8391/comparison.json",
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "antares",
+        "commit": "b0210d2e62da29764bf8d1f82a3850c9e5fbfd29",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-b0210d2e62da.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": "test-results/nas-parity/followup/candidates/antares/b0210d2e62da29764bf8d1f82a3850c9e5fbfd29/comparison.json",
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "antares",
+        "commit": "e4e47930fc69a3ad8fa46b6668242f9de81338a0",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-e4e47930fc69.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": null,
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "antares",
+        "commit": "f6f891ce7c0e0728d815a284fe81391f22090a0e",
+        "original_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+        "patch": "docs/upstream-patches/antares-nas-f6f891ce7c0e.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": "test-results/nas-parity/followup/candidates/antares/f6f891ce7c0e0728d815a284fe81391f22090a0e/comparison.json",
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "graphato",
+        "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+        "original_commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+        "patch": null,
+        "source_kind": "frozen_master_revision",
+        "application_patches_applied": false,
+        "workload_success_both": false,
+        "comparison": null,
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "graphato",
+        "commit": "78e92e09fa5f6f4f40c5e60e2b149ab66b76987c",
+        "original_commit": "48b741264f3b8353400649f6b05abf6a9c129233",
+        "patch": "docs/upstream-patches/graphato-nas-78e92e09fa5f.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": false,
+        "comparison": "test-results/nas-parity/followup/candidates/graphato/78e92e09fa5f6f4f40c5e60e2b149ab66b76987c/comparison.json",
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "graphato",
+        "commit": "9968c226f943eb177f31c36fa0e97e7fc7f260d5",
+        "original_commit": "48b741264f3b8353400649f6b05abf6a9c129233",
+        "patch": "docs/upstream-patches/graphato-nas-9968c226f943.patch",
+        "source_kind": "separate_application_candidate",
+        "application_patches_applied": true,
+        "workload_success_both": true,
+        "comparison": "test-results/nas-parity/followup/candidates/graphato/9968c226f943eb177f31c36fa0e97e7fc7f260d5/comparison.json",
+        "execution_host": "NAS test daemon"
+      },
+      {
+        "repository": "graphato",
+        "commit": "ed21c2e6346aab6f71494765a37ba91e0d4559b7",
+        "original_commit": "ed21c2e6346aab6f71494765a37ba91e0d4559b7",
+        "patch": null,
+        "source_kind": "observed_production_revision",
+        "application_patches_applied": false,
+        "workload_success_both": false,
+        "comparison": null,
+        "execution_host": "NAS test daemon"
+      }
+    ],
+    "production_replacement_ready": false,
+    "scope": "Additional NAS evidence; original failures remain preserved",
+    "current_original_graphato": {
+      "commit": "ed21c2e6346aab6f71494765a37ba91e0d4559b7",
+      "application_patches_applied": false,
+      "fresh_comparison_evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/current-source-analysis.json",
+      "prepared_host_comparison_evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/scenarios/root-private-existing-host/analysis.json",
+      "successful_followup_checks_mean_successful_pipelines": false,
+      "scope": "Comparison and diagnosis checks are separate from successful application workloads",
+      "fresh_target": {
+        "workload_success_both": false,
+        "pipelines": {
+          "graphato-bootstrap-host": {
+            "jenkins_build": 7,
+            "jenkins_result": "SUCCESS",
+            "leroy_run": "5e7682b165d74919b89062c6c61a0461",
+            "leroy_status": "succeeded",
+            "source_matches": true,
+            "workload_success_both": true,
+            "same_terminal_outcome": true,
+            "state": "validated_current_source_scenario"
+          },
+          "graphato-ci": {
+            "jenkins_build": 5,
+            "jenkins_result": "SUCCESS",
+            "leroy_run": "0532ccb16c224326a06f03a08797b793",
+            "leroy_status": "succeeded",
+            "source_matches": true,
+            "workload_success_both": true,
+            "same_terminal_outcome": true,
+            "state": "validated_current_source_scenario"
+          },
+          "graphato-release-acceptance": {
+            "jenkins_build": 5,
+            "jenkins_result": "FAILURE",
+            "leroy_run": "a3e01a99ba1748dfa5703be8e94ddb75",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "workload_success_both": false,
+            "same_terminal_outcome": true,
+            "state": "matching_downstream_failure",
+            "note": "Beide Release-Jobs melden die belegten Fehler ihrer vollst\u00e4ndigen Kindlaufhierarchie."
+          },
+          "graphato-postdeploy-web": {
+            "jenkins_build": 5,
+            "jenkins_result": "FAILURE",
+            "leroy_run": "e41566823e474fa4bdff2685035c98d2",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "workload_success_both": false,
+            "same_terminal_outcome": true,
+            "state": "matching_application_failure",
+            "same_check_outcomes_or_startup_failure": true,
+            "all_required_groups_executed": false,
+            "same_failure_cause_classified": true
+          },
+          "graphato-postdeploy-quality": {
+            "jenkins_build": 5,
+            "jenkins_result": "FAILURE",
+            "leroy_run": "310118fbae874c2b83fd38556a126d96",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "workload_success_both": false,
+            "same_terminal_outcome": true,
+            "state": "matching_application_failure",
+            "same_check_outcomes_or_startup_failure": true,
+            "all_required_groups_executed": false,
+            "same_failure_cause_classified": true
+          }
+        },
+        "suites": {
+          "web": {
+            "required_checks": [
+              "browser-backup",
+              "browser-cleanup",
+              "browser-clipboard",
+              "browser-core",
+              "browser-database",
+              "browser-dev-environments",
+              "browser-dev-services",
+              "browser-drop",
+              "browser-expiry",
+              "browser-git-device",
+              "browser-lifecycle",
+              "browser-media",
+              "browser-merge",
+              "browser-permission",
+              "browser-previews",
+              "browser-providers",
+              "browser-release-switch",
+              "browser-rotation",
+              "browser-skills",
+              "browser-soak",
+              "browser-voice"
+            ],
+            "engines": {
+              "jenkins": {
+                "receipt_available": false,
+                "startup_failure": "Run markers require root-private directories",
+                "control_directory": {
+                  "exists": true,
+                  "mode": "0o755",
+                  "uid": 0,
+                  "gid": 0,
+                  "is_directory": true,
+                  "is_symlink": false
+                },
+                "checks_executed": 0,
+                "complete_suite_passed": false,
+                "diagnostic_scope": "captured metadata plus unchanged-source temporary reproduction",
+                "diagnostic_evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/marker-precondition-reproduction.json"
+              },
+              "leroy": {
+                "receipt_available": false,
+                "startup_failure": "Run markers require root-private directories",
+                "control_directory": {
+                  "exists": true,
+                  "mode": "0o755",
+                  "uid": 0,
+                  "gid": 0,
+                  "is_directory": true,
+                  "is_symlink": false,
+                  "original_marker_validation_error": "Run markers require root-private directories",
+                  "diagnostic_created_files": false
+                },
+                "checks_executed": 0,
+                "complete_suite_passed": false,
+                "diagnostic_scope": "original runtime probe or explicit console error",
+                "diagnostic_evidence": null
+              }
+            },
+            "same_check_outcomes_or_startup_failure": true,
+            "all_required_groups_executed": false
+          },
+          "quality": {
+            "required_checks": [
+              "dev-profiles-smoke",
+              "dev-repositories-smoke",
+              "dev-reset-smoke",
+              "frontend-and-deployment",
+              "host-runtime-smoke",
+              "server-clippy",
+              "server-fmt",
+              "server-test"
+            ],
+            "engines": {
+              "jenkins": {
+                "receipt_available": false,
+                "startup_failure": "Run markers require root-private directories",
+                "control_directory": {
+                  "exists": true,
+                  "mode": "0o755",
+                  "uid": 0,
+                  "gid": 0,
+                  "is_directory": true,
+                  "is_symlink": false
+                },
+                "checks_executed": 0,
+                "complete_suite_passed": false,
+                "diagnostic_scope": "captured metadata plus unchanged-source temporary reproduction",
+                "diagnostic_evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/marker-precondition-reproduction.json"
+              },
+              "leroy": {
+                "receipt_available": false,
+                "startup_failure": "Run markers require root-private directories",
+                "control_directory": {
+                  "exists": true,
+                  "mode": "0o755",
+                  "uid": 0,
+                  "gid": 0,
+                  "is_directory": true,
+                  "is_symlink": false,
+                  "original_marker_validation_error": "Run markers require root-private directories",
+                  "diagnostic_created_files": false
+                },
+                "checks_executed": 0,
+                "complete_suite_passed": false,
+                "diagnostic_scope": "original runtime probe or explicit console error",
+                "diagnostic_evidence": null
+              }
+            },
+            "same_check_outcomes_or_startup_failure": true,
+            "all_required_groups_executed": false
+          }
+        }
+      },
+      "prepared_host": {
+        "workload_success_both": false,
+        "pipelines": {
+          "graphato-postdeploy-web": {
+            "jenkins_build": 6,
+            "jenkins_result": "FAILURE",
+            "leroy_run": "3b2d204d716e4ca59dd826c3579c98ae",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "state": "matching_failed_checks",
+            "workload_success_both": false,
+            "note": "Separate full-suite scenario with the same original source and active build, restored from the same root-private host snapshot. Failed assertions remain failures."
+          },
+          "graphato-postdeploy-quality": {
+            "jenkins_build": 6,
+            "jenkins_result": "FAILURE",
+            "leroy_run": "e4d9fb9dbc2c4d959881a9b19832e76b",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "state": "matching_application_failure",
+            "workload_success_both": false,
+            "note": "Separate full-suite scenario with the same original source and active build, restored from the same root-private host snapshot. Failed assertions remain failures."
+          },
+          "graphato-release-acceptance": {
+            "jenkins_build": 6,
+            "jenkins_result": "FAILURE",
+            "leroy_run": "b781bace4fa145249dfe1fe5af20ee46",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "state": "matching_downstream_failure",
+            "workload_success_both": false
+          }
+        },
+        "suites": {
+          "web": {
+            "required_checks": [
+              "browser-backup",
+              "browser-cleanup",
+              "browser-clipboard",
+              "browser-core",
+              "browser-database",
+              "browser-dev-environments",
+              "browser-dev-services",
+              "browser-drop",
+              "browser-expiry",
+              "browser-git-device",
+              "browser-lifecycle",
+              "browser-media",
+              "browser-merge",
+              "browser-permission",
+              "browser-previews",
+              "browser-providers",
+              "browser-release-switch",
+              "browser-rotation",
+              "browser-skills",
+              "browser-soak",
+              "browser-voice"
+            ],
+            "engines": {
+              "jenkins": {
+                "receipt_available": true,
+                "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/scenarios/root-private-existing-host/graphato-postdeploy-web/jenkins-6-artifacts/target/postdeploy-web/result.json",
+                "identity": {
+                  "commit": "ed21c2e6346aab6f71494765a37ba91e0d4559b7",
+                  "runtimeImageId": "sha256:1d700aa39bce1dafcb8b8067915567f3fe7c64fc5bb1cb9af4170df0b7df819b",
+                  "sourceSha256": "15e129d8faaf2c8e670c69dfe24e229272dcb951c7ed8519b2178303d792cfff",
+                  "buildTimestamp": "20261005221523",
+                  "suite": "web",
+                  "runId": "acbcf12f782045c8af73d342e28c9b98"
+                },
+                "checks": {
+                  "browser-core": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-merge": {
+                    "passed": false,
+                    "exitCode": 1
+                  },
+                  "browser-media": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-voice": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-permission": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-cleanup": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-drop": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-clipboard": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-skills": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-providers": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-database": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-expiry": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-rotation": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-dev-services": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-dev-environments": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-previews": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-git-device": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-release-switch": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-lifecycle": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-backup": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-soak": {
+                    "passed": true,
+                    "exitCode": 0
+                  }
+                },
+                "checks_executed": 21,
+                "passed_groups": 20,
+                "failed_groups": [
+                  "browser-merge"
+                ],
+                "cleanup_complete": true,
+                "cancelled": false,
+                "complete_suite_passed": false
+              },
+              "leroy": {
+                "receipt_available": true,
+                "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/scenarios/root-private-existing-host/graphato-postdeploy-web/leroy-artifacts/verify/target/postdeploy-web/result.json",
+                "identity": {
+                  "commit": "ed21c2e6346aab6f71494765a37ba91e0d4559b7",
+                  "runtimeImageId": "sha256:1d700aa39bce1dafcb8b8067915567f3fe7c64fc5bb1cb9af4170df0b7df819b",
+                  "sourceSha256": "15e129d8faaf2c8e670c69dfe24e229272dcb951c7ed8519b2178303d792cfff",
+                  "buildTimestamp": "20261005221523",
+                  "suite": "web",
+                  "runId": "e817bad47b984af1bd944747f245b8b0"
+                },
+                "checks": {
+                  "browser-core": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-merge": {
+                    "passed": false,
+                    "exitCode": 1
+                  },
+                  "browser-media": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-voice": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-permission": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-cleanup": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-drop": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-clipboard": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-skills": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-providers": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-database": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-expiry": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-rotation": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-dev-services": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-dev-environments": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-previews": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-git-device": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-release-switch": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-lifecycle": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-backup": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-soak": {
+                    "passed": true,
+                    "exitCode": 0
+                  }
+                },
+                "checks_executed": 21,
+                "passed_groups": 20,
+                "failed_groups": [
+                  "browser-merge"
+                ],
+                "cleanup_complete": true,
+                "cancelled": false,
+                "complete_suite_passed": false
+              }
+            },
+            "archives": {
+              "jenkins": {
+                "path": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/scenarios/root-private-existing-host/graphato-postdeploy-web/jenkins-6-artifacts/target/postdeploy-web/artifacts.tar.gz",
+                "sha256": "b391b5cf884d21b456a54c4dc7e1d4dcbb753c6ff2ac8eaa4521757d06dba510",
+                "members": 159,
+                "expanded_bytes": 999847
+              },
+              "leroy": {
+                "path": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/scenarios/root-private-existing-host/graphato-postdeploy-web/leroy-artifacts/verify/target/postdeploy-web/artifacts.tar.gz",
+                "sha256": "d4eebd1224799072bf46d28978556c8705532eeaac766340d2a8a9fd772da69d",
+                "members": 159,
+                "expanded_bytes": 1000251
+              }
+            },
+            "all_required_groups_executed": true,
+            "same_check_outcomes": true,
+            "failure_signatures": {
+              "jenkins": {
+                "browser-merge": {
+                  "signature": "browser-open/merge: Expected values to be strictly equal: + actual - expected + 'local' - 'pendingPush' ",
+                  "business_cause_classified": false
+                }
+              },
+              "leroy": {
+                "browser-merge": {
+                  "signature": "browser-open/merge: Expected values to be strictly equal: + actual - expected + 'local' - 'pendingPush' ",
+                  "business_cause_classified": false
+                }
+              }
+            },
+            "same_original_failure_signatures": true,
+            "test_details": {},
+            "all_failure_causes_classified": false,
+            "complete_suite_success_both": false
+          },
+          "quality": {
+            "required_checks": [
+              "dev-profiles-smoke",
+              "dev-repositories-smoke",
+              "dev-reset-smoke",
+              "frontend-and-deployment",
+              "host-runtime-smoke",
+              "server-clippy",
+              "server-fmt",
+              "server-test"
+            ],
+            "engines": {
+              "jenkins": {
+                "receipt_available": true,
+                "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/scenarios/root-private-existing-host/graphato-postdeploy-quality/jenkins-6-artifacts/target/postdeploy-quality/result.json",
+                "identity": {
+                  "commit": "ed21c2e6346aab6f71494765a37ba91e0d4559b7",
+                  "runtimeImageId": "sha256:1d700aa39bce1dafcb8b8067915567f3fe7c64fc5bb1cb9af4170df0b7df819b",
+                  "sourceSha256": "15e129d8faaf2c8e670c69dfe24e229272dcb951c7ed8519b2178303d792cfff",
+                  "buildTimestamp": "20261005221523",
+                  "suite": "quality",
+                  "runId": "64838bb8b06e4866a38ba423d21baf15"
+                },
+                "checks": {
+                  "frontend-and-deployment": {
+                    "passed": false,
+                    "exitCode": 1
+                  },
+                  "server-fmt": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "server-clippy": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "server-test": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "dev-profiles-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "dev-repositories-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "dev-reset-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "host-runtime-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  }
+                },
+                "checks_executed": 8,
+                "passed_groups": 7,
+                "failed_groups": [
+                  "frontend-and-deployment"
+                ],
+                "cleanup_complete": true,
+                "cancelled": false,
+                "complete_suite_passed": false
+              },
+              "leroy": {
+                "receipt_available": true,
+                "evidence": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/scenarios/root-private-existing-host/graphato-postdeploy-quality/leroy-artifacts/verify/target/postdeploy-quality/result.json",
+                "identity": {
+                  "commit": "ed21c2e6346aab6f71494765a37ba91e0d4559b7",
+                  "runtimeImageId": "sha256:1d700aa39bce1dafcb8b8067915567f3fe7c64fc5bb1cb9af4170df0b7df819b",
+                  "sourceSha256": "15e129d8faaf2c8e670c69dfe24e229272dcb951c7ed8519b2178303d792cfff",
+                  "buildTimestamp": "20261005221523",
+                  "suite": "quality",
+                  "runId": "d92726884a264126aa4a8014e92df2d4"
+                },
+                "checks": {
+                  "frontend-and-deployment": {
+                    "passed": false,
+                    "exitCode": 1
+                  },
+                  "server-fmt": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "server-clippy": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "server-test": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "dev-profiles-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "dev-repositories-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "dev-reset-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "host-runtime-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  }
+                },
+                "checks_executed": 8,
+                "passed_groups": 7,
+                "failed_groups": [
+                  "frontend-and-deployment"
+                ],
+                "cleanup_complete": true,
+                "cancelled": false,
+                "complete_suite_passed": false
+              }
+            },
+            "archives": {
+              "jenkins": {
+                "path": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/scenarios/root-private-existing-host/graphato-postdeploy-quality/jenkins-6-artifacts/target/postdeploy-quality/artifacts.tar.gz",
+                "sha256": "78a18951eaf4e32bee653cb4dc6010c7cde7e9a97152fa1b70b35549a1a54fdd",
+                "members": 12,
+                "expanded_bytes": 1330843
+              },
+              "leroy": {
+                "path": "test-results/nas-parity/followup/candidates/graphato/ed21c2e6346aab6f71494765a37ba91e0d4559b7/scenarios/root-private-existing-host/graphato-postdeploy-quality/leroy-artifacts/verify/target/postdeploy-quality/artifacts.tar.gz",
+                "sha256": "488560b9ae84211611d81a9f53c4353761c2bcb42e35d1a67321fba133836f06",
+                "members": 12,
+                "expanded_bytes": 1302292
+              }
+            },
+            "all_required_groups_executed": true,
+            "same_check_outcomes": true,
+            "failure_signatures": {
+              "jenkins": {
+                "frontend-and-deployment": {
+                  "signature": "Preview admission requires its dedicated, pre-created runtime mount",
+                  "cause_classified": true,
+                  "cause_evidence": "test-results/nas-parity/followup/production-source-review/failed-groups/failure-signatures.json"
+                }
+              },
+              "leroy": {
+                "frontend-and-deployment": {
+                  "signature": "Preview admission requires its dedicated, pre-created runtime mount",
+                  "cause_classified": true,
+                  "cause_evidence": "test-results/nas-parity/followup/production-source-review/failed-groups/failure-signatures.json"
+                }
+              }
+            },
+            "same_original_failure_signatures": true,
+            "test_details": {
+              "jenkins": {
+                "rust": {
+                  "expected": 1609,
+                  "ok": 1579,
+                  "ignored": 30,
+                  "failed": 0,
+                  "normalized_results_sha256": "49e30e2263d4037aaa9e1c531abdec7077aabc49fd77e5cf8f882ad4da486a18"
+                },
+                "deployment_python": {
+                  "tests": 146,
+                  "result": "FAILED (errors=1)"
+                }
+              },
+              "leroy": {
+                "rust": {
+                  "expected": 1609,
+                  "ok": 1579,
+                  "ignored": 30,
+                  "failed": 0,
+                  "normalized_results_sha256": "49e30e2263d4037aaa9e1c531abdec7077aabc49fd77e5cf8f882ad4da486a18"
+                },
+                "deployment_python": {
+                  "tests": 146,
+                  "result": "FAILED (errors=1)"
+                }
+              }
+            },
+            "all_failure_causes_classified": true,
+            "complete_suite_success_both": false
+          }
+        }
+      }
+    },
+    "accepted_scope": {
+      "at": "2026-10-05T19:48:39.895218+00:00",
+      "deployment_topology": "NAS-only controller and CI workers",
+      "excluded_pipeline": "antares-ci",
+      "included_pipeline_count": 12,
+      "user_authorized_exclusion": true,
+      "antares_definition_and_results_retained": true,
+      "optional_local_linux_pool_stopped": true,
+      "optional_local_linux_pool_auto_restart_disabled": true,
+      "optional_local_linux_pool_data_retained": true,
+      "production_jobs_unchanged": true,
+      "production_modified": false,
+      "production_cutover": false,
+      "production_replacement_ready": false,
+      "evidence": "test-results/nas-parity/followup/production-source-review/nas-only-scope.json"
+    },
+    "production_source_review": {
+      "evidence": "test-results/nas-parity/followup/production-source-review/review.json",
+      "scope": "Application patches are separate; Antares original unit/integration budgets differ from its successful candidate",
+      "same_candidate_success_is_current_source_acceptance": false
+    },
+    "newer_production_graphato_contract_review": {
+      "observed_at": "2026-10-06T01:13:14.067464+00:00",
+      "evidence": "test-results/nas-parity/followup/production-source-review/newer-pipeline-contract.json",
+      "frozen_comparison_commit": "ed21c2e6346aab6f71494765a37ba91e0d4559b7",
+      "revisions": [
+        {
+          "commit": "82f52a6079b6fee4a1f18b3c93536cce7d942d78",
+          "jenkinsfiles_identical": true,
+          "changed_selected_helpers": [
+            "deployments/linux/host/release.py",
+            "deployments/linux/host/test_host.py"
+          ]
+        },
+        {
+          "commit": "b88336f489537724d1dddd8ce27039a1df3a1bb3",
+          "jenkinsfiles_identical": true,
+          "changed_selected_helpers": [
+            "deployments/linux/host/release.py",
+            "deployments/linux/host/test_host.py"
+          ]
+        }
+      ],
+      "newer_workload_parity_claimed": false,
+      "scope": "Read-only source review of later production commits; earlier observed production receipts retain their recorded revisions and timestamps"
+    },
+    "production_graphato_observation": {
+      "commit": "bc3bd268c753e6eda8280c6aa37f0857e71d3a18",
+      "read_only": true,
+      "evidence": "test-results/nas-parity/followup/production-graphato-failures-20261005T120118Z.json",
+      "failed_groups": {
+        "graphato-postdeploy-web": [
+          "browser-merge"
+        ],
+        "graphato-postdeploy-quality": [
+          "frontend-and-deployment"
+        ]
+      },
+      "candidate_comparison": false,
+      "scope": "A different production revision; not covered by the frozen candidate comparison"
+    },
+    "latest_production_graphato_progress": {
+      "observed_at": "2026-10-05T17:47:48.924116+00:00",
+      "read_only": true,
+      "jobs": {
+        "graphato-ci": {
+          "number": 18,
+          "building": false,
+          "result": "SUCCESS"
+        },
+        "graphato-postdeploy-quality": {
+          "number": 11,
+          "building": false,
+          "result": "FAILURE"
+        },
+        "graphato-postdeploy-web": {
+          "number": 11,
+          "building": false,
+          "result": "FAILURE"
+        },
+        "graphato-release-acceptance": {
+          "number": 11,
+          "building": false,
+          "result": "FAILURE"
+        }
+      },
+      "evidence": "test-results/nas-parity/followup/production-graphato-progress-20261005T174748Z.json",
+      "scope": "Build progress only; no inferred source revision or full release acceptance"
+    },
+    "latest_production_graphato_web": {
+      "observed_at": "2026-10-05T17:08:52.382358+00:00",
+      "read_only": true,
+      "number": 11,
+      "result": "FAILURE",
+      "commit": "ed21c2e6346aab6f71494765a37ba91e0d4559b7",
+      "passed_groups": 20,
+      "total_groups": 21,
+      "failed_groups": [
+        "browser-merge"
+      ],
+      "evidence": "test-results/nas-parity/followup/production-graphato-web-11.json",
+      "candidate_comparison": false,
+      "scope": "Production web evidence for its recorded revision; not full release acceptance"
+    },
+    "latest_production_graphato_quality": {
+      "observed_at": "2026-10-05T17:46:03.226918+00:00",
+      "read_only": true,
+      "number": 11,
+      "result": "FAILURE",
+      "commit": "ed21c2e6346aab6f71494765a37ba91e0d4559b7",
+      "passed_groups": 7,
+      "total_groups": 8,
+      "failed_groups": [
+        "frontend-and-deployment"
+      ],
+      "evidence": "test-results/nas-parity/followup/production-graphato-quality-11.json",
+      "candidate_comparison": false,
+      "scope": "Production quality evidence for its recorded revision; not full release acceptance"
+    },
+    "dedicated_linux_execution_pool": {
+      "evidence": "test-results/nas-parity/followup/linux-pool/pool.json",
+      "execution_host": "Docker Desktop Linux VM on Windows",
+      "controller": "http://192.168.178.97:8088",
+      "candidate": "58da3ef5d112f58bc0a3d1cbd75179eb71d421c1",
+      "profile": "antares-linux",
+      "full_ci_acceptance": true,
+      "complete_pair_evidence": "test-results/nas-parity/followup/linux-pool/complete-pair.json",
+      "scope": "Distributed execution; not evidence that NAS hardware can run the browser workload alone",
+      "required_for_current_nas_acceptance": false,
+      "historical_test_pool_stopped": true
+    },
+    "frozen_master_graphato": {
+      "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+      "application_patches_applied": false,
+      "source_evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/frozen-master.json",
+      "fresh_target": {
+        "workload_success_both": false,
+        "pipelines": {
+          "graphato-bootstrap-host": {
+            "jenkins_build": 8,
+            "jenkins_result": "SUCCESS",
+            "leroy_run": "7f81a1e0e21e4cc0b6674b39cbd9a0ea",
+            "leroy_status": "succeeded",
+            "source_matches": true,
+            "same_terminal_outcome": true,
+            "workload_success_both": true,
+            "state": "validated_current_source_scenario"
+          },
+          "graphato-ci": {
+            "jenkins_build": 6,
+            "jenkins_result": "SUCCESS",
+            "leroy_run": "3332cd58b7454812be3178ec4067a240",
+            "leroy_status": "succeeded",
+            "source_matches": true,
+            "same_terminal_outcome": true,
+            "workload_success_both": true,
+            "state": "validated_current_source_scenario"
+          },
+          "graphato-release-acceptance": {
+            "jenkins_build": 7,
+            "jenkins_result": "FAILURE",
+            "leroy_run": "cab5ab64b24f4f349b7f0f8ff27b4c98",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "same_terminal_outcome": true,
+            "workload_success_both": false,
+            "state": "matching_downstream_failure"
+          },
+          "graphato-postdeploy-web": {
+            "jenkins_build": 7,
+            "jenkins_result": "FAILURE",
+            "leroy_run": "91ea63cdfc334ca0a8b238d810329364",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "same_terminal_outcome": true,
+            "workload_success_both": false,
+            "state": "matching_application_failure",
+            "all_required_groups_executed": false,
+            "same_check_outcomes_or_startup_failure": true,
+            "same_failure_cause_classified": true
+          },
+          "graphato-postdeploy-quality": {
+            "jenkins_build": 7,
+            "jenkins_result": "FAILURE",
+            "leroy_run": "e37a74434bb34c5da7ef3f77b1e94de5",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "same_terminal_outcome": true,
+            "workload_success_both": false,
+            "state": "matching_application_failure",
+            "all_required_groups_executed": false,
+            "same_check_outcomes_or_startup_failure": true,
+            "same_failure_cause_classified": true
+          }
+        },
+        "suites": {
+          "web": {
+            "required_checks": [
+              "browser-backup",
+              "browser-cleanup",
+              "browser-clipboard",
+              "browser-core",
+              "browser-database",
+              "browser-dev-environments",
+              "browser-dev-services",
+              "browser-drop",
+              "browser-expiry",
+              "browser-git-device",
+              "browser-lifecycle",
+              "browser-media",
+              "browser-merge",
+              "browser-permission",
+              "browser-previews",
+              "browser-providers",
+              "browser-release-switch",
+              "browser-rotation",
+              "browser-skills",
+              "browser-soak",
+              "browser-voice"
+            ],
+            "engines": {
+              "jenkins": {
+                "receipt_available": false,
+                "startup_failure": "Run markers require root-private directories",
+                "control_directory": {
+                  "exists": true,
+                  "mode": "0o755",
+                  "uid": 0,
+                  "gid": 0,
+                  "is_directory": true,
+                  "is_symlink": false,
+                  "original_marker_validation_error": "Run markers require root-private directories",
+                  "diagnostic_created_files": false
+                },
+                "checks_executed": 0,
+                "complete_suite_passed": false,
+                "diagnostic_scope": "original runtime probe or explicit console error",
+                "diagnostic_evidence": null
+              },
+              "leroy": {
+                "receipt_available": false,
+                "startup_failure": "Run markers require root-private directories",
+                "control_directory": {
+                  "exists": true,
+                  "mode": "0o755",
+                  "uid": 0,
+                  "gid": 0,
+                  "is_directory": true,
+                  "is_symlink": false,
+                  "original_marker_validation_error": "Run markers require root-private directories",
+                  "diagnostic_created_files": false
+                },
+                "checks_executed": 0,
+                "complete_suite_passed": false,
+                "diagnostic_scope": "original runtime probe or explicit console error",
+                "diagnostic_evidence": null
+              }
+            },
+            "all_required_groups_executed": false,
+            "same_check_outcomes_or_startup_failure": true
+          },
+          "quality": {
+            "required_checks": [
+              "dev-profiles-smoke",
+              "dev-repositories-smoke",
+              "dev-reset-smoke",
+              "frontend-and-deployment",
+              "host-runtime-smoke",
+              "server-clippy",
+              "server-fmt",
+              "server-test"
+            ],
+            "engines": {
+              "jenkins": {
+                "receipt_available": false,
+                "startup_failure": "Run markers require root-private directories",
+                "control_directory": {
+                  "exists": true,
+                  "mode": "0o755",
+                  "uid": 0,
+                  "gid": 0,
+                  "is_directory": true,
+                  "is_symlink": false,
+                  "original_marker_validation_error": "Run markers require root-private directories",
+                  "diagnostic_created_files": false
+                },
+                "checks_executed": 0,
+                "complete_suite_passed": false,
+                "diagnostic_scope": "original runtime probe or explicit console error",
+                "diagnostic_evidence": null
+              },
+              "leroy": {
+                "receipt_available": false,
+                "startup_failure": "Run markers require root-private directories",
+                "control_directory": {
+                  "exists": true,
+                  "mode": "0o755",
+                  "uid": 0,
+                  "gid": 0,
+                  "is_directory": true,
+                  "is_symlink": false,
+                  "original_marker_validation_error": "Run markers require root-private directories",
+                  "diagnostic_created_files": false
+                },
+                "checks_executed": 0,
+                "complete_suite_passed": false,
+                "diagnostic_scope": "original runtime probe or explicit console error",
+                "diagnostic_evidence": null
+              }
+            },
+            "all_required_groups_executed": false,
+            "same_check_outcomes_or_startup_failure": true
+          }
+        },
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/current-source-analysis.json"
+      },
+      "prepared_host": {
+        "workload_success_both": false,
+        "all_required_groups_executed_both": true,
+        "no_migration_execution_difference_observed": false,
+        "pipelines": {
+          "graphato-postdeploy-web": {
+            "jenkins_build": 8,
+            "jenkins_result": "FAILURE",
+            "leroy_run": "7d4f8f33ed29423c920cdc60070f8f7f",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "state": "matching_application_failure",
+            "workload_success_both": false,
+            "note": "Separate full-suite scenario with the same original source and active build, restored from the same root-private host snapshot. Failed assertions remain failures."
+          },
+          "graphato-postdeploy-quality": {
+            "jenkins_build": 8,
+            "jenkins_result": "SUCCESS",
+            "leroy_run": "1f4d563dc3d14ca4946ddbdb09302fcd",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "state": "execution_difference",
+            "workload_success_both": false,
+            "note": "Separate full-suite scenario with the same original source and active build, restored from the same root-private host snapshot. Failed assertions remain failures."
+          },
+          "graphato-release-acceptance": {
+            "jenkins_build": 8,
+            "jenkins_result": "FAILURE",
+            "leroy_run": "dd18426ba39f41909881252f087bb804",
+            "leroy_status": "failed",
+            "source_matches": true,
+            "state": "execution_difference",
+            "workload_success_both": false
+          }
+        },
+        "suites": {
+          "web": {
+            "required_checks": [
+              "browser-backup",
+              "browser-cleanup",
+              "browser-clipboard",
+              "browser-core",
+              "browser-database",
+              "browser-dev-environments",
+              "browser-dev-services",
+              "browser-drop",
+              "browser-expiry",
+              "browser-git-device",
+              "browser-lifecycle",
+              "browser-media",
+              "browser-merge",
+              "browser-permission",
+              "browser-previews",
+              "browser-providers",
+              "browser-release-switch",
+              "browser-rotation",
+              "browser-skills",
+              "browser-soak",
+              "browser-voice"
+            ],
+            "engines": {
+              "jenkins": {
+                "receipt_available": true,
+                "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/graphato-postdeploy-web/jenkins-8-artifacts/target/postdeploy-web/result.json",
+                "identity": {
+                  "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+                  "runtimeImageId": "sha256:6251c60f499e41e706613f931bf281ce52312b957d5a6a123cf4e27dd3242585",
+                  "sourceSha256": "f0c737a8133cd73f6b34c66be5081316a7047a1881583532874b40abaec59708",
+                  "buildTimestamp": "20261006113757",
+                  "suite": "web",
+                  "runId": "097390da182140769fee759e5970c40f"
+                },
+                "checks": {
+                  "browser-core": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-merge": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-media": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-voice": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-permission": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-cleanup": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-drop": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-clipboard": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-skills": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-providers": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-database": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-expiry": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-rotation": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-dev-services": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-dev-environments": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-previews": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-git-device": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-release-switch": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-lifecycle": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-backup": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-soak": {
+                    "passed": false,
+                    "exitCode": 1
+                  }
+                },
+                "checks_executed": 21,
+                "passed_groups": 20,
+                "failed_groups": [
+                  "browser-soak"
+                ],
+                "cleanup_complete": true,
+                "cancelled": false,
+                "complete_suite_passed": false
+              },
+              "leroy": {
+                "receipt_available": true,
+                "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/graphato-postdeploy-web/leroy-artifacts/verify/target/postdeploy-web/result.json",
+                "identity": {
+                  "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+                  "runtimeImageId": "sha256:6251c60f499e41e706613f931bf281ce52312b957d5a6a123cf4e27dd3242585",
+                  "sourceSha256": "f0c737a8133cd73f6b34c66be5081316a7047a1881583532874b40abaec59708",
+                  "buildTimestamp": "20261006113757",
+                  "suite": "web",
+                  "runId": "8dbbdc9651af41a3a2d71eec1bc35ef2"
+                },
+                "checks": {
+                  "browser-core": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-merge": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-media": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-voice": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-permission": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-cleanup": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-drop": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-clipboard": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-skills": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-providers": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-database": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-expiry": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-rotation": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-dev-services": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-dev-environments": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-previews": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-git-device": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-release-switch": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-lifecycle": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-backup": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "browser-soak": {
+                    "passed": false,
+                    "exitCode": 1
+                  }
+                },
+                "checks_executed": 21,
+                "passed_groups": 20,
+                "failed_groups": [
+                  "browser-soak"
+                ],
+                "cleanup_complete": true,
+                "cancelled": false,
+                "complete_suite_passed": false
+              }
+            },
+            "archives": {
+              "jenkins": {
+                "path": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/graphato-postdeploy-web/jenkins-8-artifacts/target/postdeploy-web/artifacts.tar.gz",
+                "sha256": "d3f96b6b60ff36f931d7eaa6360c66485a99129c96f073009b8f28ed43f7f883",
+                "members": 160,
+                "expanded_bytes": 952402
+              },
+              "leroy": {
+                "path": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/graphato-postdeploy-web/leroy-artifacts/verify/target/postdeploy-web/artifacts.tar.gz",
+                "sha256": "eb65f85cd26bfcae7b66ce369255d8a69c6b6d497644b85345c0b35bebd7afc1",
+                "members": 160,
+                "expanded_bytes": 963349
+              }
+            },
+            "all_required_groups_executed": true,
+            "same_check_outcomes": true,
+            "failure_signatures": {
+              "jenkins": {
+                "browser-soak": {
+                  "signature": "acceptance/sendSessionPrompt: The request rate for this server credential is exceeded. Wait before retrying.",
+                  "cause_classified": true,
+                  "underlying_environment_or_timing_cause_proven": false,
+                  "cause_evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/browser-soak-failure-analysis.json"
+                }
+              },
+              "leroy": {
+                "browser-soak": {
+                  "signature": "acceptance/sendSessionPrompt: The request rate for this server credential is exceeded. Wait before retrying.",
+                  "cause_classified": true,
+                  "underlying_environment_or_timing_cause_proven": false,
+                  "cause_evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/browser-soak-failure-analysis.json"
+                }
+              }
+            },
+            "same_original_failure_signatures": true,
+            "test_details": {},
+            "all_failure_causes_classified": true,
+            "complete_suite_success_both": false
+          },
+          "quality": {
+            "required_checks": [
+              "dev-profiles-smoke",
+              "dev-repositories-smoke",
+              "dev-reset-smoke",
+              "frontend-and-deployment",
+              "host-runtime-smoke",
+              "server-clippy",
+              "server-fmt",
+              "server-test"
+            ],
+            "engines": {
+              "jenkins": {
+                "receipt_available": true,
+                "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/graphato-postdeploy-quality/jenkins-8-artifacts/target/postdeploy-quality/result.json",
+                "identity": {
+                  "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+                  "runtimeImageId": "sha256:6251c60f499e41e706613f931bf281ce52312b957d5a6a123cf4e27dd3242585",
+                  "sourceSha256": "f0c737a8133cd73f6b34c66be5081316a7047a1881583532874b40abaec59708",
+                  "buildTimestamp": "20261006113757",
+                  "suite": "quality",
+                  "runId": "1b932e13cef14aa496c7b6cfe4b0fd00"
+                },
+                "checks": {
+                  "frontend-and-deployment": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "server-fmt": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "server-clippy": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "server-test": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "dev-profiles-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "dev-repositories-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "dev-reset-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "host-runtime-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  }
+                },
+                "checks_executed": 8,
+                "passed_groups": 8,
+                "failed_groups": [],
+                "cleanup_complete": true,
+                "cancelled": false,
+                "complete_suite_passed": true
+              },
+              "leroy": {
+                "receipt_available": true,
+                "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/graphato-postdeploy-quality/leroy-artifacts/verify/target/postdeploy-quality/result.json",
+                "identity": {
+                  "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+                  "runtimeImageId": "sha256:6251c60f499e41e706613f931bf281ce52312b957d5a6a123cf4e27dd3242585",
+                  "sourceSha256": "f0c737a8133cd73f6b34c66be5081316a7047a1881583532874b40abaec59708",
+                  "buildTimestamp": "20261006113757",
+                  "suite": "quality",
+                  "runId": "ae29ffc36a484b71bda19a2927f67fc8"
+                },
+                "checks": {
+                  "frontend-and-deployment": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "server-fmt": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "server-clippy": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "server-test": {
+                    "passed": false,
+                    "exitCode": 1
+                  },
+                  "dev-profiles-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "dev-repositories-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "dev-reset-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  },
+                  "host-runtime-smoke": {
+                    "passed": true,
+                    "exitCode": 0
+                  }
+                },
+                "checks_executed": 8,
+                "passed_groups": 7,
+                "failed_groups": [
+                  "server-test"
+                ],
+                "cleanup_complete": true,
+                "cancelled": false,
+                "complete_suite_passed": false
+              }
+            },
+            "archives": {
+              "jenkins": {
+                "path": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/graphato-postdeploy-quality/jenkins-8-artifacts/target/postdeploy-quality/artifacts.tar.gz",
+                "sha256": "eb1c5c3ffee02ca79a45eed826c046fb71751de918e298daab116c04af959a17",
+                "members": 12,
+                "expanded_bytes": 1368306
+              },
+              "leroy": {
+                "path": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/graphato-postdeploy-quality/leroy-artifacts/verify/target/postdeploy-quality/artifacts.tar.gz",
+                "sha256": "1c549f763ee98eebe1a8e41467abad21c69e5d61827c8a2763d7fe696325734f",
+                "members": 12,
+                "expanded_bytes": 1367353
+              }
+            },
+            "all_required_groups_executed": true,
+            "same_check_outcomes": false,
+            "failure_signatures": {
+              "jenkins": {},
+              "leroy": {
+                "server-test": {
+                  "signature": null,
+                  "cause_classified": false
+                }
+              }
+            },
+            "same_original_failure_signatures": false,
+            "test_details": {
+              "jenkins": {
+                "rust": {
+                  "expected": 1657,
+                  "ok": 1625,
+                  "ignored": 32,
+                  "failed": 0,
+                  "normalized_results_sha256": "a3c72f00a2c471481a55899b20ce5c45da63b1c51d59de4520728e0a6557a66d"
+                },
+                "deployment_python": {
+                  "tests": 195,
+                  "result": "OK",
+                  "summaries": [
+                    {
+                      "tests": 146,
+                      "result": "OK"
+                    },
+                    {
+                      "tests": 17,
+                      "result": "OK"
+                    },
+                    {
+                      "tests": 13,
+                      "result": "OK"
+                    },
+                    {
+                      "tests": 7,
+                      "result": "OK"
+                    },
+                    {
+                      "tests": 4,
+                      "result": "OK"
+                    },
+                    {
+                      "tests": 8,
+                      "result": "OK"
+                    }
+                  ]
+                }
+              },
+              "leroy": {
+                "rust": {
+                  "expected": 1657,
+                  "ok": 1624,
+                  "ignored": 32,
+                  "failed": 1,
+                  "normalized_results_sha256": "1360791322dba9667b616ce777f6a68d2edd52eda2a399f247bf0bd04003b03a",
+                  "failed_tests": [
+                    "repositories::agent_worktrees::tests::story_integration_tests::story_locks_allow_independent_merges_and_exclude_shared_publication"
+                  ]
+                },
+                "deployment_python": {
+                  "tests": 195,
+                  "result": "OK",
+                  "summaries": [
+                    {
+                      "tests": 146,
+                      "result": "OK"
+                    },
+                    {
+                      "tests": 17,
+                      "result": "OK"
+                    },
+                    {
+                      "tests": 13,
+                      "result": "OK"
+                    },
+                    {
+                      "tests": 7,
+                      "result": "OK"
+                    },
+                    {
+                      "tests": 4,
+                      "result": "OK"
+                    },
+                    {
+                      "tests": 8,
+                      "result": "OK"
+                    }
+                  ]
+                }
+              }
+            },
+            "all_failure_causes_classified": false,
+            "complete_suite_success_both": false
+          }
+        },
+        "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/analysis.json"
+      },
+      "ui_reviews": [
+        {
+          "evidence": "test-results/nas-parity/visual-graphato-0ad540dd5780/report.json",
+          "passed": true,
+          "reviewed_views": 16,
+          "verified_artifact_downloads": 4
+        },
+        {
+          "evidence": "test-results/nas-parity/visual-graphato-0ad540dd5780-existing-host/report.json",
+          "passed": true,
+          "reviewed_views": 12,
+          "verified_artifact_downloads": 3
+        }
+      ],
+      "final_operations_passed": true,
+      "final_operations_scope": {
+        "infrastructure_only": true,
+        "application_workload_success_both": false,
+        "no_migration_execution_difference_observed": false,
+        "unaccepted_application_pipelines": [
+          "graphato-postdeploy-web",
+          "graphato-postdeploy-quality",
+          "graphato-release-acceptance"
+        ],
+        "application_acceptance_evidence": "scenarios/root-private-existing-host/analysis.json",
+        "production_replacement_ready": false
+      },
+      "supporting_diagnosis": {
+        "rust_direct_failure": {
+          "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/rust-retry-coverage-failure-analysis.json",
+          "result": {
+            "at": "2026-10-06T14:34:12.304374+00:00",
+            "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+            "cause_classified": true,
+            "engine": "leroy",
+            "run_id": "1f4d563dc3d14ca4946ddbdb09302fcd",
+            "test_name": "repositories::agent_worktrees::tests::story_integration_tests::story_locks_allow_independent_merges_and_exclude_shared_publication",
+            "test_event": "failed",
+            "test_seconds": 4.550504934,
+            "stdout_sha256": "fe4ad59f2c12a203079e7d600e8cca6440b7544a99e0ac62e581471d6a7fa696",
+            "assertion": "the overlapping PostgreSQL transactions must exercise a serialization retry",
+            "assertion_source_line": 121,
+            "assertion_threshold": 3,
+            "observed_attempts": "Less than 3; the exact count was not printed.",
+            "both_merge_results_unwrapped_before_assertion": true,
+            "later_functional_assertions_executed": false,
+            "archive_sha256": "1c549f763ee98eebe1a8e41467abad21c69e5d61827c8a2763d7fe696325734f",
+            "source_sha256": {
+              "apps/desktop/src-tauri/src/repositories/agent_worktrees/story_integration_tests.rs": "adb546c88e5ad0c755f9a84f60db6fd2bfec3a1b56b11bed53b0c8a2fa2e9095"
+            },
+            "application_source_modified": false,
+            "application_settings_modified": false,
+            "jenkins_full_suite_passed": true,
+            "leroy_full_suite_passed": false,
+            "underlying_scheduling_cause_proven": false,
+            "leroy_engine_cause_proven": false,
+            "short_probe_can_replace_full_suite_result": false,
+            "production_replacement_ready": false
+          }
+        },
+        "rust_single_case_probe": {
+          "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/scenarios/root-private-existing-host/rust-retry-coverage-probe.json",
+          "result": {
+            "at": "2026-10-06T14:34:41.130415+00:00",
+            "supporting_probe_completed": true,
+            "test_outcomes_varied": false,
+            "result": {
+              "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+              "test": "repositories::agent_worktrees::tests::story_integration_tests::story_locks_allow_independent_merges_and_exclude_shared_publication",
+              "samples": [
+                {
+                  "attempt": 1,
+                  "passed": true,
+                  "exit_code": 0,
+                  "retry_coverage_assertion_failed": false,
+                  "log_sha256": "c9361e8f2f2b5ac2bffd1145cfedec1f8ac0c35a77ec3102bc020e76be887382"
+                },
+                {
+                  "attempt": 2,
+                  "passed": true,
+                  "exit_code": 0,
+                  "retry_coverage_assertion_failed": false,
+                  "log_sha256": "b4d2c7679c608bab0de3a0b38e311608b615dae5c48f215c01e607bbc977b6b8"
+                },
+                {
+                  "attempt": 3,
+                  "passed": true,
+                  "exit_code": 0,
+                  "retry_coverage_assertion_failed": false,
+                  "log_sha256": "f6d6f2a32ce8e3fce7b07f1569995258e4ac0fd380b94c2baebaacde8309fbdd"
+                },
+                {
+                  "attempt": 4,
+                  "passed": true,
+                  "exit_code": 0,
+                  "retry_coverage_assertion_failed": false,
+                  "log_sha256": "45f153e067421dc8f0f1c604e838e4004b80304979689441666871a9814bc696"
+                }
+              ],
+              "resource_policies": [
+                {
+                  "server_memory": "6g",
+                  "server_memory_and_swap": "6g",
+                  "server_cpus": 2,
+                  "rust_test_threads": 2,
+                  "database_memory": "1536m",
+                  "database_memory_and_swap": "1536m",
+                  "database_cpus": 1
+                },
+                {
+                  "server_memory": "6g",
+                  "server_memory_and_swap": "6g",
+                  "server_cpus": 2,
+                  "rust_test_threads": 2,
+                  "database_memory": "1536m",
+                  "database_memory_and_swap": "1536m",
+                  "database_cpus": 1
+                },
+                {
+                  "server_memory": "6g",
+                  "server_memory_and_swap": "6g",
+                  "server_cpus": 2,
+                  "rust_test_threads": 2,
+                  "database_memory": "1536m",
+                  "database_memory_and_swap": "1536m",
+                  "database_cpus": 1
+                },
+                {
+                  "server_memory": "6g",
+                  "server_memory_and_swap": "6g",
+                  "server_cpus": 2,
+                  "rust_test_threads": 2,
+                  "database_memory": "1536m",
+                  "database_memory_and_swap": "1536m",
+                  "database_cpus": 1
+                }
+              ],
+              "source_archive_sha256": "f0c737a8133cd73f6b34c66be5081316a7047a1881583532874b40abaec59708",
+              "completed_samples": 4,
+              "cleanup_complete": true,
+              "application_source_changed": false,
+              "application_settings_changed": false,
+              "full_suite_result_replaced": false,
+              "test_selection": "One original case; other libtests are filtered, not accepted",
+              "scope": "Supporting variance diagnosis; four bounded fresh PostgreSQL fixtures with original limits and two Rust test threads"
+            },
+            "artifact_sha256": "e13ae29419c16e786f27b07efabe9bf39833ff0e01e7b77710ce1047fc12bb26",
+            "run_evidence": "test-results/nas-parity/followup/frozen-master-rust-coverage-0ad540dd5780-adapter-fixed/run.json",
+            "previous_diagnostic_definition_restored": true,
+            "ci_dispatcher_on_nas": true,
+            "attempt": "adapter-fixed",
+            "earlier_startup_failure_retained": true,
+            "production_modified": false,
+            "full_suite_acceptance_replaced": false
+          }
+        },
+        "infrastructure_scope_tests": {
+          "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/infrastructure-scope-tests.json",
+          "result": {
+            "at": "2026-10-06T13:40:04.933880+00:00",
+            "passed": true,
+            "test_count": 6,
+            "scope": "Local acceptance-helper scope guards; not application or NAS workload acceptance",
+            "command": ".venv/Scripts/python.exe -X utf8 -m pytest -q tests/test_nas_operations_scope.py",
+            "files_sha256": {
+              "scripts/nas_operations_scope.py": "9d69a9e0108eb8a440b7b23166c04d504c5526316e174e3a6c915becacff459c",
+              "tests/test_nas_operations_scope.py": "66f9ed3c73164045156dee035c225a639e33377607f2bf99ad0ec3fa0d3d8439"
+            }
+          }
+        },
+        "quality_parser_tests": {
+          "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/quality-parser-failed-rust-tests.json",
+          "result": {
+            "at": "2026-10-06T14:26:22.443854+00:00",
+            "passed": true,
+            "test_count": 8,
+            "scope": "Local artifact parser guards; failed Rust results are preserved without rejecting complete evidence",
+            "command": ".venv/Scripts/python.exe -X utf8 -m pytest -q tests/test_nas_original_quality_evidence.py",
+            "files_sha256": {
+              "scripts/analyze_existing_host_nas_graphato.py": "af6fa6db8b2226870cf168f32553ec9e1f095a082b640098d43f9df21943b618",
+              "tests/test_nas_original_quality_evidence.py": "b0351f4ee6f569058e48b94087606ea87bbc10d7ef3085b0468a8c01ed2740bc"
+            }
+          }
+        },
+        "acceptance_reporting_tests": {
+          "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/acceptance-reporting-tests.json",
+          "result": {
+            "at": "2026-10-06T14:40:38.339920+00:00",
+            "command": ".venv/Scripts/python.exe -X utf8 -m pytest -q tests/test_nas_acceptance_reporting.py",
+            "exit_code": 0,
+            "passed": true,
+            "tests_passed": 4,
+            "observed_summary": "4 passed in 0.15s",
+            "source_sha256": {
+              "scripts/summarize_nas_acceptance_scope.py": "bac89da0f69d328ced38fb2dec2ec92ab306d93f7d41b0eada2607c90820fb43",
+              "tests/test_nas_acceptance_reporting.py": "81cf5cd7f5fdc9f638ffce50f176f84f451ec4834052e78ce65e7a80626cdf59"
+            },
+            "scope": "Completed differing outcomes remain separate; incomplete comparisons and matching failures cannot be promoted to successful acceptance."
+          }
+        },
+        "image_restore_storage_diagnosis": {
+          "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/release-image-restore-storage-analysis.json",
+          "result": {
+            "at": "2026-10-06T14:52:34.154823+00:00",
+            "cause_classified": true,
+            "first_attempt_passed": false,
+            "source_host_store": "classic overlay2",
+            "source_job_store": "containerd OCI image indices",
+            "first_restore_store": "classic overlay2",
+            "archive_includes_original_oci_indices": true,
+            "job_config_ids_are_not_their_index_ids": true,
+            "repair": "Restore each archive in an empty disconnected daemon using the same image-store model as its source. Preserve exact original IDs and RootFS layers.",
+            "source_storage_evidence": "release-image-source-storage.json",
+            "archive_index_evidence": "release-image-job-oci-manifest.json",
+            "official_documentation": "https://docs.docker.com/engine/storage/containerd/",
+            "archives_reexported": false,
+            "production_storage_changed": false,
+            "production_modified": false
+          }
+        },
+        "acceptance_helper_tests_final": {
+          "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/acceptance-helper-tests-final.json",
+          "result": {
+            "at": "2026-10-06T15:00:11.759207+00:00",
+            "command": [
+              "C:\\Users\\nikic\\GIT\\leroy\\.venv\\Scripts\\python.exe",
+              "-X",
+              "utf8",
+              "-m",
+              "pytest",
+              "-q",
+              "tests/test_nas_operations_scope.py",
+              "tests/test_nas_original_quality_evidence.py",
+              "tests/test_nas_acceptance_reporting.py"
+            ],
+            "passed": true,
+            "exit_code": 0,
+            "observed_summary": "..................                                                       [100%]\n18 passed in 0.27s",
+            "tests_passed": 18,
+            "source_sha256": {
+              "scripts/nas_operations_scope.py": "9d69a9e0108eb8a440b7b23166c04d504c5526316e174e3a6c915becacff459c",
+              "scripts/analyze_existing_host_nas_graphato.py": "af6fa6db8b2226870cf168f32553ec9e1f095a082b640098d43f9df21943b618",
+              "scripts/summarize_nas_acceptance_scope.py": "d908c3b6c4b7528a9ab1ad8e66ad7c6ec2ef31833a2f7e69ae264599462ba9a6",
+              "tests/test_nas_operations_scope.py": "66f9ed3c73164045156dee035c225a639e33377607f2bf99ad0ec3fa0d3d8439",
+              "tests/test_nas_original_quality_evidence.py": "b0351f4ee6f569058e48b94087606ea87bbc10d7ef3085b0468a8c01ed2740bc",
+              "tests/test_nas_acceptance_reporting.py": "81cf5cd7f5fdc9f638ffce50f176f84f451ec4834052e78ce65e7a80626cdf59"
+            },
+            "scope": "Receipt completeness, failed Rust evidence, independent infrastructure scope and reporting differing full-suite outcomes; no application workload acceptance."
+          }
+        },
+        "image_restore_wait_failure": {
+          "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/release-image-restore-wait-failure.json",
+          "result": {
+            "failure": {
+              "passed": false,
+              "archive": "host-images.tar.gz",
+              "exception_type": "TimeoutExpired",
+              "exit_code": null
+            },
+            "files": {
+              "started.json": 130,
+              "disk-preflight.json": 133,
+              "archives.json": 1136,
+              "host-images.tar.gz.daemon.json": 78,
+              "host-images.tar.gz.load.stdout": 0,
+              "host-images.tar.gz.load.stderr": 0,
+              "failure.json": 106,
+              "host-images.tar.gz.daemon.log": 15134
+            },
+            "remaining_restore_containers": [],
+            "remaining_restore_volumes": []
+          }
+        },
+        "restart_idle_builder_drain": {
+          "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/restart-builder-drain.json",
+          "result": {
+            "builders_stopped": {
+              "581bf4ab427268d1f2df919fe9f1571572d5396b2df9f64f36403ca3c2b20ef6": "/buildx_buildkit_leroy-graphato-nas-parity0",
+              "ac95179869133a91801611707aba2845b9d93121e1c5b00c8a51803ce1d1ddba": "/buildx_buildkit_graphato-registry-ci0"
+            },
+            "only_registry_and_gitea_running": true,
+            "builder_containers_and_caches_removed": false,
+            "production_modified": false,
+            "test_jenkins_stopped": true,
+            "at": "2026-10-06T15:02:37.621966+00:00",
+            "all_leroy_test_runs_idle": true
+          }
+        },
+        "frozen_source_integrity_tests": {
+          "evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/frozen-integrity-tests.json",
+          "result": {
+            "at": "2026-10-06T15:11:22.881129+00:00",
+            "passed": true,
+            "exit_code": 0,
+            "tests_passed": 3,
+            "command": ".venv/Scripts/python.exe -X utf8 -m pytest -q tests/test_frozen_source_integrity.py",
+            "observed_summary": "3 passed in 1.86s",
+            "source_sha256": {
+              "scripts/finish_frozen_master_nas_acceptance.py": "2000c807a4a92d6d94d6109f62ed97dbce812230a1b32d1b6830607b99de0376",
+              "tests/test_frozen_source_integrity.py": "07fe967e4d322c08de3d613bdc302eb7ddc6f4bba9b3f367b947880050ae3f88"
+            },
+            "scope": "Real Git checkout: clean CRLF conversion accepted, modified tracked source and wrong canonical blob digests rejected."
+          }
+        }
+      },
+      "supporting_probe_replaces_full_comparison": false,
+      "final_operations_evidence": "test-results/nas-parity/followup/candidates/graphato/0ad540dd578033d45e4d0c25d89fbe57b32102a4/final-operations-acceptance.json",
+      "production_configuration_activated": false,
+      "production_credentials_migrated": false,
+      "scope": "Explicit frozen master; prior original-source and patched-candidate evidence remains separate"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+commit 8c070da58c9c7a2fa0fbd45a29cfb939d4e1b93f
+Author:     NIKICA-DESKTOP\nikic <nikica@nstrugar.com>
+AuthorDate: Sat Oct 3 11:58:58 2026 +0200
+Commit:     NIKICA-DESKTOP\nikic <nikica@nstrugar.com>
+CommitDate: Sat Oct 3 11:58:58 2026 +0200
+
+    Handle timerless HTTP injection in snapshot routes
+
+diff --git a/docs/architecture.md b/docs/architecture.md
+index ad77481..4bae861 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -65,6 +65,11 @@ Die visuellen DOM-Nahdetailzellen der Spieleransicht sind nach Weltzeilen in
+ der einzelne semantische Zellproxy unverändert, während React bei Zoom und Pan
+ nicht tausende Geschwister in einem flachen DOM-Container umordnen muss.
+ 
++Lange Snapshot-Operationen deaktivieren den Idle-Timer des echten HTTP-Sockets.
++Der Fastify-Injection-Transport besitzt diesen Timer nicht; auch dort durchlaufen
++Anfragen dieselbe Eingabevalidierung und liefern bei falscher Restore-Bestätigung
++HTTP 422 statt eines internen Fehlers.
++
+ ## Testgrenzen
+ 
+ - Unit-/Property-Tests prüfen zusätzlich 21:9-/Vier-Sektoren-Genesis, Portrait-/Wasserableitung, zusammenhängende Terrainvielfalt, Dschungeldominanz, dschungelgebundene Formationen, Atlaszeilen, exklusive 6×8-Kernmodule, asymmetrische Makroformen und vollständige 4/3-Hüllen, Clusterabdeckung, Footprints, Kontrollanteile, 81-Prozent-Herrschaft, lokalen Pufferstopp, Lagertransfer und 40-Prozent-Recycling.
+diff --git a/src/server/admin/routes.ts b/src/server/admin/routes.ts
+index 505c513..28f301b 100644
+--- a/src/server/admin/routes.ts
++++ b/src/server/admin/routes.ts
+@@ -235,14 +235,16 @@ export async function registerAdminRoutes(
+     // Capturing materialized worlds can legitimately exceed the global idle
+     // socket timeout. The operation remains serialized and observable through
+     // the game-state operation endpoint while this response stays connected.
+-    request.raw.socket.setTimeout(0);
++    // Fastify injection has no real socket timer; actual TCP sockets retain
++    // the same explicit timeout exemption for long snapshot operations.
++    request.raw.socket.setTimeout?.(0);
+     const body = parseInput(snapshotCreateSchema, request.body);
+     const admin = getAuthenticatedSession(request);
+     const snapshot = await createGameStateSnapshot(database, admin.userId, request.id, body.name);
+     await reply.status(201).send({ snapshot });
+   });
+   app.post('/api/admin/game-state-snapshots/:snapshotId/restore', async (request) => {
+-    request.raw.socket.setTimeout(0);
++    request.raw.socket.setTimeout?.(0);
+     const params = parseInput(z.object({ snapshotId: uuid }).strict(), request.params);
+     parseInput(snapshotRestoreSchema, request.body);
+     const admin = getAuthenticatedSession(request);

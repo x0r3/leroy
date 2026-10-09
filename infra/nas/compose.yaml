@@ -1,0 +1,98 @@
+name: leroy-nas-parity
+x-logging: &logs
+  driver: json-file
+  options: {max-size: "10m", max-file: "3"}
+services:
+  postgres:
+    image: postgres:18.4-alpine3.24
+    logging: *logs
+    mem_limit: 256m
+    memswap_limit: 256m
+    mem_reservation: 128m
+    cpus: 0.5
+    environment:
+      POSTGRES_DB: leroy
+      POSTGRES_USER: leroy
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes: [database:/var/lib/postgresql]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U leroy -d leroy"]
+      interval: 3s
+      retries: 30
+    restart: unless-stopped
+  controller:
+    image: leroy-controller:nas-parity
+    logging: *logs
+    mem_limit: 256m
+    memswap_limit: 256m
+    mem_reservation: 128m
+    cpus: 1
+    env_file: config/controller.env
+    environment:
+      LEROY_ADMIN_PASSWORD_FILE: /run/secrets/admin_password
+      LEROY_RUNNER_TOKEN_FILE: /run/secrets/runner_token
+    secrets: [admin_password, runner_token]
+    ports: ["192.168.178.97:8088:8088"]
+    volumes: [data:/data, "./config/leroy.toml:/config/leroy.toml:ro", "./sources:/sources:ro"]
+    networks:
+      default: {ipv4_address: 10.232.98.10}
+    depends_on:
+      postgres: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/health/ready')"]
+      interval: 5s
+      retries: 30
+    restart: unless-stopped
+  docker:
+    image: docker:29.6.2-dind
+    logging: *logs
+    privileged: true
+    mem_limit: 4608m
+    memswap_limit: 7680m
+    cpus: 6
+    blkio_config: {weight: 100}
+    environment: {DOCKER_TLS_CERTDIR: ""}
+    entrypoint: [sh, /leroy-dind.sh]
+    command: ["--bip=10.233.98.1/24", "--default-address-pool=base=10.234.0.0/16,size=24", "--insecure-registry=registry:5000"]
+    volumes:
+      - ./dind.sh:/leroy-dind.sh:ro
+      - engine:/var/lib/docker
+      - ./sources:/sources:ro
+      - ./config/test-secrets:/test-secrets:ro
+      - ./fixtures:/fixtures:ro
+    healthcheck:
+      test: [CMD-SHELL, "test -f /run/leroy-isolation-ready && docker info >/dev/null"]
+      interval: 5s
+      retries: 30
+    restart: unless-stopped
+  runner:
+    image: leroy-runner:nas-parity
+    logging: *logs
+    mem_limit: 192m
+    memswap_limit: 192m
+    mem_reservation: 64m
+    cpus: 0.5
+    environment:
+      DOCKER_HOST: tcp://docker:2375
+      LEROY_CONTROLLER: http://controller:8088
+      LEROY_RUNNER_TOKEN_FILE: /run/secrets/runner_token
+      LEROY_RUNNER_ID: runner-nas-parity
+    secrets: [runner_token]
+    volumes: ["./config/runner.toml:/config/runner.toml:ro", "./config/test-secrets:/test-secrets:ro"]
+    depends_on:
+      docker: {condition: service_healthy}
+      controller: {condition: service_healthy}
+    restart: unless-stopped
+volumes:
+  database:
+  data:
+  engine:
+networks:
+  default:
+    ipam:
+      config: [{subnet: 10.232.98.0/24}]
+secrets:
+  db_password: {file: config/db_password}
+  admin_password: {file: config/admin_password}
+  runner_token: {file: config/runner_token}

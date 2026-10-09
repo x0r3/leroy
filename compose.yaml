@@ -1,0 +1,61 @@
+name: leroy
+x-logging: &bounded-logs
+  driver: json-file
+  options: {max-size: "20m", max-file: "3"}
+services:
+  postgres:
+    logging: *bounded-logs
+    image: postgres:18.4-alpine3.24
+    environment:
+      POSTGRES_USER: leroy
+      POSTGRES_DB: leroy
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes: [database:/var/lib/postgresql]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U leroy -d leroy"]
+      interval: 3s
+      retries: 30
+    restart: unless-stopped
+  controller:
+    logging: *bounded-logs
+    build: {context: ., target: controller}
+    image: leroy-controller:local
+    env_file: .local/controller.env
+    environment:
+      LEROY_ADMIN_PASSWORD_FILE: /run/secrets/admin_password
+      LEROY_RUNNER_TOKEN_FILE: /run/secrets/runner_token
+    secrets: [admin_password, runner_token]
+    volumes: [data:/data, "./.local/leroy.toml:/config/leroy.toml:ro"]
+    ports: ["127.0.0.1:8088:8088"]
+    networks: [default, jobs]
+    depends_on:
+      postgres: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/health/ready')"]
+      interval: 5s
+      retries: 30
+    restart: unless-stopped
+  runner:
+    logging: *bounded-logs
+    build: {context: ., target: runner}
+    image: leroy-runner:local
+    environment:
+      LEROY_CONTROLLER: http://controller:8088
+      LEROY_RUNNER_TOKEN_FILE: /run/secrets/runner_token
+      LEROY_RUNNER_ID: runner-local
+    secrets: [runner_token]
+    volumes: ["./.local/runner.toml:/config/runner.toml:ro", "/var/run/docker.sock:/var/run/docker.sock"]
+    depends_on:
+      controller: {condition: service_healthy}
+    restart: unless-stopped
+volumes:
+  database:
+  data:
+networks:
+  jobs:
+    name: ${LEROY_JOBS_NETWORK:-leroy-jobs}
+secrets:
+  db_password: {file: .local/db_password}
+  admin_password: {file: .local/admin_password}
+  runner_token: {file: .local/runner_token}

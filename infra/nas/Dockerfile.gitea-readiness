@@ -1,0 +1,4 @@
+# Overlay only the Leroy adapter; the Jenkins application toolchain stays pinned.
+FROM leroy-job:nas-parity
+COPY actions.py /opt/leroy-worker/lib/python3.13/site-packages/leroy/actions.py
+RUN python -c 'from leroy.actions import gitea_bootstrap'

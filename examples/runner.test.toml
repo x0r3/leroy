@@ -1,0 +1,66 @@
+capacity = 3
+[profiles.default]
+host_mappings = {controller = "10.231.88.10", graphato-vm = "10.231.88.11"}
+image = "leroy-job:local"
+network = "leroy-jobs"
+memory = "4g"
+cpus = 2
+docker = true
+mounts = ["type=bind,source=/sources,target=/sources,readonly", "type=bind,source=/test-secrets,target=/test-secrets,readonly", "type=bind,source=/test-music,target=/test-music,readonly"]
+[profiles.default.environment]
+CI_REGISTRY_URL = "registry:5000"
+CI_REGISTRY_NAMESPACE = "home-lab"
+GRAPHATO_REGISTRY_PUSH = "registry:5000"
+GRAPHATO_REGISTRY_API = "http://registry:5000"
+[profiles.default.graphato]
+repository = "/sources/graphato"
+host = "graphato-vm"
+port = 2222
+desktop_releases = "/leroy-releases"
+
+[profiles.default.secrets."music-ssh"]
+SSH_KEY_FILE = "/test-secrets/music"
+SSH_USER = "/test-secrets/root-user"
+KNOWN_HOSTS = "/test-secrets/known_hosts"
+
+[profiles.default.secrets."graphato-bootstrap"]
+BOOTSTRAP_KEY = "/test-secrets/bootstrap"
+KNOWN_HOSTS = "/test-secrets/known_hosts"
+
+[profiles.default.secrets."graphato-deploy"]
+DEPLOY_KEY = "/test-secrets/deploy"
+KNOWN_HOSTS = "/test-secrets/known_hosts"
+
+[profiles.default.secrets."hub-bootstrap"]
+BOOTSTRAP_SSH_KEY_FILE = "/test-secrets/bootstrap"
+BOOTSTRAP_USER = "/test-secrets/root-user"
+KNOWN_HOSTS = "/test-secrets/known_hosts"
+
+[profiles.default.secrets."hub-deploy"]
+SSH_KEY_FILE = "/test-secrets/deploy"
+DEPLOY_SSH_KEY_FILE = "/test-secrets/deploy"
+DEPLOY_USER = "/test-secrets/hub-user"
+KNOWN_HOSTS = "/test-secrets/known_hosts"
+
+[profiles.default.secrets."hub-app"]
+DEFAULT_ADMIN_LOGIN_SECRET = "/test-secrets/app-admin-secret"
+APP_SALT = "/test-secrets/app-salt"
+EVENT_HASH_SALT = "/test-secrets/event-salt"
+
+[profiles.default.secrets."gitea-admin"]
+GITEA_ADMIN_USER = "/test-secrets/gitea-user"
+GITEA_ADMIN_PASSWORD = "/test-secrets/gitea-password"
+
+[profiles.default.secrets."paperless"]
+PAPERLESS_API_USERNAME = "/test-secrets/paperless-user"
+PAPERLESS_API_PASSWORD = "/test-secrets/paperless-password"
+
+[profiles.antares]
+test_workers = 1
+host_mappings = {controller = "10.231.88.10", graphato-vm = "10.231.88.11"}
+image="leroy-job:local"
+network="leroy-jobs"
+memory="8g"
+cpus=8
+docker=true
+mounts=["type=bind,source=/sources,target=/sources,readonly"]

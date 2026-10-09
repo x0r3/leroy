@@ -1,0 +1,75 @@
+name: leroy-production
+x-logging: &logs
+  driver: json-file
+  options: {max-size: "10m", max-file: "3"}
+services:
+  postgres:
+    image: sha256:bd1890816ae0b8ad4644f05728570d4be774e1f1490d7232f5084b52ea335183
+    pull_policy: never
+    logging: *logs
+    mem_limit: 256m
+    memswap_limit: 256m
+    mem_reservation: 128m
+    cpus: 0.5
+    environment:
+      POSTGRES_DB: leroy
+      POSTGRES_USER: leroy
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    volumes: [database:/var/lib/postgresql]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U leroy -d leroy"]
+      interval: 3s
+      retries: 30
+    restart: unless-stopped
+  controller:
+    image: sha256:7a805e5eaa1b0709e9df06ea8b1d21e8b09fb0576a57fdedfe94fc6a59761b61
+    pull_policy: never
+    logging: *logs
+    mem_limit: 256m
+    memswap_limit: 256m
+    mem_reservation: 128m
+    cpus: 1
+    env_file: config/controller.env
+    environment:
+      LEROY_ADMIN_PASSWORD_FILE: /run/secrets/admin_password
+      LEROY_RUNNER_TOKEN_FILE: /run/secrets/runner_token
+      LEROY_ORIGIN: http://192.168.178.97:8089
+      LEROY_COOKIE_SECURE: "false"
+    secrets: [admin_password, runner_token]
+    ports: ["192.168.178.97:8089:8088"]
+    volumes: [data:/data, "./config/leroy.toml:/config/leroy.toml:ro"]
+    depends_on:
+      postgres: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/health/ready')"]
+      interval: 5s
+      retries: 30
+    restart: unless-stopped
+  runner:
+    image: sha256:d7c8eff5a6f3ba395420b0b13af04f6eef7261b5e4f1a6fa04e3d23b9230ad45
+    pull_policy: never
+    logging: *logs
+    mem_limit: 192m
+    memswap_limit: 192m
+    mem_reservation: 64m
+    cpus: 0.5
+    environment:
+      LEROY_CONTROLLER: http://192.168.178.97:8089
+      LEROY_RUNNER_TOKEN_FILE: /run/secrets/runner_token
+      LEROY_RUNNER_ID: runner-nas-production
+    secrets: [runner_token]
+    volumes:
+      - ./config/runner.toml:/config/runner.toml:ro
+      - ./config/production-secrets:/production-secrets:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      controller: {condition: service_healthy}
+    restart: unless-stopped
+volumes:
+  database:
+  data:
+secrets:
+  db_password: {file: config/db_password}
+  admin_password: {file: config/admin_password}
+  runner_token: {file: config/runner_token}

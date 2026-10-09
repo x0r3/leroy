@@ -1,0 +1,190 @@
+
+["pipelines"]
+
+["pipelines"."gitea-bootstrap-repo"]
+"enabled" = false
+"profile" = "gitea"
+"repository" = ""
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."gitea-bootstrap-repo"."defaults"]
+"GITEA_URL" = "http://192.168.178.97:3000"
+"GITEA_CONTAINER_NAME" = "gitea"
+"ENSURE_GITEA_ADMIN_LOGIN" = true
+"GITEA_ADMIN_EMAIL" = "gitea-admin@local.lan"
+"GITEA_OWNER" = "gitea-admin"
+"GITEA_REPO" = "home-lab-service-collection"
+"GITEA_REPO_PRIVATE" = true
+"GITEA_DEFAULT_BRANCH" = "main"
+"GITEA_WAIT_SECONDS" = 60
+
+["pipelines"."graphato-bootstrap-host"]
+"enabled" = false
+"profile" = "graphato"
+"repository" = "http://192.168.178.97:3000/gitea-admin/home-lab-service-collection.git"
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."graphato-bootstrap-host"."defaults"]
+"TARGET_HOST" = "87.106.133.233"
+"DOMAIN" = "graphato.de"
+"GRAPHATO_REF" = "master"
+"APPLY_CHANGES" = false
+
+["pipelines"."graphato-ci"]
+"enabled" = false
+"profile" = "graphato"
+"repository" = "http://192.168.178.97:3000/gitea-admin/graphato.git"
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."graphato-ci"."defaults"]
+
+["pipelines"."graphato-postdeploy-quality"]
+"enabled" = false
+"profile" = "graphato"
+"repository" = "http://192.168.178.97:3000/gitea-admin/graphato.git"
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."graphato-postdeploy-quality"."defaults"]
+"CHECK_GROUP" = "all"
+
+["pipelines"."graphato-postdeploy-web"]
+"enabled" = false
+"profile" = "graphato"
+"repository" = "http://192.168.178.97:3000/gitea-admin/graphato.git"
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."graphato-postdeploy-web"."defaults"]
+"CHECK_GROUP" = "all"
+
+["pipelines"."graphato-release-acceptance"]
+"enabled" = false
+"profile" = "graphato"
+"repository" = "http://192.168.178.97:3000/gitea-admin/graphato.git"
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."graphato-release-acceptance"."defaults"]
+
+["pipelines"."home-lab-ci"]
+"enabled" = false
+"profile" = "image-builds"
+"repository" = "http://192.168.178.97:3000/gitea-admin/home-lab-service-collection.git"
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."home-lab-ci"."defaults"]
+
+["pipelines"."music-library-sync-smartphone"]
+"enabled" = false
+"profile" = "operations"
+"repository" = "http://192.168.178.97:3000/gitea-admin/home-lab-service-collection.git"
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."music-library-sync-smartphone"."defaults"]
+"SOURCE_DIRS" = "/srv/music/\n/srv/yt-music/"
+"PHONE_HOST" = "192.168.178.84"
+"PHONE_PORT" = "8022"
+"PHONE_USER" = "u0_a31"
+"PHONE_DEST_DIR" = "/data/data/com.termux/files/home/storage/music/"
+"SSH_CREDENTIALS_ID" = "phone-music-sync-ssh"
+"TIMEOUT_SECONDS" = "30"
+"DRY_RUN" = false
+"EXCLUDE_PATTERNS" = "# One pattern per line (rsync syntax).\n*.tmp\n.DS_Store\n.Trashes\n"
+
+["pipelines"."nikicas-hub-bootstrap-host"]
+"enabled" = false
+"profile" = "operations"
+"repository" = "http://192.168.178.97:3000/gitea-admin/home-lab-service-collection.git"
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."nikicas-hub-bootstrap-host"."defaults"]
+"TARGET_HOST" = "213.165.73.233"
+"TARGET_PORT" = "22"
+"BOOTSTRAP_USER" = "root"
+"BOOTSTRAP_SSH_CREDENTIALS_ID" = "nikicas-hub-bootstrap-ssh"
+"DEPLOY_USER" = "nikicas-hub-deploy"
+"DEPLOY_DIR" = "/opt/nikicas-hub"
+"DEPLOY_SSH_CREDENTIALS_ID" = "nikicas-hub-deploy-ssh"
+"PUBLIC_ORIGIN" = "https://nikica-strugar.de"
+"TRAEFIK_HOST_RULE" = "nikica-strugar.de"
+"ACME_STORAGE_PATH" = "/opt/nikicas-hub/letsencrypt/acme.json"
+"CONFIGURE_FIREWALL" = false
+"DRY_RUN" = false
+
+["pipelines"."nikicas-hub-ci"]
+"enabled" = false
+"profile" = "image-builds"
+"repository" = "http://192.168.178.97:3000/gitea-admin/nikicas-hub.git"
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."nikicas-hub-ci"."defaults"]
+
+["pipelines"."nikicas-hub-deploy"]
+"enabled" = false
+"profile" = "operations"
+"repository" = "http://192.168.178.97:3000/gitea-admin/nikicas-hub.git"
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."nikicas-hub-deploy"."defaults"]
+"GIT_URL" = "http://192.168.178.97:3000/gitea-admin/nikicas-hub.git"
+"GIT_BRANCH" = "master"
+"GIT_CREDENTIALS_ID" = "gitea-http"
+"DEPLOY_HOST" = "213.165.73.233"
+"DEPLOY_PORT" = "22"
+"DEPLOY_USER" = "nikicas-hub-deploy"
+"DEPLOY_DIR" = "/opt/nikicas-hub"
+"SSH_CREDENTIALS_ID" = "nikicas-hub-deploy-ssh"
+"REGISTRY_URL" = "127.0.0.1:5005"
+"REGISTRY_NAMESPACE" = "home-lab"
+"REGISTRY_CREDENTIALS_ID" = "local-registry"
+"IMAGE_NAME" = "nikicas-hub"
+"IMAGE_TAG" = "latest"
+"PUBLIC_ORIGIN" = "https://nikica-strugar.de"
+"ALLOWED_ORIGINS" = "https://nikica-strugar.de"
+"TRAEFIK_HOST_RULE" = "nikica-strugar.de"
+"ACME_EMAIL" = ""
+"ACME_STORAGE_PATH" = "/opt/nikicas-hub/letsencrypt/acme.json"
+"TRUST_PROXY_HOPS" = "1"
+"DEFAULT_ADMIN_USER" = "admin"
+"DEFAULT_ADMIN_LOGIN_SECRET_CREDENTIALS_ID" = "nikicas-hub-default-admin-login-secret"
+"EVENT_HASH_SALT_CREDENTIALS_ID" = "nikicas-hub-event-hash-salt"
+"APP_SALT_CREDENTIALS_ID" = "nikicas-hub-app-salt"
+"DRY_RUN" = false
+
+["pipelines"."paperless-ngx-bootstrap-rules"]
+"enabled" = false
+"profile" = "operations"
+"repository" = "http://192.168.178.97:3000/gitea-admin/home-lab-service-collection.git"
+"ref" = "master"
+"poll_seconds" = 0
+"schedule" = ""
+
+["pipelines"."paperless-ngx-bootstrap-rules"."defaults"]
+"PAPERLESS_API_URL" = "http://192.168.178.97:8010"
+"TIMEOUT_SECONDS" = 30
+"DRY_RUN" = false
+
+["pipelines"."antares-ci"]
+"enabled" = false
+"profile" = "unconfigured"
+"poll_seconds" = 0

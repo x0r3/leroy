@@ -1,0 +1,124 @@
+"capacity" = 1
+
+["profiles"]
+
+["profiles"."image-builds"]
+"image" = "sha256:9e3dd4549026977ddd01afb8150f9330c565c31694db759022381f99696286df"
+"network" = "home-lab-stack_default"
+"memory" = "2g"
+"cpus" = 2
+"docker" = true
+"mounts" = []
+
+["profiles"."image-builds"."environment"]
+"DOCKER_BUILDKIT" = "0"
+"CI_REGISTRY_URL" = "127.0.0.1:5005"
+"CI_REGISTRY_NAMESPACE" = "home-lab"
+
+["profiles"."image-builds"."secrets"]
+
+["profiles"."image-builds"."secrets"."registry"]
+"REGISTRY_USER" = "/production-secrets/registry/REGISTRY_USER"
+"REGISTRY_PASSWORD" = "/production-secrets/registry/REGISTRY_PASSWORD"
+
+["profiles"."image-builds"."secrets"."git"]
+"GIT_USER" = "/production-secrets/git/GIT_USER"
+"GIT_PASSWORD" = "/production-secrets/git/GIT_PASSWORD"
+
+["profiles"."gitea"]
+"image" = "sha256:207b18644442af2957bb715478e0a2b9836c364793407a7c19b9d33fd2bec7d3"
+"network" = "home-lab-stack_default"
+"memory" = "2g"
+"cpus" = 2
+"docker" = true
+"mounts" = []
+
+["profiles"."gitea"."secrets"]
+
+["profiles"."gitea"."secrets"."gitea-admin"]
+"GITEA_ADMIN_USER" = "/production-secrets/gitea-admin/GITEA_ADMIN_USER"
+"GITEA_ADMIN_PASSWORD" = "/production-secrets/gitea-admin/GITEA_ADMIN_PASSWORD"
+
+["profiles"."gitea"."environment"]
+
+["profiles"."graphato"]
+"memory_swap" = "2g"
+"memory_reservation" = "128m"
+"image" = "sha256:9e3dd4549026977ddd01afb8150f9330c565c31694db759022381f99696286df"
+"network" = "host"
+"memory" = "2g"
+"cpus" = 2
+"docker" = true
+"mounts" = ["type=bind,source=/volume1/docker/leroy-production/tools/docker,target=/usr/local/bin/docker,readonly", "type=bind,source=/volume1/docker/leroy-production/tools/cli-plugins,target=/usr/local/lib/docker/cli-plugins,readonly"]
+
+["profiles"."graphato"."environment"]
+"DOCKER_BUILDKIT" = "1"
+"DOCKER_CONFIG" = "/work/docker-config"
+"GRAPHATO_REGISTRY_PUSH" = "127.0.0.1:5005"
+"GRAPHATO_REGISTRY_API" = "http://127.0.0.1:5005"
+
+["profiles"."graphato"."graphato"]
+"builder_name" = "leroy-graphato-production"
+"repository" = "http://192.168.178.97:3000/gitea-admin/graphato.git"
+"host" = "87.106.133.233"
+"port" = 22
+"desktop_releases" = "/volume1/Releases/graphato-desktop"
+
+["profiles"."graphato"."secrets"]
+
+["profiles"."graphato"."secrets"."git"]
+"GIT_USER" = "/production-secrets/git/GIT_USER"
+"GIT_PASSWORD" = "/production-secrets/git/GIT_PASSWORD"
+
+["profiles"."graphato"."secrets"."graphato-bootstrap"]
+"BOOTSTRAP_KEY" = "/production-secrets/graphato-bootstrap/BOOTSTRAP_KEY"
+"KNOWN_HOSTS" = "/production-secrets/graphato-bootstrap/KNOWN_HOSTS"
+
+["profiles"."graphato"."secrets"."graphato-deploy"]
+"DEPLOY_KEY" = "/production-secrets/graphato-deploy/DEPLOY_KEY"
+"KNOWN_HOSTS" = "/production-secrets/graphato-deploy/KNOWN_HOSTS"
+
+["profiles"."operations"]
+"image" = "sha256:9e3dd4549026977ddd01afb8150f9330c565c31694db759022381f99696286df"
+"network" = "home-lab-stack_default"
+"memory" = "2g"
+"cpus" = 2
+"docker" = true
+"mounts" = ["type=bind,source=/volume1/nikicas-public/data/media/music,target=/srv/music,readonly", "type=bind,source=/volume1/nikicas-public/data/media/youtube/music,target=/srv/yt-music,readonly"]
+
+["profiles"."operations"."secrets"]
+
+["profiles"."operations"."secrets"."paperless"]
+"PAPERLESS_API_USERNAME" = "/production-secrets/paperless/PAPERLESS_API_USERNAME"
+"PAPERLESS_API_PASSWORD" = "/production-secrets/paperless/PAPERLESS_API_PASSWORD"
+
+["profiles"."operations"."secrets"."music-ssh"]
+"SSH_KEY_FILE" = "/production-secrets/music-ssh/SSH_KEY_FILE"
+"SSH_USER" = "/production-secrets/music-ssh/SSH_USER"
+"KNOWN_HOSTS" = "/production-secrets/music-ssh/KNOWN_HOSTS"
+
+["profiles"."operations"."secrets"."hub-bootstrap"]
+"BOOTSTRAP_SSH_KEY_FILE" = "/production-secrets/hub-bootstrap/BOOTSTRAP_SSH_KEY_FILE"
+"BOOTSTRAP_USER" = "/production-secrets/hub-bootstrap/BOOTSTRAP_USER"
+"KNOWN_HOSTS" = "/production-secrets/hub-bootstrap/KNOWN_HOSTS"
+
+["profiles"."operations"."secrets"."hub-deploy"]
+"SSH_KEY_FILE" = "/production-secrets/hub-deploy/SSH_KEY_FILE"
+"DEPLOY_SSH_KEY_FILE" = "/production-secrets/hub-deploy/DEPLOY_SSH_KEY_FILE"
+"DEPLOY_USER" = "/production-secrets/hub-deploy/DEPLOY_USER"
+"KNOWN_HOSTS" = "/production-secrets/hub-deploy/KNOWN_HOSTS"
+
+["profiles"."operations"."secrets"."hub-app"]
+"DEFAULT_ADMIN_LOGIN_SECRET" = "/production-secrets/hub-app/DEFAULT_ADMIN_LOGIN_SECRET"
+"APP_SALT" = "/production-secrets/hub-app/APP_SALT"
+"EVENT_HASH_SALT" = "/production-secrets/hub-app/EVENT_HASH_SALT"
+
+["profiles"."operations"."secrets"."git"]
+"GIT_USER" = "/production-secrets/git/GIT_USER"
+"GIT_PASSWORD" = "/production-secrets/git/GIT_PASSWORD"
+
+["profiles"."operations"."secrets"."registry"]
+"REGISTRY_USER" = "/production-secrets/registry/REGISTRY_USER"
+"REGISTRY_PASSWORD" = "/production-secrets/registry/REGISTRY_PASSWORD"
+
+["profiles"."operations"."environment"]

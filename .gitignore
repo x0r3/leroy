@@ -1,0 +1,15 @@
+.sources/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.env
+.local/
+node_modules/
+web/dist/
+test-results/
+playwright-report/
+*.egg-info/
+dist/
+build/

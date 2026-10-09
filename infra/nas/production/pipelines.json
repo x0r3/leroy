@@ -1,0 +1,1921 @@
+[
+  {
+    "id": "gitea-bootstrap-repo",
+    "name": "gitea-bootstrap-repo",
+    "description": "",
+    "group": "Operations",
+    "repository": "",
+    "ref": "master",
+    "profile": "gitea",
+    "timeout": 3600,
+    "concurrency": "serial",
+    "resource": null,
+    "parameters": [
+      {
+        "name": "GITEA_URL",
+        "label": "",
+        "kind": "string",
+        "default": "http://192.168.178.97:3000",
+        "required": true,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      },
+      {
+        "name": "GITEA_CONTAINER_NAME",
+        "label": "",
+        "kind": "string",
+        "default": "gitea",
+        "required": true,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      },
+      {
+        "name": "ENSURE_GITEA_ADMIN_LOGIN",
+        "label": "",
+        "kind": "boolean",
+        "default": true,
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      },
+      {
+        "name": "GITEA_ADMIN_EMAIL",
+        "label": "",
+        "kind": "string",
+        "default": "gitea-admin@local.lan",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      },
+      {
+        "name": "GITEA_OWNER",
+        "label": "",
+        "kind": "string",
+        "default": "gitea-admin",
+        "required": true,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      },
+      {
+        "name": "GITEA_REPO",
+        "label": "",
+        "kind": "string",
+        "default": "home-lab-service-collection",
+        "required": true,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      },
+      {
+        "name": "GITEA_REPO_PRIVATE",
+        "label": "",
+        "kind": "boolean",
+        "default": true,
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      },
+      {
+        "name": "GITEA_DEFAULT_BRANCH",
+        "label": "",
+        "kind": "string",
+        "default": "main",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      },
+      {
+        "name": "GITEA_WAIT_SECONDS",
+        "label": "",
+        "kind": "integer",
+        "default": 60,
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      }
+    ],
+    "credential_parameters": {},
+    "steps": [
+      {
+        "id": "preflight",
+        "name": "Validate Gitea settings",
+        "action": "gitea_preflight",
+        "command": [],
+        "needs": [],
+        "timeout": 3600,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [],
+        "options": {}
+      },
+      {
+        "id": "bootstrap",
+        "name": "Ensure administrator and repository",
+        "action": "gitea_bootstrap",
+        "command": [],
+        "needs": [
+          "preflight"
+        ],
+        "timeout": 3600,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "gitea-admin"
+        ],
+        "options": {}
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": null,
+      "stages": [
+        "Preflight",
+        "Bootstrap Repository"
+      ],
+      "repository": "live Jenkins inline",
+      "script_sha256": "279dda4a33621d8569ba3cb989572d8adda91dd51d7292c3686761ceaaec1bf6",
+      "jenkins_sha256": "5e7ef51aaf69968c9e849f31b0841ab51e3b4e0334c7301f15f3d188975db57d"
+    }
+  },
+  {
+    "id": "graphato-bootstrap-host",
+    "name": "graphato-bootstrap-host",
+    "description": "",
+    "group": "Operations",
+    "repository": "http://192.168.178.97:3000/gitea-admin/home-lab-service-collection.git",
+    "ref": "master",
+    "profile": "graphato",
+    "timeout": 3600,
+    "concurrency": "serial",
+    "resource": "graphato-host",
+    "parameters": [
+      {
+        "name": "TARGET_HOST",
+        "label": "",
+        "kind": "string",
+        "default": "87.106.133.233",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Target with a verified host key in Graphato deployments/linux/host/known_hosts."
+      },
+      {
+        "name": "DOMAIN",
+        "label": "",
+        "kind": "string",
+        "default": "graphato.de",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Public HTTPS domain; its DNS must point to the target."
+      },
+      {
+        "name": "GRAPHATO_REF",
+        "label": "",
+        "kind": "string",
+        "default": "master",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Reviewed Graphato branch or full commit ID containing the host scripts."
+      },
+      {
+        "name": "APPLY_CHANGES",
+        "label": "",
+        "kind": "boolean",
+        "default": false,
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Install packages, reconcile hardening/HTTPS and authorize the deployment key. May restart services; use a maintenance window."
+      }
+    ],
+    "credential_parameters": {},
+    "steps": [
+      {
+        "id": "checkout",
+        "name": "Checkout pinned revision",
+        "action": "checkout",
+        "command": [],
+        "needs": [],
+        "timeout": 1200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "source",
+        "name": "Checkout reviewed Graphato host policy",
+        "action": "graphato_source",
+        "command": [],
+        "needs": [
+          "checkout"
+        ],
+        "timeout": 3600,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "transport",
+        "name": "Bootstrap transport checks",
+        "action": "command",
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "jenkins/graphato",
+          "-p",
+          "test_bootstrap.py",
+          "-v"
+        ],
+        "needs": [
+          "source"
+        ],
+        "timeout": 3600,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [],
+        "options": {}
+      },
+      {
+        "id": "bootstrap",
+        "name": "Inspect or initialize host",
+        "action": "graphato_bootstrap",
+        "command": [],
+        "needs": [
+          "transport"
+        ],
+        "timeout": 3600,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "graphato-bootstrap",
+          "graphato-deploy"
+        ],
+        "options": {}
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+      "stages": [
+        "Checkout reviewed host scripts",
+        "Bootstrap transport checks",
+        "Inspect or initialize host"
+      ],
+      "repository": "home-lab-service-collection",
+      "script_sha256": "edcf0fcc03d43e38b3e1ef3d61d5286bce037b0a26cd1a0dc028721e7d5d4660",
+      "jenkins_sha256": "d4c4236f6231f0959fbe5210e00051b14ca44ee9249b53c5477990863257cb6b"
+    }
+  },
+  {
+    "id": "graphato-ci",
+    "name": "graphato-ci",
+    "description": "Delivery and Windows publication; acceptance is tracked separately",
+    "group": "Graphato",
+    "repository": "http://192.168.178.97:3000/gitea-admin/graphato.git",
+    "ref": "master",
+    "profile": "graphato",
+    "timeout": 14400,
+    "concurrency": "serial",
+    "resource": "graphato-delivery",
+    "parameters": [],
+    "credential_parameters": {},
+    "steps": [
+      {
+        "id": "checkout",
+        "name": "Checkout pinned revision",
+        "action": "checkout",
+        "command": [],
+        "needs": [],
+        "timeout": 1200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "needed",
+        "name": "Check deployed revision",
+        "action": "graphato",
+        "command": [],
+        "needs": [
+          "checkout"
+        ],
+        "timeout": 14400,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "graphato-deploy"
+        ],
+        "options": {
+          "command": "release-needed"
+        }
+      },
+      {
+        "id": "boundaries",
+        "name": "Fast release boundaries",
+        "action": "graphato",
+        "command": [],
+        "needs": [
+          "needed"
+        ],
+        "timeout": 14400,
+        "condition": "release_needed",
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [],
+        "options": {
+          "command": "basic-checks"
+        }
+      },
+      {
+        "id": "server",
+        "name": "Build immutable server and worker",
+        "action": "graphato",
+        "command": [],
+        "needs": [
+          "boundaries"
+        ],
+        "timeout": 14400,
+        "condition": "release_needed",
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [
+          ".leroy-results/release-transfer-timings.json",
+          ".leroy-results/release-manifest.json"
+        ],
+        "secrets": [],
+        "options": {
+          "command": "package"
+        }
+      },
+      {
+        "id": "desktop",
+        "name": "Build Windows portable client",
+        "action": "graphato",
+        "command": [],
+        "needs": [
+          "server"
+        ],
+        "timeout": 14400,
+        "condition": "release_needed",
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [
+          ".leroy-results/desktop-release-manifest.json"
+        ],
+        "secrets": [],
+        "options": {
+          "command": "package-desktop"
+        }
+      },
+      {
+        "id": "current",
+        "name": "Check current master",
+        "action": "current_master",
+        "command": [],
+        "needs": [
+          "desktop"
+        ],
+        "timeout": 14400,
+        "condition": "release_needed",
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "deploy",
+        "name": "Backup, migrate and deploy",
+        "action": "graphato",
+        "command": [],
+        "needs": [
+          "current"
+        ],
+        "timeout": 14400,
+        "condition": "is_current",
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "graphato-deploy"
+        ],
+        "options": {
+          "command": "deploy"
+        }
+      },
+      {
+        "id": "acceptance",
+        "name": "Schedule release acceptance",
+        "action": "child",
+        "command": [],
+        "needs": [
+          "deploy"
+        ],
+        "timeout": 14400,
+        "condition": "is_current",
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [],
+        "options": {
+          "wait": false,
+          "pipeline": "graphato-release-acceptance",
+          "parameter_sources": {
+            "RELEASE_COMMIT": "commit"
+          }
+        }
+      },
+      {
+        "id": "publish",
+        "name": "Publish Windows client",
+        "action": "graphato",
+        "command": [],
+        "needs": [
+          "acceptance"
+        ],
+        "timeout": 14400,
+        "condition": "is_current",
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [],
+        "options": {
+          "command": "publish-desktop"
+        }
+      },
+      {
+        "id": "cleanup",
+        "name": "Clean build resources",
+        "action": "graphato",
+        "command": [],
+        "needs": [
+          "publish"
+        ],
+        "timeout": 14400,
+        "condition": null,
+        "always": true,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [],
+        "options": {
+          "command": "cleanup"
+        }
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+      "stages": [
+        "Checkout Gitea master",
+        "Check deployed revision",
+        "Fast release boundaries",
+        "Build immutable release",
+        "Build Windows portable client",
+        "Check current master",
+        "Backup, migrate and deploy",
+        "Schedule target-host verification",
+        "Publish Windows client on NAS"
+      ],
+      "repository": "graphato",
+      "script_sha256": "8075bfc90d5028de91a631c4e1343fc67b9cd93ea98b5ee26adcb5daa3617a5a",
+      "jenkins_sha256": "74b5843f3162b591fe773cbfa53e6ac58c4c4025140dbfc3c481b3f48de48a5f",
+      "application_patches_applied": false
+    }
+  },
+  {
+    "id": "graphato-postdeploy-quality",
+    "name": "graphato-postdeploy-quality",
+    "description": "Release-bound verification receipts, including partial groups",
+    "group": "Graphato",
+    "repository": "http://192.168.178.97:3000/gitea-admin/graphato.git",
+    "ref": "master",
+    "profile": "graphato",
+    "timeout": 25200,
+    "concurrency": "serial",
+    "resource": null,
+    "parameters": [
+      {
+        "name": "RELEASE_COMMIT",
+        "label": "",
+        "kind": "string",
+        "default": null,
+        "required": true,
+        "choices": [],
+        "pattern": "[a-f0-9]{40}",
+        "description": "Full commit ID of the deployed release to verify on the target host."
+      },
+      {
+        "name": "CHECK_GROUP",
+        "label": "",
+        "kind": "choice",
+        "default": "all",
+        "required": false,
+        "choices": [
+          "all",
+          "frontend",
+          "server",
+          "server-fmt",
+          "server-clippy",
+          "server-test",
+          "development",
+          "dev-profiles",
+          "dev-repositories",
+          "dev-reset",
+          "host"
+        ],
+        "pattern": null,
+        "description": "Run only this group; reuse successful checks of this exact release."
+      }
+    ],
+    "credential_parameters": {},
+    "steps": [
+      {
+        "id": "checkout",
+        "name": "Checkout pinned revision",
+        "action": "checkout",
+        "command": [],
+        "needs": [],
+        "timeout": 1200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "verify",
+        "name": "Verify quality in isolated target environment",
+        "action": "graphato",
+        "command": [],
+        "needs": [
+          "checkout"
+        ],
+        "timeout": 25200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [
+          "target/postdeploy-quality/**"
+        ],
+        "secrets": [
+          "graphato-deploy"
+        ],
+        "options": {
+          "suite": "quality",
+          "command": "postdeploy"
+        }
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+      "stages": [
+        "Checkout deployed revision",
+        "Verify quality on production host in isolated environment"
+      ],
+      "repository": "graphato",
+      "script_sha256": "a7d78d8b27038b30e2e2282aefa3c5a7101de3f337733db32f8f3a97fbfe718c",
+      "jenkins_sha256": "11a75e468541465abdddaa48875c0137fbc68dc3692a455af22bb1c8e551266f",
+      "application_patches_applied": false
+    }
+  },
+  {
+    "id": "graphato-postdeploy-web",
+    "name": "graphato-postdeploy-web",
+    "description": "Release-bound verification receipts, including partial groups",
+    "group": "Graphato",
+    "repository": "http://192.168.178.97:3000/gitea-admin/graphato.git",
+    "ref": "master",
+    "profile": "graphato",
+    "timeout": 25200,
+    "concurrency": "serial",
+    "resource": null,
+    "parameters": [
+      {
+        "name": "RELEASE_COMMIT",
+        "label": "",
+        "kind": "string",
+        "default": null,
+        "required": true,
+        "choices": [],
+        "pattern": "[a-f0-9]{40}",
+        "description": "Full commit ID of the deployed release to verify on the target host."
+      },
+      {
+        "name": "CHECK_GROUP",
+        "label": "",
+        "kind": "choice",
+        "default": "all",
+        "required": false,
+        "choices": [
+          "all",
+          "core",
+          "open",
+          "merge",
+          "media",
+          "voice",
+          "permission",
+          "cleanup",
+          "drop",
+          "clipboard",
+          "skills",
+          "providers",
+          "database",
+          "expiry",
+          "rotation",
+          "dev-services",
+          "dev-environments",
+          "previews",
+          "git-device",
+          "release-switch",
+          "lifecycle",
+          "backup",
+          "soak"
+        ],
+        "pattern": null,
+        "description": "Run only this group; reuse successful checks of this exact release."
+      }
+    ],
+    "credential_parameters": {},
+    "steps": [
+      {
+        "id": "checkout",
+        "name": "Checkout pinned revision",
+        "action": "checkout",
+        "command": [],
+        "needs": [],
+        "timeout": 1200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "verify",
+        "name": "Verify web in isolated target environment",
+        "action": "graphato",
+        "command": [],
+        "needs": [
+          "checkout"
+        ],
+        "timeout": 25200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [
+          "target/postdeploy-web/**"
+        ],
+        "secrets": [
+          "graphato-deploy"
+        ],
+        "options": {
+          "suite": "web",
+          "command": "postdeploy"
+        }
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+      "stages": [
+        "Checkout deployed revision",
+        "Verify web on production host in isolated environment"
+      ],
+      "repository": "graphato",
+      "script_sha256": "f13e082bbbf34f840b03775271a781d66268ff0f747d7f1b68d0bca0e4cb0f5c",
+      "jenkins_sha256": "cebec90f9f3416c59b7adbf69585066fe9032f34bec4cdb914b5f611af2401b6",
+      "application_patches_applied": false
+    }
+  },
+  {
+    "id": "graphato-release-acceptance",
+    "name": "graphato-release-acceptance",
+    "description": "Full acceptance requires both complete suites and a matching release receipt",
+    "group": "Graphato",
+    "repository": "http://192.168.178.97:3000/gitea-admin/graphato.git",
+    "ref": "master",
+    "profile": "graphato",
+    "timeout": 28800,
+    "concurrency": "serial",
+    "resource": null,
+    "parameters": [
+      {
+        "name": "RELEASE_COMMIT",
+        "label": "",
+        "kind": "string",
+        "default": null,
+        "required": true,
+        "choices": [],
+        "pattern": "[a-f0-9]{40}",
+        "description": "Full deployed commit; both complete postdeploy suites are required."
+      }
+    ],
+    "credential_parameters": {},
+    "steps": [
+      {
+        "id": "checkout",
+        "name": "Checkout pinned revision",
+        "action": "checkout",
+        "command": [],
+        "needs": [],
+        "timeout": 1200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "web",
+        "name": "Browser acceptance",
+        "action": "child",
+        "command": [],
+        "needs": [
+          "checkout"
+        ],
+        "timeout": 25200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": true,
+        "artifacts": [],
+        "secrets": [],
+        "options": {
+          "wait": true,
+          "pipeline": "graphato-postdeploy-web",
+          "parameters": {
+            "CHECK_GROUP": "all"
+          },
+          "parameter_sources": {
+            "RELEASE_COMMIT": "commit"
+          }
+        }
+      },
+      {
+        "id": "quality",
+        "name": "Quality acceptance",
+        "action": "child",
+        "command": [],
+        "needs": [
+          "web"
+        ],
+        "timeout": 25200,
+        "condition": null,
+        "always": true,
+        "continue_on_error": true,
+        "artifacts": [],
+        "secrets": [],
+        "options": {
+          "wait": true,
+          "pipeline": "graphato-postdeploy-quality",
+          "parameters": {
+            "CHECK_GROUP": "all"
+          },
+          "parameter_sources": {
+            "RELEASE_COMMIT": "commit"
+          }
+        }
+      },
+      {
+        "id": "identity",
+        "name": "Verify common release identity and total",
+        "action": "graphato",
+        "command": [],
+        "needs": [
+          "quality"
+        ],
+        "timeout": 28800,
+        "condition": null,
+        "always": true,
+        "continue_on_error": false,
+        "artifacts": [
+          "release-status.json"
+        ],
+        "secrets": [
+          "graphato-deploy"
+        ],
+        "options": {
+          "command": "release-status"
+        }
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": "0ad540dd578033d45e4d0c25d89fbe57b32102a4",
+      "stages": [
+        "Release delivered; acceptance running",
+        "Browser acceptance",
+        "Quality acceptance",
+        "Verify common release identity and total"
+      ],
+      "repository": "graphato",
+      "script_sha256": "03fabf5212e4f8f2550ceb6f85fd2eae0983f597c6ac006560e3bde03ab7756a",
+      "jenkins_sha256": "e706e5113df8d04e3058ed548c65d38f3caa744549cd97063c774e631d13baa3",
+      "application_patches_applied": false
+    }
+  },
+  {
+    "id": "home-lab-ci",
+    "name": "home-lab-ci",
+    "description": "Commit-bound Docker images with explicit skip reasons",
+    "group": "Home Lab",
+    "repository": "http://192.168.178.97:3000/gitea-admin/home-lab-service-collection.git",
+    "ref": "master",
+    "profile": "image-builds",
+    "timeout": 18000,
+    "concurrency": "serial",
+    "resource": null,
+    "parameters": [],
+    "credential_parameters": {},
+    "steps": [
+      {
+        "id": "checkout",
+        "name": "Checkout pinned revision",
+        "action": "checkout",
+        "command": [],
+        "needs": [],
+        "timeout": 1200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "inspect",
+        "name": "Inspect changes and CI policy",
+        "action": "inspect_images",
+        "command": [],
+        "needs": [
+          "checkout"
+        ],
+        "timeout": 18000,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [],
+        "options": {}
+      },
+      {
+        "id": "publish",
+        "name": "Build and publish images",
+        "action": "build_images",
+        "command": [],
+        "needs": [
+          "inspect"
+        ],
+        "timeout": 14400,
+        "condition": "build_required",
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [
+          ".leroy-results/images.json"
+        ],
+        "secrets": [
+          "registry"
+        ],
+        "options": {}
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+      "stages": [
+        "Checkout",
+        "Inspect Commit",
+        "Build And Push"
+      ],
+      "repository": "home-lab-service-collection",
+      "script_sha256": "916a421288c06cd530740813292a098ff3fd1432fa0138d4e04d86594d333976",
+      "jenkins_sha256": "fda4f2857c770ef6738899ab10a04268270de0edf491825f2caab6c5a3625f54"
+    }
+  },
+  {
+    "id": "music-library-sync-smartphone",
+    "name": "music-library-sync-smartphone",
+    "description": "",
+    "group": "Operations",
+    "repository": "http://192.168.178.97:3000/gitea-admin/home-lab-service-collection.git",
+    "ref": "master",
+    "profile": "operations",
+    "timeout": 7200,
+    "concurrency": "serial",
+    "resource": "music-phone",
+    "parameters": [
+      {
+        "name": "SOURCE_DIRS",
+        "label": "",
+        "kind": "text",
+        "default": "/srv/music/\n/srv/yt-music/",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Source directories on Jenkins host; one per line."
+      },
+      {
+        "name": "PHONE_HOST",
+        "label": "",
+        "kind": "string",
+        "default": "192.168.178.84",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Smartphone SSH host/IP (for example Termux sshd)."
+      },
+      {
+        "name": "PHONE_PORT",
+        "label": "",
+        "kind": "string",
+        "default": "8022",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Smartphone SSH port."
+      },
+      {
+        "name": "PHONE_USER",
+        "label": "",
+        "kind": "string",
+        "default": "u0_a31",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Optional SSH username override. If empty, username from SSH credential is used."
+      },
+      {
+        "name": "PHONE_DEST_DIR",
+        "label": "",
+        "kind": "string",
+        "default": "/data/data/com.termux/files/home/storage/music/",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Destination directory on smartphone."
+      },
+      {
+        "name": "SSH_CREDENTIALS_ID",
+        "label": "",
+        "kind": "string",
+        "default": "phone-music-sync-ssh",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Jenkins SSH private key credential ID for smartphone."
+      },
+      {
+        "name": "TIMEOUT_SECONDS",
+        "label": "",
+        "kind": "string",
+        "default": "30",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "SSH/rsync timeout in seconds."
+      },
+      {
+        "name": "DRY_RUN",
+        "label": "",
+        "kind": "boolean",
+        "default": false,
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Preview changes only. No files are modified."
+      },
+      {
+        "name": "EXCLUDE_PATTERNS",
+        "label": "",
+        "kind": "text",
+        "default": "# One pattern per line (rsync syntax).\n*.tmp\n.DS_Store\n.Trashes\n",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Optional rsync exclude patterns; one per line, # for comments."
+      }
+    ],
+    "credential_parameters": {
+      "music-ssh": [
+        "SSH_CREDENTIALS_ID"
+      ]
+    },
+    "steps": [
+      {
+        "id": "checkout",
+        "name": "Checkout pinned revision",
+        "action": "checkout",
+        "command": [],
+        "needs": [],
+        "timeout": 1200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "preflight",
+        "name": "Validate sources and SSH transport",
+        "action": "music_preflight",
+        "command": [],
+        "needs": [
+          "checkout"
+        ],
+        "timeout": 7200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "music-ssh"
+        ],
+        "options": {}
+      },
+      {
+        "id": "sync",
+        "name": "Synchronize music library",
+        "action": "music_sync",
+        "command": [],
+        "needs": [
+          "preflight"
+        ],
+        "timeout": 7200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "music-ssh"
+        ],
+        "options": {}
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": null,
+      "stages": [
+        "Preflight",
+        "Sync Music Library"
+      ],
+      "repository": "live Jenkins inline",
+      "script_sha256": "bf9944e5f1c15cda7f874d2cf396abb07b815e088d373d961eaed90207fbfefe",
+      "jenkins_sha256": "4d4deb6a08cf4aca6fb8da40940aeefa757c78c81f5f7467600231ca74ed5303"
+    }
+  },
+  {
+    "id": "nikicas-hub-bootstrap-host",
+    "name": "nikicas-hub-bootstrap-host",
+    "description": "",
+    "group": "Operations",
+    "repository": "http://192.168.178.97:3000/gitea-admin/home-lab-service-collection.git",
+    "ref": "master",
+    "profile": "operations",
+    "timeout": 7200,
+    "concurrency": "serial",
+    "resource": "hub-host",
+    "parameters": [
+      {
+        "name": "TARGET_HOST",
+        "label": "",
+        "kind": "string",
+        "default": "213.165.73.233",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Remote target host/IP."
+      },
+      {
+        "name": "TARGET_PORT",
+        "label": "",
+        "kind": "string",
+        "default": "22",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "SSH port of the remote target."
+      },
+      {
+        "name": "BOOTSTRAP_USER",
+        "label": "",
+        "kind": "string",
+        "default": "root",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Optional SSH username override for bootstrap/root access. If empty, SSH credential username is used."
+      },
+      {
+        "name": "BOOTSTRAP_SSH_CREDENTIALS_ID",
+        "label": "",
+        "kind": "string",
+        "default": "nikicas-hub-bootstrap-ssh",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Jenkins SSH private key credential ID with root/sudo privileges on the target host."
+      },
+      {
+        "name": "DEPLOY_USER",
+        "label": "",
+        "kind": "string",
+        "default": "nikicas-hub-deploy",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Deploy user to create and authorize for later application deployments."
+      },
+      {
+        "name": "DEPLOY_DIR",
+        "label": "",
+        "kind": "string",
+        "default": "/opt/nikicas-hub",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Remote base directory for nikicas-hub."
+      },
+      {
+        "name": "DEPLOY_SSH_CREDENTIALS_ID",
+        "label": "",
+        "kind": "string",
+        "default": "nikicas-hub-deploy-ssh",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Jenkins SSH private key credential ID used by the deploy job. Its public key is authorized on the target host."
+      },
+      {
+        "name": "PUBLIC_ORIGIN",
+        "label": "",
+        "kind": "string",
+        "default": "https://nikica-strugar.de",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Public HTTPS origin of the app."
+      },
+      {
+        "name": "TRAEFIK_HOST_RULE",
+        "label": "",
+        "kind": "string",
+        "default": "nikica-strugar.de",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Primary FQDN used by Traefik."
+      },
+      {
+        "name": "ACME_STORAGE_PATH",
+        "label": "",
+        "kind": "string",
+        "default": "/opt/nikicas-hub/letsencrypt/acme.json",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Absolute Traefik ACME storage file path on the target host."
+      },
+      {
+        "name": "CONFIGURE_FIREWALL",
+        "label": "",
+        "kind": "boolean",
+        "default": false,
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Configure UFW to allow SSH and HTTPS, then enable it."
+      },
+      {
+        "name": "DRY_RUN",
+        "label": "",
+        "kind": "boolean",
+        "default": false,
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Run Ansible in --check mode."
+      }
+    ],
+    "credential_parameters": {
+      "hub-deploy": [
+        "DEPLOY_SSH_CREDENTIALS_ID"
+      ],
+      "hub-bootstrap": [
+        "BOOTSTRAP_SSH_CREDENTIALS_ID"
+      ]
+    },
+    "steps": [
+      {
+        "id": "checkout",
+        "name": "Checkout pinned revision",
+        "action": "checkout",
+        "command": [],
+        "needs": [],
+        "timeout": 1200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "preflight",
+        "name": "Validate host and deploy identity",
+        "action": "hub_bootstrap_preflight",
+        "command": [],
+        "needs": [
+          "checkout"
+        ],
+        "timeout": 7200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "hub-bootstrap",
+          "hub-deploy"
+        ],
+        "options": {}
+      },
+      {
+        "id": "bootstrap",
+        "name": "Bootstrap host with Ansible",
+        "action": "hub_bootstrap",
+        "command": [],
+        "needs": [
+          "preflight"
+        ],
+        "timeout": 7200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "hub-bootstrap",
+          "hub-deploy"
+        ],
+        "options": {}
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": null,
+      "stages": [
+        "Preflight",
+        "Bootstrap Host"
+      ],
+      "repository": "live Jenkins inline",
+      "script_sha256": "624a0cbb254fe2bd130c1a93665f3662c1d65f5fd15d1233a191fac6d8122567",
+      "jenkins_sha256": "080f9825bd9ad2a7796ef2287ab73388c2c4cc86ce55ac5f03d49416d61305be"
+    }
+  },
+  {
+    "id": "nikicas-hub-ci",
+    "name": "nikicas-hub-ci",
+    "description": "Commit-bound Docker images with explicit skip reasons",
+    "group": "Nikicas Hub",
+    "repository": "http://192.168.178.97:3000/gitea-admin/nikicas-hub.git",
+    "ref": "master",
+    "profile": "image-builds",
+    "timeout": 18000,
+    "concurrency": "serial",
+    "resource": null,
+    "parameters": [],
+    "credential_parameters": {},
+    "steps": [
+      {
+        "id": "checkout",
+        "name": "Checkout pinned revision",
+        "action": "checkout",
+        "command": [],
+        "needs": [],
+        "timeout": 1200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "inspect",
+        "name": "Inspect changes and CI policy",
+        "action": "inspect_images",
+        "command": [],
+        "needs": [
+          "checkout"
+        ],
+        "timeout": 18000,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [],
+        "options": {}
+      },
+      {
+        "id": "publish",
+        "name": "Build and publish images",
+        "action": "build_images",
+        "command": [],
+        "needs": [
+          "inspect"
+        ],
+        "timeout": 14400,
+        "condition": "build_required",
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [
+          ".leroy-results/images.json"
+        ],
+        "secrets": [
+          "registry"
+        ],
+        "options": {}
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": "f7fcfcf78e8f3717217f841734be824a8e97bbd2",
+      "stages": [
+        "Checkout",
+        "Inspect Commit",
+        "Build And Push"
+      ],
+      "repository": "nikicas-hub",
+      "script_sha256": "90e6614464fc5c17bd0d308837d36e004b934cc9ac836eb5330b7c27c26c0abe",
+      "jenkins_sha256": "a237f3a2f85d85cb44d7a937c31f51e0d27f7e94f19460c1264e236511cf1d9d"
+    }
+  },
+  {
+    "id": "nikicas-hub-deploy",
+    "name": "nikicas-hub-deploy",
+    "description": "",
+    "group": "Nikicas Hub",
+    "repository": "http://192.168.178.97:3000/gitea-admin/nikicas-hub.git",
+    "ref": "master",
+    "profile": "operations",
+    "timeout": 7200,
+    "concurrency": "serial",
+    "resource": "hub-delivery",
+    "parameters": [
+      {
+        "name": "GIT_URL",
+        "label": "",
+        "kind": "string",
+        "default": "http://192.168.178.97:3000/gitea-admin/nikicas-hub.git",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Git URL of the nikicas-hub repository."
+      },
+      {
+        "name": "GIT_BRANCH",
+        "label": "",
+        "kind": "string",
+        "default": "master",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Branch to deploy."
+      },
+      {
+        "name": "GIT_CREDENTIALS_ID",
+        "label": "",
+        "kind": "string",
+        "default": "gitea-http",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Optional Jenkins Git credentials ID for checkout."
+      },
+      {
+        "name": "DEPLOY_HOST",
+        "label": "",
+        "kind": "string",
+        "default": "213.165.73.233",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Remote deployment host."
+      },
+      {
+        "name": "DEPLOY_PORT",
+        "label": "",
+        "kind": "string",
+        "default": "22",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "SSH port of remote deployment host."
+      },
+      {
+        "name": "DEPLOY_USER",
+        "label": "",
+        "kind": "string",
+        "default": "nikicas-hub-deploy",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Optional SSH username override. If empty, SSH credential username is used."
+      },
+      {
+        "name": "DEPLOY_DIR",
+        "label": "",
+        "kind": "string",
+        "default": "/opt/nikicas-hub",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Remote base directory where nikicas-hub compose/env files and image archives are deployed."
+      },
+      {
+        "name": "SSH_CREDENTIALS_ID",
+        "label": "",
+        "kind": "string",
+        "default": "nikicas-hub-deploy-ssh",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Jenkins SSH private key credential ID for remote deployment host."
+      },
+      {
+        "name": "REGISTRY_URL",
+        "label": "",
+        "kind": "string",
+        "default": "127.0.0.1:5005",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Registry host reachable by Jenkins, for example 127.0.0.1:5005."
+      },
+      {
+        "name": "REGISTRY_NAMESPACE",
+        "label": "",
+        "kind": "string",
+        "default": "home-lab",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Registry namespace containing the nikicas-hub image."
+      },
+      {
+        "name": "REGISTRY_CREDENTIALS_ID",
+        "label": "",
+        "kind": "string",
+        "default": "local-registry",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Optional Jenkins username/password credentials ID for registry pull."
+      },
+      {
+        "name": "IMAGE_NAME",
+        "label": "",
+        "kind": "string",
+        "default": "nikicas-hub",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Docker image name."
+      },
+      {
+        "name": "IMAGE_TAG",
+        "label": "",
+        "kind": "string",
+        "default": "latest",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Docker image tag to deploy, for example <commit12>-<yyyymmdd>."
+      },
+      {
+        "name": "PUBLIC_ORIGIN",
+        "label": "",
+        "kind": "string",
+        "default": "https://nikica-strugar.de",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Public HTTPS origin of the app (for cookies/CORS)."
+      },
+      {
+        "name": "ALLOWED_ORIGINS",
+        "label": "",
+        "kind": "string",
+        "default": "https://nikica-strugar.de",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Comma-separated CORS origins."
+      },
+      {
+        "name": "TRAEFIK_HOST_RULE",
+        "label": "",
+        "kind": "string",
+        "default": "nikica-strugar.de",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Host rule for Traefik router, for example app.example.com."
+      },
+      {
+        "name": "ACME_EMAIL",
+        "label": "",
+        "kind": "string",
+        "default": "",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Optional email address for Lets Encrypt ACME registration."
+      },
+      {
+        "name": "ACME_STORAGE_PATH",
+        "label": "",
+        "kind": "string",
+        "default": "/opt/nikicas-hub/letsencrypt/acme.json",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Absolute Traefik ACME storage file path on the remote host."
+      },
+      {
+        "name": "TRUST_PROXY_HOPS",
+        "label": "",
+        "kind": "string",
+        "default": "1",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Express trust proxy hops."
+      },
+      {
+        "name": "DEFAULT_ADMIN_USER",
+        "label": "",
+        "kind": "string",
+        "default": "admin",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Initial/default admin username consumed by nikicas-hub."
+      },
+      {
+        "name": "DEFAULT_ADMIN_LOGIN_SECRET_CREDENTIALS_ID",
+        "label": "",
+        "kind": "string",
+        "default": "nikicas-hub-default-admin-login-secret",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Secret text credential ID for the default admin login secret."
+      },
+      {
+        "name": "EVENT_HASH_SALT_CREDENTIALS_ID",
+        "label": "",
+        "kind": "string",
+        "default": "nikicas-hub-event-hash-salt",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Secret text credential ID for EVENT_HASH_SALT."
+      },
+      {
+        "name": "APP_SALT_CREDENTIALS_ID",
+        "label": "",
+        "kind": "string",
+        "default": "nikicas-hub-app-salt",
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Secret text credential ID for APP_SALT."
+      },
+      {
+        "name": "DRY_RUN",
+        "label": "",
+        "kind": "boolean",
+        "default": false,
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": "Validate deployment on remote host without starting/updating containers."
+      }
+    ],
+    "credential_parameters": {
+      "git": [
+        "GIT_CREDENTIALS_ID"
+      ],
+      "hub-app": [
+        "DEFAULT_ADMIN_LOGIN_SECRET_CREDENTIALS_ID",
+        "EVENT_HASH_SALT_CREDENTIALS_ID",
+        "APP_SALT_CREDENTIALS_ID"
+      ],
+      "registry": [
+        "REGISTRY_CREDENTIALS_ID"
+      ],
+      "hub-deploy": [
+        "SSH_CREDENTIALS_ID"
+      ]
+    },
+    "steps": [
+      {
+        "id": "checkout",
+        "name": "Checkout pinned revision",
+        "action": "checkout",
+        "command": [],
+        "needs": [],
+        "timeout": 1200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "preflight",
+        "name": "Validate deployment settings",
+        "action": "hub_deploy_preflight",
+        "command": [],
+        "needs": [
+          "checkout"
+        ],
+        "timeout": 7200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [],
+        "options": {}
+      },
+      {
+        "id": "image",
+        "name": "Pull and export selected image",
+        "action": "hub_image",
+        "command": [],
+        "needs": [
+          "preflight"
+        ],
+        "timeout": 7200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "registry"
+        ],
+        "options": {}
+      },
+      {
+        "id": "deploy",
+        "name": "Transfer and activate remote deployment",
+        "action": "hub_deploy",
+        "command": [],
+        "needs": [
+          "image"
+        ],
+        "timeout": 7200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "hub-deploy",
+          "hub-app"
+        ],
+        "options": {}
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": null,
+      "stages": [
+        "Preflight",
+        "Checkout",
+        "Resolve Commit",
+        "Prepare Image",
+        "Deploy Remote"
+      ],
+      "repository": "live Jenkins inline",
+      "script_sha256": "b975ee00e4c683f72d00c5168993bf8b53423fbf6a1f84e9e679050a126632c6",
+      "jenkins_sha256": "e25dd61c1e4b3bce3252bf16aae47d795ecebbe7e39e11fa51a23ade9b05578b"
+    }
+  },
+  {
+    "id": "paperless-ngx-bootstrap-rules",
+    "name": "paperless-ngx-bootstrap-rules",
+    "description": "",
+    "group": "Operations",
+    "repository": "http://192.168.178.97:3000/gitea-admin/home-lab-service-collection.git",
+    "ref": "master",
+    "profile": "operations",
+    "timeout": 3600,
+    "concurrency": "serial",
+    "resource": null,
+    "parameters": [
+      {
+        "name": "PAPERLESS_API_URL",
+        "label": "",
+        "kind": "string",
+        "default": "http://192.168.178.97:8010",
+        "required": true,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      },
+      {
+        "name": "TIMEOUT_SECONDS",
+        "label": "",
+        "kind": "integer",
+        "default": 30,
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      },
+      {
+        "name": "DRY_RUN",
+        "label": "",
+        "kind": "boolean",
+        "default": false,
+        "required": false,
+        "choices": [],
+        "pattern": null,
+        "description": ""
+      }
+    ],
+    "credential_parameters": {},
+    "steps": [
+      {
+        "id": "checkout",
+        "name": "Checkout pinned revision",
+        "action": "checkout",
+        "command": [],
+        "needs": [],
+        "timeout": 1200,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "git"
+        ],
+        "options": {}
+      },
+      {
+        "id": "preflight",
+        "name": "Validate rules and API settings",
+        "action": "paperless_preflight",
+        "command": [],
+        "needs": [
+          "checkout"
+        ],
+        "timeout": 3600,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [],
+        "options": {}
+      },
+      {
+        "id": "rules",
+        "name": "Reconcile Paperless metadata and rules",
+        "action": "paperless",
+        "command": [],
+        "needs": [
+          "preflight"
+        ],
+        "timeout": 3600,
+        "condition": null,
+        "always": false,
+        "continue_on_error": false,
+        "artifacts": [],
+        "secrets": [
+          "paperless"
+        ],
+        "options": {}
+      }
+    ],
+    "schedule": null,
+    "timezone": "Europe/Berlin",
+    "poll_seconds": 0,
+    "enabled": false,
+    "retention_runs": 50,
+    "source": {
+      "commit": null,
+      "stages": [
+        "Preflight",
+        "Bootstrap Rules"
+      ],
+      "repository": "live Jenkins inline",
+      "script_sha256": "ca1cd43661d4011acaaab6929f0ef115bc63de8b165dbb5fffa6e10f381c045e",
+      "jenkins_sha256": "88b3f9b2ea8c177422ebe35c01ed5c4b443ccfbcd36d8f77cdc97327d5329058"
+    }
+  }
+]

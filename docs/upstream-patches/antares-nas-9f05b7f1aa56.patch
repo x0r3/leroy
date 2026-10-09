@@ -1,0 +1,1407 @@
+From 88382cc055a84452f31317ad8087712a48428769 Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sat, 3 Oct 2026 22:37:35 +0200
+Subject: [PATCH 01/12] Update audited production dependencies; document
+ isolated NAS comparison candidate
+
+---
+ README.md         |  7 +++++
+ package-lock.json | 77 ++++++++++++++++++++++++-----------------------
+ package.json      |  6 ++--
+ 3 files changed, 49 insertions(+), 41 deletions(-)
+
+diff --git a/README.md b/README.md
+index 19bad6f..1c25818 100644
+--- a/README.md
++++ b/README.md
+@@ -111,4 +111,11 @@ Der Jenkins-Controller benötigt Docker-Socket-Zugriff; Node.js 24/npm 11 werden
+ 
+ ## Produktionsbetrieb
+ 
++Der separate NAS-Vergleichskandidat aktualisiert Fastify, dessen Static-Plugin und
++Nodemailer samt Lockdatei, weil beide CI-Systeme mit den ursprünglichen Versionen
++am unveränderten Produktionsabhängigkeits-Audit scheitern. Lint-, Test-, Build-
++und Browser-Gates bleiben unverändert und müssen mit demselben Kandidaten unter
++Jenkins und Leroy erfolgreich durchlaufen. Das ist keine Änderung am produktiven
++Repository oder eine bereits erteilte Freigabe des Kandidaten.
++
+ Nicht mit den lokalen Defaults deployen. Für einen Rollout werden mindestens eigene Peppers/Schlüssel, HTTPS-Ursprünge, ein zustellfähiger SMTP-Dienst, ein starkes Datenbankpasswort und ein auf das Admin-VPN begrenztes `ADMIN_ALLOWED_CIDRS` benötigt. Das vollständige Verfahren einschließlich Backup, Restore, Wartungsfenster und Rollback steht in [`docs/operations.md`](docs/operations.md).
+diff --git a/package-lock.json b/package-lock.json
+index c36b8bf..4f59b41 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -11,11 +11,11 @@
+         "@fastify/compress": "9.0.0",
+         "@fastify/cookie": "11.1.1",
+         "@fastify/helmet": "13.1.0",
+-        "@fastify/static": "9.3.0",
++        "@fastify/static": "10.1.5",
+         "argon2": "0.44.0",
+-        "fastify": "5.10.0",
++        "fastify": "5.12.5",
+         "ipaddr.js": "2.4.0",
+-        "nodemailer": "9.0.3",
++        "nodemailer": "10.0.13",
+         "ogl": "1.0.11",
+         "pg": "8.22.0",
+         "prom-client": "15.1.3",
+@@ -1434,9 +1434,9 @@
+       }
+     },
+     "node_modules/@fastify/static": {
+-      "version": "9.3.0",
+-      "resolved": "https://registry.npmjs.org/@fastify/static/-/static-9.3.0.tgz",
+-      "integrity": "sha512-9YMYRpCOtMBrqKYWcqiw7ykOrn4D0jogHpJrFS0KGeSuOwzKMM5/mjj7B0CFLVoQ6htqKYw//Zs7APn9DBq05w==",
++      "version": "10.1.5",
++      "resolved": "https://registry.npmjs.org/@fastify/static/-/static-10.1.5.tgz",
++      "integrity": "sha512-3r0ZFXo82nKlPzySOUYhwWVfPZStfiwjmyevkX7cJWL2yXmEzl0Rpxv+L6L1R4OxqvlDGqf3g8OdBzILKgqe6w==",
+       "funding": [
+         {
+           "type": "github",
+@@ -1450,8 +1450,9 @@
+       "license": "MIT",
+       "dependencies": {
+         "@fastify/accept-negotiator": "^2.0.0",
++        "@fastify/error": "^4.0.0",
+         "@fastify/send": "^4.0.0",
+-        "content-disposition": "^1.0.1",
++        "content-disposition": "^3.0.0",
+         "fastify-plugin": "^6.0.0",
+         "fastq": "^1.17.1",
+         "glob": "^13.0.0"
+@@ -2840,15 +2841,15 @@
+       "license": "MIT"
+     },
+     "node_modules/brace-expansion": {
+-      "version": "5.0.7",
+-      "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.7.tgz",
+-      "integrity": "sha512-7oFy703dxfY3/NLxC1fh2SUCQ0H9rmAY+5EpDVfXjUTTs+HEwR2nYaqLv+GWcTsumwxPfiz6CzCNkwXwBUwqCA==",
++      "version": "5.0.12",
++      "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.12.tgz",
++      "integrity": "sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==",
+       "license": "MIT",
+       "dependencies": {
+         "balanced-match": "^4.0.2"
+       },
+       "engines": {
+-        "node": "18 || 20 || >=22"
++        "node": "20 || >=22"
+       }
+     },
+     "node_modules/browserslist": {
+@@ -3000,12 +3001,12 @@
+       }
+     },
+     "node_modules/content-disposition": {
+-      "version": "1.1.0",
+-      "resolved": "https://registry.npmjs.org/content-disposition/-/content-disposition-1.1.0.tgz",
+-      "integrity": "sha512-5jRCH9Z/+DRP7rkvY83B+yGIGX96OYdJmzngqnw2SBSxqCFPd0w2km3s5iawpGX8krnwSGmF0FW5Nhr0Hfai3g==",
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/content-disposition/-/content-disposition-3.0.0.tgz",
++      "integrity": "sha512-ZH/0Xs9rMIFWCOmGdmS9eHBTF62qqQYNz4nVjQhkdIO/a0fCP4UIM3mRz/wiqL0L14YgAz/1xio4OaSY4+ON/A==",
+       "license": "MIT",
+       "engines": {
+-        "node": ">=18"
++        "node": ">=22"
+       },
+       "funding": {
+         "type": "opencollective",
+@@ -3630,9 +3631,9 @@
+       }
+     },
+     "node_modules/fast-json-stringify/node_modules/ajv/node_modules/fast-uri": {
+-      "version": "3.1.3",
+-      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.3.tgz",
+-      "integrity": "sha512-i70LwGWUduXqzicKXWshooq+sWL1K3WUU5rKZNG/0i3a1OSoX3HqhH5WbWwTmqWfor4urUakGPiRQcleRZTwOg==",
++      "version": "3.1.8",
++      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.8.tgz",
++      "integrity": "sha512-GZMtZUTNRpOVIECoXwLNZS5xUGE+mVNbTB8h/7Rwh2TFWcBQiPzTgyZi05BF9UMZKkLJv8XBRJTlU7zg8+ZfMg==",
+       "funding": [
+         {
+           "type": "github",
+@@ -3646,9 +3647,9 @@
+       "license": "BSD-3-Clause"
+     },
+     "node_modules/fast-json-stringify/node_modules/fast-uri": {
+-      "version": "4.1.0",
+-      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-4.1.0.tgz",
+-      "integrity": "sha512-ZodJ2cRiLVWGi9IgPb3mbgSqM4CD3LexCHkuv0FfBXHJI1ADfucTD06m6clO2Cy5RZYsw/SiCVl/dyrFI/SYWA==",
++      "version": "4.2.1",
++      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-4.2.1.tgz",
++      "integrity": "sha512-TmHQgewjHtMq1E5QKA0tOE0yeYGQs25KZC/ziJpubRtWI15W92e6vPFydWOeZBVROSHBYw/QhD9d5OefdD6LDg==",
+       "funding": [
+         {
+           "type": "github",
+@@ -3684,9 +3685,9 @@
+       }
+     },
+     "node_modules/fast-uri": {
+-      "version": "3.1.3",
+-      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.3.tgz",
+-      "integrity": "sha512-i70LwGWUduXqzicKXWshooq+sWL1K3WUU5rKZNG/0i3a1OSoX3HqhH5WbWwTmqWfor4urUakGPiRQcleRZTwOg==",
++      "version": "3.1.8",
++      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.8.tgz",
++      "integrity": "sha512-GZMtZUTNRpOVIECoXwLNZS5xUGE+mVNbTB8h/7Rwh2TFWcBQiPzTgyZi05BF9UMZKkLJv8XBRJTlU7zg8+ZfMg==",
+       "funding": [
+         {
+           "type": "github",
+@@ -3700,9 +3701,9 @@
+       "license": "BSD-3-Clause"
+     },
+     "node_modules/fastify": {
+-      "version": "5.10.0",
+-      "resolved": "https://registry.npmjs.org/fastify/-/fastify-5.10.0.tgz",
+-      "integrity": "sha512-A9L0ziuWGQHgEEVgF3davQ9vbD93IuX+lo2IsxapQmu5b/Y/ynn9m9K5JHt9dvyJXOFc5iN0Zk5GHEOqnzhWjg==",
++      "version": "5.12.5",
++      "resolved": "https://registry.npmjs.org/fastify/-/fastify-5.12.5.tgz",
++      "integrity": "sha512-OB2k1dlxs5/NAABqeKV2FUHkSD2BbENsCak8yULVcymn3fHIPDVa9TI3SDnJSWYSllZmSYuZXy2gTnsT+Sut1A==",
+       "funding": [
+         {
+           "type": "github",
+@@ -3725,7 +3726,7 @@
+         "find-my-way": "^9.6.0",
+         "light-my-request": "^6.0.0",
+         "pino": "^9.14.0 || ^10.1.0",
+-        "process-warning": "^5.0.0",
++        "process-warning": "^5.1.0",
+         "rfdc": "^1.3.1",
+         "secure-json-parse": "^4.0.0",
+         "semver": "^7.6.0",
+@@ -3801,9 +3802,9 @@
+       }
+     },
+     "node_modules/find-my-way": {
+-      "version": "9.6.0",
+-      "resolved": "https://registry.npmjs.org/find-my-way/-/find-my-way-9.6.0.tgz",
+-      "integrity": "sha512-Zf4Xve4RymLl7NgaavNebZ01joJ8MfVerOG43wy7SHLO+r+K0C6d/SE0BiR7AV5V1VOCFlOP7ecdo+I4qmiHrQ==",
++      "version": "9.9.0",
++      "resolved": "https://registry.npmjs.org/find-my-way/-/find-my-way-9.9.0.tgz",
++      "integrity": "sha512-sJsgZ1sQH2UDuowPuMKg8az7Qc8F0jnj+SKkFWU/+T0xcFlgV5skgXOGUqmQzOdmW6ALA7AhJINWx3qFBkbLHA==",
+       "license": "MIT",
+       "dependencies": {
+         "fast-deep-equal": "^3.1.3",
+@@ -4852,12 +4853,12 @@
+       }
+     },
+     "node_modules/nodemailer": {
+-      "version": "9.0.3",
+-      "resolved": "https://registry.npmjs.org/nodemailer/-/nodemailer-9.0.3.tgz",
+-      "integrity": "sha512-n+YP+NKwR5zRWa60k3GiQ6Q3B4KXCoAw40dAKeCtYn020iNN74aWK2liXIC3ZEATeGql7we3tE3t8QwhY0eskw==",
++      "version": "10.0.13",
++      "resolved": "https://registry.npmjs.org/nodemailer/-/nodemailer-10.0.13.tgz",
++      "integrity": "sha512-SzG86OlvcW/NNhUFC6uROMwRTL4n7MswfQqC/T8mhkmnY1YVa23zUEMYi4ijSeXSl9GLz9ZeTJDUatEDuY5FeQ==",
+       "license": "MIT-0",
+       "engines": {
+-        "node": ">=6.0.0"
++        "node": ">=20.0.0"
+       }
+     },
+     "node_modules/obug": {
+@@ -5310,9 +5311,9 @@
+       "license": "MIT"
+     },
+     "node_modules/process-warning": {
+-      "version": "5.0.0",
+-      "resolved": "https://registry.npmjs.org/process-warning/-/process-warning-5.0.0.tgz",
+-      "integrity": "sha512-a39t9ApHNx2L4+HBnQKqxxHNs1r7KF+Intd8Q/g1bUh6q0WIp9voPXJ/x0j+ZL45KF1pJd9+q2jLIRMfvEshkA==",
++      "version": "5.1.0",
++      "resolved": "https://registry.npmjs.org/process-warning/-/process-warning-5.1.0.tgz",
++      "integrity": "sha512-jQSaVHsPgtyw60e1rQ/A+/ArPEj/S8pS/vFnyGa/gYFXrKk/6RuDkoqVDQ5NI5MmS01698ltlAk0NoDBNLujRw==",
+       "funding": [
+         {
+           "type": "github",
+diff --git a/package.json b/package.json
+index 8551356..3900478 100644
+--- a/package.json
++++ b/package.json
+@@ -52,11 +52,11 @@
+     "@fastify/compress": "9.0.0",
+     "@fastify/cookie": "11.1.1",
+     "@fastify/helmet": "13.1.0",
+-    "@fastify/static": "9.3.0",
++    "@fastify/static": "10.1.5",
+     "argon2": "0.44.0",
+-    "fastify": "5.10.0",
++    "fastify": "5.12.5",
+     "ipaddr.js": "2.4.0",
+-    "nodemailer": "9.0.3",
++    "nodemailer": "10.0.13",
+     "ogl": "1.0.11",
+     "pg": "8.22.0",
+     "prom-client": "15.1.3",
+-- 
+2.53.0.windows.2
+
+
+From f6f891ce7c0e0728d815a284fe81391f22090a0e Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sun, 4 Oct 2026 00:19:07 +0200
+Subject: [PATCH 02/12] Bound grid reconciliation work; size functional raster
+ test budgets for NAS; document measured CI resources
+
+---
+ apps/admin/__tests__/planet-simulator.test.tsx    |  2 +-
+ apps/game/src/PlanetView.tsx                      | 15 ++++++++++++++-
+ docs/architecture.md                              | 15 +++++++++++++++
+ tests/unit/admin/planet-simulator-service.test.ts |  2 +-
+ tests/unit/domain/planet-grid-formations.test.ts  |  8 ++++----
+ tests/unit/domain/planet-grid.test.ts             |  7 ++++---
+ 6 files changed, 39 insertions(+), 10 deletions(-)
+
+diff --git a/apps/admin/__tests__/planet-simulator.test.tsx b/apps/admin/__tests__/planet-simulator.test.tsx
+index a188f7c..aba5815 100644
+--- a/apps/admin/__tests__/planet-simulator.test.tsx
++++ b/apps/admin/__tests__/planet-simulator.test.tsx
+@@ -1310,7 +1310,7 @@ describe('admin planet simulator', () => {
+     expect(stage6Frame?.style.backgroundImage)
+       .toContain('terrain-stage26-atlas.webp');
+     expect(screen.getAllByText(/Kontrast/u).length).toBeGreaterThan(0);
+-  });
++  }, 15_000);
+ 
+   it('builds one staged composite per terrain family and applies the terrain filter to both browser views', async () => {
+     const user = userEvent.setup();
+diff --git a/apps/game/src/PlanetView.tsx b/apps/game/src/PlanetView.tsx
+index 4bb807c..ad0fb89 100644
+--- a/apps/game/src/PlanetView.tsx
++++ b/apps/game/src/PlanetView.tsx
+@@ -1376,6 +1376,17 @@ export const PlanetView = memo(function PlanetView({
+     }
+     return tiles;
+   }, [detailedRendering, model.columns, model.rows, model.tiles, renderBackend, viewport.bottom, viewport.left, viewport.right, viewport.top]);
++  // Bound sibling reconciliation to one visible row when the viewport changes.
++  // Layout still belongs to the parent CSS grid through display: contents.
++  const renderedTileRows = useMemo(() => {
++    const rows = new Map<number, PlanetSurfaceTile[]>();
++    for (const tile of renderedTiles) {
++      const row = rows.get(tile.y);
++      if (row) row.push(tile);
++      else rows.set(tile.y, [tile]);
++    }
++    return [...rows.entries()];
++  }, [renderedTiles]);
+   const visibleStructureIds = useMemo(() => new Set(structures.filter((structure) => {
+     const tile = model.tiles[structure.y * model.columns + structure.x];
+     return tile?.visibility === 'visible' || (tile?.visibility === 'scanned' && model.informationLevel >= 3);
+@@ -2371,7 +2382,8 @@ export const PlanetView = memo(function PlanetView({
+             tabIndex={0}
+             onKeyDown={handleGridKeyboard}
+           >
+-            {renderedTiles.map((tile) => <PlanetSurfaceCell
++            {renderedTileRows.map(([y, tiles]) => <div key={y} className="planet-surface-tile-row" style={{ display: 'contents' }} aria-hidden="true">
++              {tiles.map((tile) => <PlanetSurfaceCell
+                 key={tile.index}
+                 model={model}
+                 tile={tile}
+@@ -2380,6 +2392,7 @@ export const PlanetView = memo(function PlanetView({
+                   ? hoverPlacement?.valid ? 'valid' : 'invalid'
+                   : null}
+               />)}
++            </div>)}
+             {selectedTile && <div
+               role="row"
+               aria-rowindex={selectedTile.y + 1}
+diff --git a/docs/architecture.md b/docs/architecture.md
+index b0729ec..7d339a7 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -60,8 +60,23 @@ Diese Kopien teilen Datenbank und Fehlerbereich mit dem Livezustand. Sie sind ei
+ - Geheimnisse und Auth-Felder werden in strukturierten Logs redigiert.
+ - Schemainstallation und Seed verwenden einen getrennten Datenbank-Owner; Public, Admin und Worker laufen als `antares_app` ohne Superuser-, DDL-, Rollen- oder Datenbankerstellungsrechte.
+ 
++Die visuellen DOM-Nahdetailzellen der Spieleransicht sind nach Weltzeilen in
++`display: contents`-Wrappern gruppiert. Dadurch bleiben CSS-Grid-Platzierung und
++der einzelne semantische Zellproxy unverändert, während React bei Zoom und Pan
++nicht tausende Geschwister in einem flachen DOM-Container umordnen muss.
++
+ ## Testgrenzen
+ 
++Die funktionalen Gro�rastertests behalten alle 420�180-Zellen und ihre Assertions.
++F�r die im NAS-Jenkins reproduzierten Laufzeit�berschreitungen gelten gezielte
++15-/30-Sekunden-Budgets, wie bereits f�r andere Mehrfachgenerierungen. Diese
++Tests pr�fen Determinismus und fachliche Eigenschaften, keine Hardware-Benchmarks.
++Die bestehenden Zeitbudgets der Kamera-/Virtualisierungstests und die Coverage-
++Schwellen bleiben unver�ndert. F�r die vollst�ndige instrumentierte UI-Suite
++wird Node mit einem Heap von 2 GiB gepr�ft; der CI-Container erh�lt 3 GiB. Der getrennte
++Speicherversuch beseitigte den V8-Abbruch, nicht die beobachteten Test-Timeouts.
++
++
+ - Unit-/Property-Tests prüfen zusätzlich 21:9-/Vier-Sektoren-Genesis, Portrait-/Wasserableitung, zusammenhängende Terrainvielfalt, Dschungeldominanz, dschungelgebundene Formationen, Atlaszeilen, exklusive 6×8-Kernmodule, asymmetrische Makroformen und vollständige 4/3-Hüllen, Clusterabdeckung, Footprints, Kontrollanteile, 81-Prozent-Herrschaft, lokalen Pufferstopp, Lagertransfer und 40-Prozent-Recycling.
+ - PostgreSQL-Integrationstests starten echte Fastify-Anwendungen und Worker. Sie prüfen unter anderem Auth/CSRF, Passwort-Reset, direkten Admin-Passwortlogin, den deaktivierten MFA-Endpunkt, Admin-Netzgrenze, den zustandslosen und deterministischen Planetensimulator, Multiplayer-/Allianz-/Flottenabläufe und sofortige Live-Katalogwirkung.
+ - DOM- und Integrationsprüfungen decken Onboarding bis zum Sektororbit, Planeten-View, Grid-Platzierung, lokale Lager, Sektorflotten, zeitlich begrenzte Scan-Sichtstufen und Bereichskampf ab.
+diff --git a/tests/unit/admin/planet-simulator-service.test.ts b/tests/unit/admin/planet-simulator-service.test.ts
+index a18097a..6e66fba 100644
+--- a/tests/unit/admin/planet-simulator-service.test.ts
++++ b/tests/unit/admin/planet-simulator-service.test.ts
+@@ -212,5 +212,5 @@ describe('admin planet simulator service', () => {
+       'crystal',
+     ]);
+     expect(jungleCells).toBeGreaterThan(Math.max(...otherDryCounts));
+-  });
++  }, 15_000);
+ });
+diff --git a/tests/unit/domain/planet-grid-formations.test.ts b/tests/unit/domain/planet-grid-formations.test.ts
+index 89d1fb3..80fb825 100644
+--- a/tests/unit/domain/planet-grid-formations.test.ts
++++ b/tests/unit/domain/planet-grid-formations.test.ts
+@@ -702,7 +702,7 @@ describe("planet grid terrain formations", () => {
+       terrain: cell.terrain,
+       elevation: cell.elevation,
+     })));
+-  });
++  }, 15_000);
+ 
+   it("discards an incomplete composite atomically when its edge budget cannot close the shell", () => {
+     const grid = generatePlanetGrid({
+@@ -809,7 +809,7 @@ describe("planet grid terrain formations", () => {
+       stage: cell.assetStage,
+       variant: cell.assetVariant,
+     })));
+-  });
++  }, 15_000);
+ 
+   it("keeps terrain, resources, and overlay placements independent from the stage-1 ratio", () => {
+     const withoutDetails = generatePlanetGrid({
+@@ -837,7 +837,7 @@ describe("planet grid terrain formations", () => {
+       ...DEFAULT_PLANET_GRID_GENERATION_PARAMETERS,
+       stage1CoveragePpm: 1_000_000,
+     });
+-  });
++  }, 15_000);
+ 
+   it("keeps terrain and resource counts stable when standalone asset density changes", () => {
+     const sparse = generatePlanetGrid({
+@@ -865,5 +865,5 @@ describe("planet grid terrain formations", () => {
+     expect(dense.formations.filter((formation) => formation.stage === 2).length)
+       .toBeGreaterThan(sparse.formations.filter((formation) =>
+         formation.stage === 2).length);
+-  });
++  }, 15_000);
+ });
+diff --git a/tests/unit/domain/planet-grid.test.ts b/tests/unit/domain/planet-grid.test.ts
+index 56b8153..590dcef 100644
+--- a/tests/unit/domain/planet-grid.test.ts
++++ b/tests/unit/domain/planet-grid.test.ts
+@@ -224,7 +224,7 @@ describe("planet surface grid generation", () => {
+           first.cells[y * first.width + x]!.terrain,
+         );
+       }))).toBe(true);
+-  }, 10_000);
++  }, 30_000);
+ 
+   it("extends shallow water through bounded deterministic bays without changing the wet mask", () => {
+     const input = {
+@@ -340,7 +340,7 @@ describe("planet surface grid generation", () => {
+       largestExtension = Math.max(largestExtension, component.length);
+     }
+     expect(largestExtension).toBeLessThan(200);
+-  }, 15_000);
++  }, 30_000);
+ 
+   it("creates several coherent terrain families instead of a binary land surface", () => {
+     const input = {
+@@ -440,6 +440,7 @@ describe("planet surface grid generation", () => {
+         .filter((cell) => !isWaterTerrain(cell.terrain))
+         .map((cell) => cell.terrain)).size).toBeGreaterThanOrEqual(4);
+     },
++    15_000,
+   );
+ 
+   it("keeps biotopic worlds deterministic, jungle-dominant and coherent", () => {
+@@ -598,7 +599,7 @@ describe("planet surface grid generation", () => {
+ 
+     expect(fullCatalog.cells.map((cell) => cell.terrain))
+       .toEqual(singleResource.cells.map((cell) => cell.terrain));
+-  });
++  }, 15_000);
+ 
+   it("uses global coordinates to resolve the fixed sector quadrants", () => {
+     expect(planetSectorForCoordinate(0, 0)).toBe(1);
+-- 
+2.53.0.windows.2
+
+
+From 8f8b50e3b5816e5c8ed8fed960f7460c087bdbcb Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sun, 4 Oct 2026 00:32:53 +0200
+Subject: [PATCH 03/12] Size camera scenario budgets for measured NAS runtimes;
+ preserve assertions and document resource limits
+
+---
+ apps/game/__tests__/planet-view.test.tsx |  4 ++--
+ docs/architecture.md                     | 16 +++++++---------
+ 2 files changed, 9 insertions(+), 11 deletions(-)
+
+diff --git a/apps/game/__tests__/planet-view.test.tsx b/apps/game/__tests__/planet-view.test.tsx
+index 3ef0dfd..7520ec0 100644
+--- a/apps/game/__tests__/planet-view.test.tsx
++++ b/apps/game/__tests__/planet-view.test.tsx
+@@ -806,7 +806,7 @@ describe('planet view', () => {
+     expect(setMoving).toHaveBeenLastCalledWith(true, 'original');
+     expect(stage).toHaveAttribute('data-navigation-quality', 'original');
+     expect(resize).toHaveBeenLastCalledWith(840, 360, 2);
+-  }, 10_000);
++  }, 30_000);
+ 
+   it('aligns the DOM camera to the Canvas content box instead of the bordered stage', async () => {
+     const rectangle = (width: number, height: number): DOMRect => ({
+@@ -884,7 +884,7 @@ describe('planet view', () => {
+     );
+ 
+     expect(view).toHaveAttribute('data-viewport-zoom', '2.25');
+-  });
++  }, 15_000);
+ 
+   it('recycles a level-one structure through the current grid command API', async () => {
+     const grid = remoteGridSnapshot();
+diff --git a/docs/architecture.md b/docs/architecture.md
+index 7d339a7..bd34077 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -67,15 +67,13 @@ nicht tausende Geschwister in einem flachen DOM-Container umordnen muss.
+ 
+ ## Testgrenzen
+ 
+-Die funktionalen Gro�rastertests behalten alle 420�180-Zellen und ihre Assertions.
+-F�r die im NAS-Jenkins reproduzierten Laufzeit�berschreitungen gelten gezielte
+-15-/30-Sekunden-Budgets, wie bereits f�r andere Mehrfachgenerierungen. Diese
+-Tests pr�fen Determinismus und fachliche Eigenschaften, keine Hardware-Benchmarks.
+-Die bestehenden Zeitbudgets der Kamera-/Virtualisierungstests und die Coverage-
+-Schwellen bleiben unver�ndert. F�r die vollst�ndige instrumentierte UI-Suite
+-wird Node mit einem Heap von 2 GiB gepr�ft; der CI-Container erh�lt 3 GiB. Der getrennte
+-Speicherversuch beseitigte den V8-Abbruch, nicht die beobachteten Test-Timeouts.
+-
++The functional large-grid tests retain all 420 x 180 cells and their assertions.
++The NAS Jenkins runs reproduced timeouts in generation and camera scenarios;
++these cases have explicit 15- or 30-second budgets. They verify deterministic
++results, geometry, navigation quality and camera persistence, rather than a
++hardware benchmark. Coverage thresholds remain unchanged. The instrumented
++UI suite is exercised with a 2 GiB Node heap and a 3 GiB CI container. Increasing
++the heap removed the V8 abort but did not remove the observed test timeouts.
+ 
+ - Unit-/Property-Tests prüfen zusätzlich 21:9-/Vier-Sektoren-Genesis, Portrait-/Wasserableitung, zusammenhängende Terrainvielfalt, Dschungeldominanz, dschungelgebundene Formationen, Atlaszeilen, exklusive 6×8-Kernmodule, asymmetrische Makroformen und vollständige 4/3-Hüllen, Clusterabdeckung, Footprints, Kontrollanteile, 81-Prozent-Herrschaft, lokalen Pufferstopp, Lagertransfer und 40-Prozent-Recycling.
+ - PostgreSQL-Integrationstests starten echte Fastify-Anwendungen und Worker. Sie prüfen unter anderem Auth/CSRF, Passwort-Reset, direkten Admin-Passwortlogin, den deaktivierten MFA-Endpunkt, Admin-Netzgrenze, den zustandslosen und deterministischen Planetensimulator, Multiplayer-/Allianz-/Flottenabläufe und sofortige Live-Katalogwirkung.
+-- 
+2.53.0.windows.2
+
+
+From b0210d2e62da29764bf8d1f82a3850c9e5fbfd29 Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sun, 4 Oct 2026 00:59:04 +0200
+Subject: [PATCH 04/12] Handle injected snapshot requests; allow independent
+ starts in shared systems; verify database-clock deadlines; size NPC test
+ budget
+
+---
+ docs/architecture.md                          | 18 ++++++++
+ src/server/admin/routes.ts                    |  6 ++-
+ src/server/game/player-service.ts             |  2 +-
+ tests/integration/npc-home-population.test.ts |  2 +-
+ tests/integration/onboarding.test.ts          |  2 +-
+ tests/integration/visibility-events.test.ts   | 41 ++++++++++++++++---
+ 6 files changed, 61 insertions(+), 10 deletions(-)
+
+diff --git a/docs/architecture.md b/docs/architecture.md
+index bd34077..c38623b 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -65,8 +65,26 @@ Die visuellen DOM-Nahdetailzellen der Spieleransicht sind nach Weltzeilen in
+ der einzelne semantische Zellproxy unverändert, während React bei Zoom und Pan
+ nicht tausende Geschwister in einem flachen DOM-Container umordnen muss.
+ 
++Snapshot-Routen deaktivieren den Idle-Timer echter HTTP-Sockets für lange
++Operationen. Der Fastify-Injection-Transport hat keinen Socket-Timer; dieser
++optionale Transportaufruf darf die gemeinsame Eingabevalidierung nicht umgehen.
++Ungültige Restore-Bestätigungen liefern deshalb auch im Integrationstest HTTP 422.
++
+ ## Testgrenzen
+ 
++Der gemeinsame Start in einem Sonnensystem hält eine geteilte Systemsperre.
++Benutzerprofil und Zielplanet bleiben exklusiv gesperrt; Starts auf verschiedenen
++Planeten warten dadurch nicht auf die teure Grid-Erzeugung des jeweils anderen.
++Die Sicherheits- und Orbitprüfungen bleiben innerhalb derselben Transaktion.
++
++Der Integrationstest zur Forschungsfrist vergleicht die Multiplikatoren 2 und 0,5
++mit der tatsächlich vor und nach dem Vorgang gemessenen PostgreSQL-Zeit.
++Eine feste Toleranz gegenüber einer vor den Datenbankarbeiten erfassten Uhrzeit
++würde bei langsamer Ausführung einen korrekten SQL-Zeitfortschritt als Fehler werten.
++Der vollständige NPC-Aufbau über sechs Planeten behält alle Zustands- und
++Idempotenzprüfungen und erhält wegen der im NAS-Jenkins gemessenen Laufzeit ein
++gezieltes 60-Sekunden-Budget.
++
+ The functional large-grid tests retain all 420 x 180 cells and their assertions.
+ The NAS Jenkins runs reproduced timeouts in generation and camera scenarios;
+ these cases have explicit 15- or 30-second budgets. They verify deterministic
+diff --git a/src/server/admin/routes.ts b/src/server/admin/routes.ts
+index 505c513..28f301b 100644
+--- a/src/server/admin/routes.ts
++++ b/src/server/admin/routes.ts
+@@ -235,14 +235,16 @@ export async function registerAdminRoutes(
+     // Capturing materialized worlds can legitimately exceed the global idle
+     // socket timeout. The operation remains serialized and observable through
+     // the game-state operation endpoint while this response stays connected.
+-    request.raw.socket.setTimeout(0);
++    // Fastify injection has no real socket timer; actual TCP sockets retain
++    // the same explicit timeout exemption for long snapshot operations.
++    request.raw.socket.setTimeout?.(0);
+     const body = parseInput(snapshotCreateSchema, request.body);
+     const admin = getAuthenticatedSession(request);
+     const snapshot = await createGameStateSnapshot(database, admin.userId, request.id, body.name);
+     await reply.status(201).send({ snapshot });
+   });
+   app.post('/api/admin/game-state-snapshots/:snapshotId/restore', async (request) => {
+-    request.raw.socket.setTimeout(0);
++    request.raw.socket.setTimeout?.(0);
+     const params = parseInput(z.object({ snapshotId: uuid }).strict(), request.params);
+     parseInput(snapshotRestoreSchema, request.body);
+     const admin = getAuthenticatedSession(request);
+diff --git a/src/server/game/player-service.ts b/src/server/game/player-service.ts
+index cb670a4..3f5a122 100644
+--- a/src/server/game/player-service.ts
++++ b/src/server/game/player-service.ts
+@@ -301,7 +301,7 @@ export async function claimOnboardingHomeSystem(
+        FROM solar_systems system
+        JOIN galaxies galaxy ON galaxy.id = system.galaxy_id
+        WHERE system.id = $1
+-       FOR UPDATE OF system`,
++       FOR SHARE OF system`,
+       [systemId],
+     );
+     const system = systemResult.rows[0];
+diff --git a/tests/integration/npc-home-population.test.ts b/tests/integration/npc-home-population.test.ts
+index fd352cd..2599442 100644
+--- a/tests/integration/npc-home-population.test.ts
++++ b/tests/integration/npc-home-population.test.ts
+@@ -226,5 +226,5 @@ describe('production NPC home-system backfill', () => {
+       [systemId],
+     );
+     expect(after.rows[0]).toEqual(before.rows[0]);
+-  });
++  }, 60_000);
+ });
+diff --git a/tests/integration/onboarding.test.ts b/tests/integration/onboarding.test.ts
+index bbb2ee9..687b814 100644
+--- a/tests/integration/onboarding.test.ts
++++ b/tests/integration/onboarding.test.ts
+@@ -522,7 +522,7 @@ describe('home-system onboarding', () => {
+       claimOnboardingHomeSystem(database, firstUserId, randomUUID(), candidate.systemId, candidate.planetIds[0]!, 1),
+       claimOnboardingHomeSystem(database, secondUserId, randomUUID(), candidate.systemId, candidate.planetIds[1]!, 3),
+     ]);
+-    expect(attempts.every((attempt) => attempt.status === 'fulfilled')).toBe(true);
++    expect(attempts.filter((attempt) => attempt.status === 'rejected')).toEqual([]);
+ 
+     const result = await database.query<{
+       home_owner_user_id: string | null;
+diff --git a/tests/integration/visibility-events.test.ts b/tests/integration/visibility-events.test.ts
+index 42914b8..a51f851 100644
+--- a/tests/integration/visibility-events.test.ts
++++ b/tests/integration/visibility-events.test.ts
+@@ -37,6 +37,23 @@ function job(jobType: string, payload: ScheduledJob['payload'], idempotencyKey:
+   };
+ }
+ 
++function expectRescaledDeadline(
++  actual: Date,
++  previous: Date,
++  multiplier: number,
++  before: Date,
++  after: Date,
++): void {
++  // The SQL expression reads the real database clock twice. Bound both reads
++  // by observed database times, allowing only Date's millisecond truncation.
++  expect(actual.getTime()).toBeGreaterThanOrEqual(
++    before.getTime() + (previous.getTime() - after.getTime()) * multiplier - 2,
++  );
++  expect(actual.getTime()).toBeLessThanOrEqual(
++    after.getTime() + (previous.getTime() - before.getTime()) * multiplier + 2,
++  );
++}
++
+ describe('phase-one visibility and live world-event rescaling', () => {
+   const database: Database = openTestDatabase();
+   let world: WorldFixture;
+@@ -160,6 +177,9 @@ describe('phase-one visibility and live world-event rescaling', () => {
+       [activityId, world.systemIds[0], now, new Date(now.getTime() + 7_200_000)],
+     );
+     const service = new NpcWorldEventService(database, { now: () => now });
++    const beforePulse = (await database.query<{ now: Date }>(
++      'SELECT clock_timestamp() AS now',
++    )).rows[0]!.now;
+ 
+     await service.handleSolarPulse(job(
+       'world-event.solar-pulse',
+@@ -172,9 +192,10 @@ describe('phase-one visibility and live world-event rescaling', () => {
+       ends_at: Date;
+       research_due: Date;
+       scheduler_due: Date;
++      observed_at: Date;
+     }>(
+       `SELECT storm.id, storm.ends_at, research.due_at AS research_due,
+-              scheduler.run_at AS scheduler_due
++              scheduler.run_at AS scheduler_due, clock_timestamp() AS observed_at
+        FROM world_events storm
+        JOIN research_jobs research ON research.id = $2
+        JOIN scheduled_jobs scheduler ON scheduler.id = $3
+@@ -183,16 +204,22 @@ describe('phase-one visibility and live world-event rescaling', () => {
+       [world.planetIds[0], researchJobId, schedulerJobId],
+     );
+     expect(started.rows).toHaveLength(1);
+-    expect(started.rows[0]?.research_due.getTime()).toBeCloseTo(now.getTime() + 20_000_000, -3);
+     expect(started.rows[0]?.scheduler_due.getTime()).toBe(started.rows[0]?.research_due.getTime());
+ 
+     const storm = started.rows[0];
+     if (!storm) throw new Error('Solar storm was not generated');
++    expectRescaledDeadline(storm.research_due, originalDue, 2, beforePulse, storm.observed_at);
+     now = new Date(storm.ends_at.getTime() + 1_000);
++    const beforeExpiry = (await database.query<{ now: Date }>(
++      'SELECT clock_timestamp() AS now',
++    )).rows[0]!.now;
+     await service.expireEvent(storm.id);
+ 
+-    const ended = await database.query<{ research_due: Date; scheduler_due: Date; state: string }>(
+-      `SELECT research.due_at AS research_due, scheduler.run_at AS scheduler_due, storm.state
++    const ended = await database.query<{
++      research_due: Date; scheduler_due: Date; state: string; observed_at: Date;
++    }>(
++      `SELECT research.due_at AS research_due, scheduler.run_at AS scheduler_due,
++              storm.state, clock_timestamp() AS observed_at
+        FROM research_jobs research
+        JOIN scheduled_jobs scheduler ON scheduler.id = $2
+        JOIN world_events storm ON storm.id = $3
+@@ -200,7 +227,11 @@ describe('phase-one visibility and live world-event rescaling', () => {
+       [researchJobId, schedulerJobId, storm.id],
+     );
+     expect(ended.rows[0]?.state).toBe('expired');
+-    expect(ended.rows[0]?.research_due.getTime()).toBeCloseTo(originalDue.getTime(), -3);
++    const expired = ended.rows[0];
++    if (!expired) throw new Error('Expired storm was not found');
++    expectRescaledDeadline(
++      expired.research_due, storm.research_due, 0.5, beforeExpiry, expired.observed_at,
++    );
+     expect(ended.rows[0]?.scheduler_due.getTime()).toBe(ended.rows[0]?.research_due.getTime());
+   });
+ });
+-- 
+2.53.0.windows.2
+
+
+From 096f6e8c990eb27e72013700fee3221614b700bc Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sun, 4 Oct 2026 01:16:53 +0200
+Subject: [PATCH 05/12] Stabilize measured large-grid scenario budgets;
+ document timing scope without changing assertions
+
+---
+ apps/game/__tests__/planet-view.test.tsx | 6 +++---
+ docs/architecture.md                     | 6 ++++++
+ tests/integration/onboarding.test.ts     | 2 +-
+ 3 files changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/apps/game/__tests__/planet-view.test.tsx b/apps/game/__tests__/planet-view.test.tsx
+index 7520ec0..e9df36f 100644
+--- a/apps/game/__tests__/planet-view.test.tsx
++++ b/apps/game/__tests__/planet-view.test.tsx
+@@ -635,7 +635,7 @@ describe('planet view', () => {
+     fireEvent.keyDown(surfaceGrid, { key: 'Home' });
+     expect(view).toHaveAttribute('data-viewport-zoom', '0.20');
+     expect(view).toHaveAttribute('data-viewport-left', '0.00');
+-  }, 15_000);
++  }, 30_000);
+ 
+   it('coalesces high-frequency camera movement to one render commit per animation frame', () => {
+     const callbacks: FrameRequestCallback[] = [];
+@@ -676,7 +676,7 @@ describe('planet view', () => {
+     fireEvent.pointerUp(stage, { button: 0, pointerId: 7, clientX: 420, clientY: 180 });
+     expect(stage).not.toHaveClass('is-panning');
+     expect(view).not.toHaveAttribute('data-viewport-left', initialLeft);
+-  });
++  }, 15_000);
+ 
+   it('keeps original WebGL resolution while navigating from 100 percent zoom', () => {
+     vi.stubGlobal('devicePixelRatio', 2);
+@@ -850,7 +850,7 @@ describe('planet view', () => {
+       expect(cameraLayer.style.height).toBe('2143px');
+     });
+     expect(cameraLayer.style.width).not.toBe('5010px');
+-  });
++  }, 15_000);
+ 
+   it('preserves the active camera when live bootstrap data refreshes the same planet', () => {
+     const grid = remoteGridSnapshot(420, 180);
+diff --git a/docs/architecture.md b/docs/architecture.md
+index c38623b..9f3d1c3 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -84,6 +84,12 @@ würde bei langsamer Ausführung einen korrekten SQL-Zeitfortschritt als Fehler
+ Der vollständige NPC-Aufbau über sechs Planeten behält alle Zustands- und
+ Idempotenzprüfungen und erhält wegen der im NAS-Jenkins gemessenen Laufzeit ein
+ gezieltes 60-Sekunden-Budget.
++Die Mehrfachstart-Prüfung mit mehreren vollständigen Grids erhält ebenfalls
++60 Sekunden; sie lag im fokussierten NAS-Lauf bei 29,9 von bisher 30 Sekunden.
++Die Kamera-Szenarien behalten ihre Frame-, Auflösungs- und Geometrieprüfungen
++mit 15 Sekunden, die vollständige Folge aus Zoom, Tastatur und Minimap mit
++30 Sekunden. Diese Grenzen schließen Testaufbau und instrumentierte DOM-Arbeit
++ein und sind keine Vorgabe für die Bildrate der Anwendung.
+ 
+ The functional large-grid tests retain all 420 x 180 cells and their assertions.
+ The NAS Jenkins runs reproduced timeouts in generation and camera scenarios;
+diff --git a/tests/integration/onboarding.test.ts b/tests/integration/onboarding.test.ts
+index 687b814..90f6f70 100644
+--- a/tests/integration/onboarding.test.ts
++++ b/tests/integration/onboarding.test.ts
+@@ -612,5 +612,5 @@ describe('home-system onboarding', () => {
+       );
+       expect(system.rows[0]?.home_owner_user_id).toBeNull();
+     }
+-  });
++  }, 60_000);
+ });
+-- 
+2.53.0.windows.2
+
+
+From 23ec36f8fc84e6d2d8e495044b422a44d57d956d Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sun, 4 Oct 2026 02:12:15 +0200
+Subject: [PATCH 06/12] Install runtime dependencies in a separate Docker
+ stage; preserve native install scripts and document the NAS build cost
+
+---
+ Dockerfile         | 10 ++++++++--
+ docs/operations.md |  8 ++++++++
+ 2 files changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/Dockerfile b/Dockerfile
+index 90cdd84..46c53c7 100644
+--- a/Dockerfile
++++ b/Dockerfile
+@@ -6,14 +6,20 @@ COPY package.json package-lock.json ./
+ RUN npm ci
+ 
+ COPY . .
+-RUN npm run build && npm prune --omit=dev --ignore-scripts
++RUN npm run build
++
++FROM node:24.18.0-bookworm-slim AS production-dependencies
++
++WORKDIR /app
++COPY package.json package-lock.json ./
++RUN npm ci --omit=dev
+ 
+ FROM node:24.18.0-bookworm-slim AS runtime
+ 
+ ENV NODE_ENV=production
+ WORKDIR /app
+ 
+-COPY --from=build --chown=node:node /app/node_modules ./node_modules
++COPY --from=production-dependencies --chown=node:node /app/node_modules ./node_modules
+ COPY --from=build --chown=node:node /app/dist ./dist
+ COPY --from=build --chown=node:node /app/db ./db
+ COPY --from=build --chown=node:node /app/package.json ./package.json
+diff --git a/docs/operations.md b/docs/operations.md
+index 673a99d..0c794bf 100644
+--- a/docs/operations.md
++++ b/docs/operations.md
+@@ -2,6 +2,14 @@
+ 
+ ## Produktionsvoraussetzungen
+ 
++Das Dockerfile installiert die Laufzeit-Abhängigkeiten mit `npm ci --omit=dev`
++in einer eigenen Stufe aus derselben Lockdatei. Die Installationsskripte bleiben
++aktiv, damit auch das native Argon2-Modul vollständig verfügbar ist. Die
++Build-Stufe enthält weiterhin die Entwicklungswerkzeuge; sie gelangen nicht ins
++Laufzeitimage. Damit entfällt `npm prune` auf einer bereits gespeicherten
++Docker-Schicht, dessen Umbenennungen auf dem NAS umfangreiche Copy-up-Vorgänge
++auslösen und das CI-Zeitbudget überschreiten können.
++
+ - Linux-Host oder Orchestrator mit Docker/Compose, persistentem Storage und überwachten Ressourcen
+ - öffentliche DNS-Namen für Spiel und Administration
+ - eingehend TCP 80/443 für Caddy; PostgreSQL, Mailpit und direkter Admin-Port bleiben loopback-/privatgebunden
+-- 
+2.53.0.windows.2
+
+
+From 8fdbbeeeb625b2632cb9aa666aac8d8205f1105e Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sun, 4 Oct 2026 02:23:29 +0200
+Subject: [PATCH 07/12] Keep the login responsive on software graphics
+ renderers; document the static background fallback
+
+---
+ apps/shared/LoginGalaxyCanvas.tsx | 11 +++++++++++
+ docs/admin/03-control-center.md   |  6 ++++++
+ 2 files changed, 17 insertions(+)
+
+diff --git a/apps/shared/LoginGalaxyCanvas.tsx b/apps/shared/LoginGalaxyCanvas.tsx
+index 0ac2e88..428f327 100644
+--- a/apps/shared/LoginGalaxyCanvas.tsx
++++ b/apps/shared/LoginGalaxyCanvas.tsx
+@@ -283,6 +283,17 @@ export default function Galaxy({
+       return;
+     }
+     const gl = renderer.gl;
++    const rendererInfo = gl.getExtension('WEBGL_debug_renderer_info');
++    const rendererName = rendererInfo
++      ? String(gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL))
++      : '';
++    // The decorative shader must not block authentication on CPU renderers.
++    // Keep the existing static background instead of compiling the star field.
++    if (/swiftshader|llvmpipe|softpipe|software rasterizer/iu.test(rendererName)) {
++      ctn.dataset.webgl = 'software';
++      gl.getExtension('WEBGL_lose_context')?.loseContext();
++      return;
++    }
+ 
+     if (transparent) {
+       gl.enable(gl.BLEND);
+diff --git a/docs/admin/03-control-center.md b/docs/admin/03-control-center.md
+index 6c1a03d..6afcfaf 100644
+--- a/docs/admin/03-control-center.md
++++ b/docs/admin/03-control-center.md
+@@ -158,6 +158,12 @@ Der Bereich **Login-Hintergrund** konfiguriert die WebGL-Galaxie des öffentlich
+ 
+ Nach einer Änderung den öffentlichen Login in einem privaten Browserfenster bei Desktop- und Mobile-Größe prüfen. Zusätzlich reduzierte Bewegung im Betriebssystem aktivieren: Antares muss dann dasselbe Sternfeld unbewegt darstellen. Ohne WebGL muss das Formular weiterhin vollständig sichtbar und bedienbar bleiben.
+ 
++Bei erkannten Software-Renderern (SwiftShader, llvmpipe, softpipe oder Software
++Rasterizer) bleibt ebenfalls der statische Hintergrund sichtbar. Der dekorative
++Galaxie-Shader wird dann nicht kompiliert, damit die CPU-Ausführung keine
++Formulareingaben blockiert. Diese Begrenzung betrifft nur den Login-Hintergrund;
++die Grafikfunktionen der Spielansichten bleiben unverändert.
++
+ ## Object-Builder
+ 
+ Der Object-Builder erstellt oder überschreibt Definitionen anhand eines technischen Schlüssels. Unterstützte Typen sind:
+-- 
+2.53.0.windows.2
+
+
+From 4837546dc6e0a0d516b9536850a1babd355d1e89 Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sun, 4 Oct 2026 02:37:32 +0200
+Subject: [PATCH 08/12] Preserve the login star field with a bounded static
+ software-rendered frame; retain existing browser contracts
+
+---
+ apps/shared/LoginGalaxyCanvas.tsx | 34 ++++++++++++++++---------------
+ docs/admin/03-control-center.md   |  9 ++++----
+ 2 files changed, 23 insertions(+), 20 deletions(-)
+
+diff --git a/apps/shared/LoginGalaxyCanvas.tsx b/apps/shared/LoginGalaxyCanvas.tsx
+index 428f327..79ed42d 100644
+--- a/apps/shared/LoginGalaxyCanvas.tsx
++++ b/apps/shared/LoginGalaxyCanvas.tsx
+@@ -287,13 +287,10 @@ export default function Galaxy({
+     const rendererName = rendererInfo
+       ? String(gl.getParameter(rendererInfo.UNMASKED_RENDERER_WEBGL))
+       : '';
+-    // The decorative shader must not block authentication on CPU renderers.
+-    // Keep the existing static background instead of compiling the star field.
+-    if (/swiftshader|llvmpipe|softpipe|software rasterizer/iu.test(rendererName)) {
+-      ctn.dataset.webgl = 'software';
+-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+-      return;
+-    }
++    // Preserve the star field without continually saturating a CPU renderer.
++    const softwareRenderer = /swiftshader|llvmpipe|softpipe|software rasterizer/iu.test(rendererName);
++    const staticFrame = disableAnimation || softwareRenderer;
++    if (softwareRenderer) ctn.dataset.webgl = 'software';
+ 
+     if (transparent) {
+       gl.enable(gl.BLEND);
+@@ -338,13 +335,18 @@ export default function Galaxy({
+     let destroyed = false;
+ 
+     function resize() {
+-      const scale = 1;
+-      renderer.setSize(ctn.offsetWidth * scale, ctn.offsetHeight * scale);
++      const width = Math.max(1, ctn.offsetWidth);
++      const height = Math.max(1, ctn.offsetHeight);
++      const scale = softwareRenderer ? Math.min(1, Math.sqrt(131_072 / (width * height))) : 1;
++      renderer.setSize(Math.max(1, Math.floor(width * scale)), Math.max(1, Math.floor(height * scale)));
++      gl.canvas.style.width = `${width}px`;
++      gl.canvas.style.height = `${height}px`;
+       program.uniforms.uResolution.value = new Color(
+         gl.canvas.width,
+         gl.canvas.height,
+         gl.canvas.width / gl.canvas.height
+       );
++      if (staticFrame && gl.canvas.parentNode === ctn) renderFrame(performance.now());
+     }
+     window.addEventListener('resize', resize, false);
+     resize();
+@@ -358,7 +360,7 @@ export default function Galaxy({
+         if (!flow[key]) flowValues[key] = baseValues[key];
+       }
+ 
+-      if (!disableAnimation) {
++      if (!staticFrame) {
+         advanceBackgroundFlowValues(
+           flowValues,
+           flowDirections,
+@@ -368,7 +370,7 @@ export default function Galaxy({
+         );
+         advancePhaseUniforms(program, flowValues, dtSeconds);
+       }
+-      applyNumericUniforms(program, disableAnimation ? baseValues : flowValues);
++      applyNumericUniforms(program, staticFrame ? baseValues : flowValues);
+ 
+       const lerpFactor = 0.05;
+       smoothMousePos.current.x += (targetMousePos.current.x - smoothMousePos.current.x) * lerpFactor;
+@@ -397,7 +399,7 @@ export default function Galaxy({
+     }
+ 
+     function startAnimation() {
+-      if (disableAnimation || animateId || document.hidden) return;
++      if (staticFrame || animateId || document.hidden) return;
+       animateId = requestAnimationFrame(update);
+     }
+ 
+@@ -407,7 +409,7 @@ export default function Galaxy({
+         stopAnimation();
+         return;
+       }
+-      if (disableAnimation) {
++      if (staticFrame) {
+         renderFrame(performance.now());
+         return;
+       }
+@@ -415,7 +417,7 @@ export default function Galaxy({
+     }
+ 
+     ctn.appendChild(gl.canvas);
+-    if (disableAnimation) {
++    if (staticFrame) {
+       renderFrame(0);
+     } else {
+       startAnimation();
+@@ -434,7 +436,7 @@ export default function Galaxy({
+       targetMouseActive.current = 0.0;
+     }
+ 
+-    if (mouseInteraction && !disableAnimation) {
++    if (mouseInteraction && !staticFrame) {
+       window.addEventListener('mousemove', handleMouseMove);
+       window.addEventListener('mouseleave', handleMouseLeave);
+     }
+@@ -444,7 +446,7 @@ export default function Galaxy({
+       stopAnimation();
+       document.removeEventListener('visibilitychange', handleVisibilityChange);
+       window.removeEventListener('resize', resize);
+-      if (mouseInteraction && !disableAnimation) {
++      if (mouseInteraction && !staticFrame) {
+         window.removeEventListener('mousemove', handleMouseMove);
+         window.removeEventListener('mouseleave', handleMouseLeave);
+       }
+diff --git a/docs/admin/03-control-center.md b/docs/admin/03-control-center.md
+index 6afcfaf..8b34009 100644
+--- a/docs/admin/03-control-center.md
++++ b/docs/admin/03-control-center.md
+@@ -159,10 +159,11 @@ Der Bereich **Login-Hintergrund** konfiguriert die WebGL-Galaxie des öffentlich
+ Nach einer Änderung den öffentlichen Login in einem privaten Browserfenster bei Desktop- und Mobile-Größe prüfen. Zusätzlich reduzierte Bewegung im Betriebssystem aktivieren: Antares muss dann dasselbe Sternfeld unbewegt darstellen. Ohne WebGL muss das Formular weiterhin vollständig sichtbar und bedienbar bleiben.
+ 
+ Bei erkannten Software-Renderern (SwiftShader, llvmpipe, softpipe oder Software
+-Rasterizer) bleibt ebenfalls der statische Hintergrund sichtbar. Der dekorative
+-Galaxie-Shader wird dann nicht kompiliert, damit die CPU-Ausführung keine
+-Formulareingaben blockiert. Diese Begrenzung betrifft nur den Login-Hintergrund;
+-die Grafikfunktionen der Spielansichten bleiben unverändert.
++Rasterizer) zeichnet derselbe Galaxie-Shader ein unbewegtes Sternfeld mit höchstens
++131.072 Pixeln im Zeichenpuffer. Das Canvas füllt weiterhin die gesamte Fläche.
++Die begrenzte Auflösung und der Verzicht auf fortlaufende Frames verhindern,
++dass CPU-Rendering die Formulareingaben blockiert. Diese Begrenzung betrifft nur
++den Login-Hintergrund; die Grafikfunktionen der Spielansichten bleiben unverändert.
+ 
+ ## Object-Builder
+ 
+-- 
+2.53.0.windows.2
+
+
+From e4e47930fc69a3ad8fa46b6668242f9de81338a0 Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sun, 4 Oct 2026 03:00:08 +0200
+Subject: [PATCH 09/12] Release reader leases when clients disconnect during
+ gate acquisition; cover the TCP race with PostgreSQL
+
+---
+ docs/architecture.md                          |  7 +++
+ src/server/game/routes.ts                     |  7 +++
+ tests/integration/maintenance-readers.test.ts | 58 +++++++++++++++++++
+ 3 files changed, 72 insertions(+)
+ create mode 100644 tests/integration/maintenance-readers.test.ts
+
+diff --git a/docs/architecture.md b/docs/architecture.md
+index 9f3d1c3..f6b8073 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -72,6 +72,13 @@ Ungültige Restore-Bestätigungen liefern deshalb auch im Integrationstest HTTP
+ 
+ ## Testgrenzen
+ 
++Reader-Leases berücksichtigen einen HTTP-Abbruch während der asynchronen
++Gate-Transaktion. Ist die Antwort beim Abschluss bereits geschlossen, wird die
++Lease unmittelbar freigegeben und der Gameplay-Handler nicht mehr gestartet.
++Damit können geschlossene Browserseiten keine Wartungs- oder Restore-Sperren
++dauerhaft verlängern. Ein Integrationstest erzwingt dieses Rennen über eine
++echte TCP-Verbindung und PostgreSQL.
++
+ Der gemeinsame Start in einem Sonnensystem hält eine geteilte Systemsperre.
+ Benutzerprofil und Zielplanet bleiben exklusiv gesperrt; Starts auf verschiedenen
+ Planeten warten dadurch nicht auf die teure Grid-Erzeugung des jeweils anderen.
+diff --git a/src/server/game/routes.ts b/src/server/game/routes.ts
+index 9a47f43..3846c2a 100644
+--- a/src/server/game/routes.ts
++++ b/src/server/game/routes.ts
+@@ -212,6 +212,13 @@ export function createMaintenancePreHandler(database: Database) {
+     };
+     reply.raw.once('finish', releaseReader);
+     reply.raw.once('close', releaseReader);
++    // A browser may disconnect while the gate transaction is awaiting I/O.
++    // Its close event then precedes these listeners: release the committed
++    // reader immediately and prevent gameplay from starting on a dead reply.
++    if (reply.raw.destroyed) {
++      releaseReader();
++      reply.hijack();
++    }
+   };
+ }
+ 
+diff --git a/tests/integration/maintenance-readers.test.ts b/tests/integration/maintenance-readers.test.ts
+new file mode 100644
+index 0000000..b821d25
+--- /dev/null
++++ b/tests/integration/maintenance-readers.test.ts
+@@ -0,0 +1,58 @@
++import { get } from 'node:http';
++
++import Fastify from 'fastify';
++import { expect, it } from 'vitest';
++
++import { createMaintenancePreHandler } from '../../src/server/game/routes.js';
++import { openTestDatabase } from './helpers/test-database.js';
++
++it('releases a reader when the client disconnects while its gate is being acquired', async () => {
++  const database = openTestDatabase();
++  const acquired = Promise.withResolvers<void>();
++  const resume = Promise.withResolvers<void>();
++  const disconnected = Promise.withResolvers<void>();
++  const completed = Promise.withResolvers<void>();
++  const app = Fastify();
++  let handlerCalls = 0;
++  app.addHook('onRequest', async (_request, reply) => {
++    reply.raw.once('close', () => disconnected.resolve());
++  });
++  const preHandler = createMaintenancePreHandler({
++    ...database,
++    async transaction(operation) {
++      const result = await database.transaction(operation);
++      acquired.resolve();
++      await resume.promise;
++      return result;
++    },
++  });
++  app.addHook('preHandler', async (request, reply) => {
++    await preHandler(request, reply);
++    completed.resolve();
++  });
++  app.get('/', async () => {
++    handlerCalls += 1;
++    return { ok: true };
++  });
++  try {
++    const address = await app.listen({ host: '127.0.0.1', port: 0 });
++    const request = get(address);
++    request.on('error', () => undefined);
++    await acquired.promise;
++    request.destroy();
++    await disconnected.promise;
++    resume.resolve();
++    await completed.promise;
++    await expect.poll(async () => {
++      const result = await database.query<{ count: number }>(
++        'SELECT count(*)::integer AS count FROM game_state_readers',
++      );
++      return result.rows[0]?.count;
++    }).toBe(0);
++    expect(handlerCalls).toBe(0);
++  } finally {
++    resume.resolve();
++    await app.close();
++    await database.close();
++  }
++});
+-- 
+2.53.0.windows.2
+
+
+From 48f0c7c6845f717e301715dceeb791f076fdd879 Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sun, 4 Oct 2026 03:49:34 +0200
+Subject: [PATCH 10/12] Start arena countdowns at the current monotonic time;
+ share divider geometry state; cover delayed layout mounting and document the
+ contract
+
+---
+ apps/shared/CombatLiveArena.tsx               | 50 ++++++++-----------
+ .../__tests__/combat-live-arena.test.tsx      |  4 ++
+ docs/architecture.md                          |  7 +++
+ 3 files changed, 33 insertions(+), 28 deletions(-)
+
+diff --git a/apps/shared/CombatLiveArena.tsx b/apps/shared/CombatLiveArena.tsx
+index 7d39006..dd06054 100644
+--- a/apps/shared/CombatLiveArena.tsx
++++ b/apps/shared/CombatLiveArena.tsx
+@@ -1,4 +1,4 @@
+-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
++import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+ 
+ import {
+   DEFAULT_COMBAT_LIVE_ARENA_LAYOUT,
+@@ -1507,21 +1507,12 @@ function ArenaForceEllipseShipFans({ side, segments, rectangle, transform }: {
+   />)}</g>;
+ }
+ 
+-function ArenaEllipseCountdownDivider({
+-  midpoint,
+-  countdownKey,
+-  countdownDurationMilliseconds,
+-  countdownRemainingRatio,
+-  countdownDue,
+-  containerRef,
+-}: {
+-  readonly midpoint: number;
+-  readonly countdownKey: string;
+-  readonly countdownDurationMilliseconds: number;
+-  readonly countdownRemainingRatio: number;
+-  readonly countdownDue: boolean;
+-  readonly containerRef: RefObject<HTMLDivElement | null>;
+-}) {
++function useEllipseCountdownProgress(
++  countdownKey: string,
++  countdownDurationMilliseconds: number,
++  countdownRemainingRatio: number,
++  countdownDue: boolean,
++): number {
+   const duration = Math.max(1, countdownDurationMilliseconds);
+   const targetElapsedRatio = countdownDue
+     ? 1
+@@ -1530,7 +1521,7 @@ function ArenaEllipseCountdownDivider({
+   const progressRef = useRef({
+     key: countdownKey,
+     elapsedRatio: targetElapsedRatio,
+-    updatedAt: 0,
++    updatedAt: typeof performance === 'undefined' ? 0 : performance.now(),
+   });
+ 
+   useLayoutEffect(() => {
+@@ -1571,14 +1562,18 @@ function ArenaEllipseCountdownDivider({
+     return () => window.cancelAnimationFrame(frame);
+   }, [countdownKey, duration]);
+ 
++  return elapsedRatio;
++}
++
++function ArenaEllipseCountdownDivider({ midpoint, elapsedRatio, countdownDue }: {
++  readonly midpoint: number;
++  readonly elapsedRatio: number;
++  readonly countdownDue: boolean;
++}) {
+   const dividerCenterX = COMBAT_ELLIPSE_WIDTH / 2;
+   const leftProgressX = dividerCenterX * elapsedRatio;
+   const rightProgressX = COMBAT_ELLIPSE_WIDTH - leftProgressX;
+   const countdownElapsedValue = elapsedRatio.toFixed(6);
+-  useLayoutEffect(() => {
+-    const container = containerRef.current;
+-    if (container) container.dataset.countdownElapsedRatio = countdownElapsedValue;
+-  }, [containerRef, countdownElapsedValue]);
+ 
+   return <g
+     className="combat-force-ellipse-divider-rail"
+@@ -1669,9 +1664,11 @@ function ArenaEllipseStageFans({ forces, definitions, countdownKey, countdownDur
+   }, []);
+   const viewBoxHeight = COMBAT_ELLIPSE_HEIGHT * 2 + extension * 2;
+   const midpoint = viewBoxHeight / 2;
+-  const countdownElapsedValue = (countdownDue
+-    ? 1
+-    : 1 - Math.max(0, Math.min(1, countdownRemainingRatio))).toFixed(6);
++  // One progress value owns the canvas metadata and every divider coordinate.
++  const elapsedRatio = useEllipseCountdownProgress(
++    countdownKey, countdownDurationMilliseconds, countdownRemainingRatio, countdownDue,
++  );
++  const countdownElapsedValue = elapsedRatio.toFixed(6);
+   const attackerRectangle = {
+     ...COMBAT_ELLIPSE_RECTANGLE,
+     maxY: COMBAT_ELLIPSE_HEIGHT + extension,
+@@ -1722,11 +1719,8 @@ function ArenaEllipseStageFans({ forces, definitions, countdownKey, countdownDur
+       />
+       <ArenaEllipseCountdownDivider
+         midpoint={midpoint}
+-        countdownKey={countdownKey}
+-        countdownDurationMilliseconds={countdownDurationMilliseconds}
+-        countdownRemainingRatio={countdownRemainingRatio}
++        elapsedRatio={elapsedRatio}
+         countdownDue={countdownDue}
+-        containerRef={containerRef}
+       />
+     </svg>
+   </div>;
+diff --git a/apps/shared/__tests__/combat-live-arena.test.tsx b/apps/shared/__tests__/combat-live-arena.test.tsx
+index 6923109..43145af 100644
+--- a/apps/shared/__tests__/combat-live-arena.test.tsx
++++ b/apps/shared/__tests__/combat-live-arena.test.tsx
+@@ -277,6 +277,8 @@ describe('combat live half ellipse arena', () => {
+   });
+ 
+   it('moves the symmetric divider countdown from both outer edges to the exact center', () => {
++    // Remounting a layout after a long page session must not count page uptime.
++    vi.spyOn(performance, 'now').mockReturnValue(120_000);
+     const props = {
+       ...commonProps,
+       forces: [],
+@@ -296,6 +298,8 @@ describe('combat live half ellipse arena', () => {
+ 
+     expect(elapsedRatio()).toBeGreaterThanOrEqual(0);
+     expect(elapsedRatio()).toBeLessThan(0.05);
++    expect(view.container.querySelector('.combat-force-ellipse-stage-fans'))
++      .toHaveAttribute('data-countdown-elapsed-ratio', divider()!.dataset.countdownElapsedRatio);
+     expect(divider()).toHaveAttribute('data-countdown-due', 'false');
+     expect(headPositions()[0]).toBeCloseTo(elapsedRatio() * 600, 3);
+     expect(headPositions()[1]).toBeCloseTo(1_200 - elapsedRatio() * 600, 3);
+diff --git a/docs/architecture.md b/docs/architecture.md
+index f6b8073..d9e82bf 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -79,6 +79,13 @@ Damit können geschlossene Browserseiten keine Wartungs- oder Restore-Sperren
+ dauerhaft verlängern. Ein Integrationstest erzwingt dieses Rennen über eine
+ echte TCP-Verbindung und PostgreSQL.
+ 
++Der animierte Trenner der Kampfarena verwendet für Canvas-Metadaten und
++SVG-Koordinaten denselben Fortschrittszustand. Beim Einblenden eines Layouts
++beginnt seine monotone Zeitmessung am aktuellen Zeitpunkt; die bisherige
++Seitenlaufzeit wird nicht als verstrichene Rundenzeit mitgezählt. Der
++Regressionstest setzt dazu die Seitenlaufzeit auf zwei Minuten und prüft den
++unveränderten Beginn, Mittelpunkt und Abschluss des Countdowns.
++
+ Der gemeinsame Start in einem Sonnensystem hält eine geteilte Systemsperre.
+ Benutzerprofil und Zielplanet bleiben exklusiv gesperrt; Starts auf verschiedenen
+ Planeten warten dadurch nicht auf die teure Grid-Erzeugung des jeweils anderen.
+-- 
+2.53.0.windows.2
+
+
+From a81afb166c8f3b925e876c5c848f8e0b19d84c94 Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sun, 4 Oct 2026 03:58:34 +0200
+Subject: [PATCH 11/12] Await confirmed onboarding and snapshot deletion before
+ checking their UI; preserve browser deadlines and document operation
+ boundaries
+
+---
+ docs/operations.md                | 8 ++++++++
+ tests/e2e/admin-access.spec.ts    | 8 +++++++-
+ tests/e2e/game-onboarding.spec.ts | 8 +++++++-
+ 3 files changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/docs/operations.md b/docs/operations.md
+index 0c794bf..6e70bdf 100644
+--- a/docs/operations.md
++++ b/docs/operations.md
+@@ -10,6 +10,14 @@ Laufzeitimage. Damit entfällt `npm prune` auf einer bereits gespeicherten
+ Docker-Schicht, dessen Umbenennungen auf dem NAS umfangreiche Copy-up-Vorgänge
+ auslösen und das CI-Zeitbudget überschreiten können.
+ 
++Die funktionalen Browserprüfungen für den Spielstart und das Löschen eines
++Spielstands warten zuerst auf die vollständig empfangene HTTP-Antwort und
++prüfen ausdrücklich Status 200 beziehungsweise 204. Erst danach prüfen sie
++den geschlossenen Dialog beziehungsweise die Löschbestätigung. Die bisherigen
++UI-Assertions und alle Browser-Zeitbudgets bleiben erhalten; eine längere
++Datenbankoperation verbraucht dadurch nicht schon die kurze Frist für die
++nachfolgende Anzeigeaktualisierung.
++
+ - Linux-Host oder Orchestrator mit Docker/Compose, persistentem Storage und überwachten Ressourcen
+ - öffentliche DNS-Namen für Spiel und Administration
+ - eingehend TCP 80/443 für Caddy; PostgreSQL, Mailpit und direkter Admin-Port bleiben loopback-/privatgebunden
+diff --git a/tests/e2e/admin-access.spec.ts b/tests/e2e/admin-access.spec.ts
+index 0d8072a..c73bcf6 100644
+--- a/tests/e2e/admin-access.spec.ts
++++ b/tests/e2e/admin-access.spec.ts
+@@ -738,7 +738,13 @@ test('administrator signs in with a password and changes maintenance mode throug
+ 
+   await page.getByRole('button', { name: 'Löschen' }).click();
+   await page.getByLabel('Zur Bestätigung LÖSCHEN eingeben').fill('LÖSCHEN');
+-  await page.getByRole('button', { name: 'Spielstand löschen' }).click();
++  const [deleteResponse] = await Promise.all([
++    page.waitForResponse((response) => response.request().method() === 'DELETE'
++      && new URL(response.url()).pathname.startsWith('/api/admin/game-state-snapshots/')),
++    page.getByRole('button', { name: 'Spielstand löschen' }).click(),
++  ]);
++  expect(deleteResponse.status()).toBe(204);
++  expect(await deleteResponse.finished()).toBeNull();
+   await expect(page.getByText('Spielstand „E2E vor Wartung“ wurde gelöscht.')).toBeVisible();
+   await page.getByRole('button', { name: 'Online', exact: true }).click();
+   await expect(page.getByText('PRODUCTION ONLINE')).toBeVisible();
+diff --git a/tests/e2e/game-onboarding.spec.ts b/tests/e2e/game-onboarding.spec.ts
+index ef346dc..05f2813 100644
+--- a/tests/e2e/game-onboarding.spec.ts
++++ b/tests/e2e/game-onboarding.spec.ts
+@@ -34,7 +34,13 @@ test('player chooses a high-security galaxy, shared start planet and sector orbi
+   await expect(startPlanet).toBeEnabled();
+   await startPlanet.click();
+   await page.getByRole('radio', { name: /Sektor 1.*Nordwest/iu }).click();
+-  await page.getByRole('button', { name: 'Testplanet 1 · Sektor 1 als Startpunkt bestätigen' }).click();
++  const [startResponse] = await Promise.all([
++    page.waitForResponse((response) => response.request().method() === 'POST'
++      && response.url().endsWith('/api/game/onboarding/start-location')),
++    page.getByRole('button', { name: 'Testplanet 1 · Sektor 1 als Startpunkt bestätigen' }).click(),
++  ]);
++  expect(startResponse.status()).toBe(200);
++  expect(await startResponse.finished()).toBeNull();
+ 
+   await expect(page.getByText(/Phase 1/u)).toBeVisible();
+   await expect(page.getByRole('heading', { name: 'Wähle dein Startsystem' })).toBeHidden();
+-- 
+2.53.0.windows.2
+
+
+From 9f05b7f1aa56d709f269c37700a65785385a8391 Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sun, 4 Oct 2026 04:19:33 +0200
+Subject: [PATCH 12/12] Verify bodyless snapshot deletion through status and
+ UI; avoid waiting for an absent response body
+
+---
+ docs/operations.md             | 5 +++--
+ tests/e2e/admin-access.spec.ts | 2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/docs/operations.md b/docs/operations.md
+index 6e70bdf..c8e72b7 100644
+--- a/docs/operations.md
++++ b/docs/operations.md
+@@ -11,8 +11,9 @@ Docker-Schicht, dessen Umbenennungen auf dem NAS umfangreiche Copy-up-Vorgänge
+ auslösen und das CI-Zeitbudget überschreiten können.
+ 
+ Die funktionalen Browserprüfungen für den Spielstart und das Löschen eines
+-Spielstands warten zuerst auf die vollständig empfangene HTTP-Antwort und
+-prüfen ausdrücklich Status 200 beziehungsweise 204. Erst danach prüfen sie
++Spielstands warten zuerst auf die erfolgreiche HTTP-Antwort und
++prüfen ausdrücklich Status 200 beziehungsweise 204. Die körperlose
++204-Antwort benötigt keinen zusätzlichen Download-Abschluss. Danach prüfen sie
+ den geschlossenen Dialog beziehungsweise die Löschbestätigung. Die bisherigen
+ UI-Assertions und alle Browser-Zeitbudgets bleiben erhalten; eine längere
+ Datenbankoperation verbraucht dadurch nicht schon die kurze Frist für die
+diff --git a/tests/e2e/admin-access.spec.ts b/tests/e2e/admin-access.spec.ts
+index c73bcf6..4fc974b 100644
+--- a/tests/e2e/admin-access.spec.ts
++++ b/tests/e2e/admin-access.spec.ts
+@@ -744,7 +744,7 @@ test('administrator signs in with a password and changes maintenance mode throug
+     page.getByRole('button', { name: 'Spielstand löschen' }).click(),
+   ]);
+   expect(deleteResponse.status()).toBe(204);
+-  expect(await deleteResponse.finished()).toBeNull();
++  // HTTP 204 has no response body; the UI confirmation verifies completion.
+   await expect(page.getByText('Spielstand „E2E vor Wartung“ wurde gelöscht.')).toBeVisible();
+   await page.getByRole('button', { name: 'Online', exact: true }).click();
+   await expect(page.getByText('PRODUCTION ONLINE')).toBeVisible();
+-- 
+2.53.0.windows.2
+

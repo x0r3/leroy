@@ -1,0 +1,830 @@
+{
+  "repositories": {
+    "antares": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+    "graphato": "ffd4be75f36f4590272832691df04b06ae9e388a",
+    "home-lab-service-collection": "9fb528a1bb4b736d53d294510b374d516e973a03",
+    "nikicas-hub": "f7fcfcf78e8f3717217f841734be824a8e97bbd2"
+  },
+  "jobs": [
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "antares-ci",
+      "color": "red",
+      "sha256": "eb079bce3883b6e8c5f32ac9e9e83d647491828d8ecb4a59e09fdb4dc058b1bc",
+      "repositories": [
+        "https://github.com/x0r3/antares.git"
+      ],
+      "branches": [
+        "*/master"
+      ],
+      "script_paths": [
+        "Jenkinsfile"
+      ],
+      "schedules": [
+        "H/5 * * * *"
+      ],
+      "parameters": [],
+      "disabled": "false",
+      "source_repository": "antares",
+      "source_commit": "ab245279a2c5ba85dedef1180e7fd63b7f5b1398",
+      "stages": [
+        "Toolchain",
+        "PostgreSQL",
+        "Dependencies and security",
+        "Static validation",
+        "Unit and integration tests",
+        "Production artifacts",
+        "Browser end-to-end tests"
+      ],
+      "script_sha256": "17d705808dec7d8695636c06aae7a6259e81f937505b88054b447176d3bb3727",
+      "parameter_definitions": []
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "gitea-bootstrap-repo",
+      "color": "blue",
+      "sha256": "5e7ef51aaf69968c9e849f31b0841ab51e3b4e0334c7301f15f3d188975db57d",
+      "repositories": [],
+      "branches": [],
+      "script_paths": [],
+      "schedules": [],
+      "parameters": [],
+      "disabled": null,
+      "source_repository": "live Jenkins inline",
+      "source_commit": null,
+      "stages": [
+        "Preflight",
+        "Bootstrap Repository"
+      ],
+      "script_sha256": "279dda4a33621d8569ba3cb989572d8adda91dd51d7292c3686761ceaaec1bf6",
+      "parameter_definitions": []
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "graphato-bootstrap-host",
+      "color": "notbuilt",
+      "sha256": "d4c4236f6231f0959fbe5210e00051b14ca44ee9249b53c5477990863257cb6b",
+      "repositories": [
+        "http://gitea:3000/gitea-admin/home-lab-service-collection.git"
+      ],
+      "branches": [
+        "*/master"
+      ],
+      "script_paths": [
+        "jenkins/graphato/bootstrap.Jenkinsfile"
+      ],
+      "schedules": [],
+      "parameters": [
+        "TARGET_HOST",
+        "DOMAIN",
+        "GRAPHATO_REF",
+        "APPLY_CHANGES"
+      ],
+      "disabled": null,
+      "source_repository": "home-lab-service-collection",
+      "source_commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+      "stages": [
+        "Checkout reviewed host scripts",
+        "Bootstrap transport checks",
+        "Inspect or initialize host"
+      ],
+      "script_sha256": "edcf0fcc03d43e38b3e1ef3d61d5286bce037b0a26cd1a0dc028721e7d5d4660",
+      "parameter_definitions": [
+        {
+          "name": "TARGET_HOST",
+          "kind": "string",
+          "default": "87.106.133.233",
+          "choices": [],
+          "description": "Target with a verified host key in Graphato deployments/linux/host/known_hosts."
+        },
+        {
+          "name": "DOMAIN",
+          "kind": "string",
+          "default": "graphato.de",
+          "choices": [],
+          "description": "Public HTTPS domain; its DNS must point to the target."
+        },
+        {
+          "name": "GRAPHATO_REF",
+          "kind": "string",
+          "default": "master",
+          "choices": [],
+          "description": "Reviewed Graphato branch or full commit ID containing the host scripts."
+        },
+        {
+          "name": "APPLY_CHANGES",
+          "kind": "boolean",
+          "default": false,
+          "choices": [],
+          "description": "Install packages, reconcile hardening/HTTPS and authorize the deployment key. May restart services; use a maintenance window."
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "graphato-ci",
+      "color": "blue",
+      "sha256": "74b5843f3162b591fe773cbfa53e6ac58c4c4025140dbfc3c481b3f48de48a5f",
+      "repositories": [
+        "http://gitea:3000/gitea-admin/graphato.git"
+      ],
+      "branches": [
+        "*/master"
+      ],
+      "script_paths": [
+        "Jenkinsfile"
+      ],
+      "schedules": [
+        "H/2 * * * *"
+      ],
+      "parameters": [],
+      "disabled": "false",
+      "source_repository": "graphato",
+      "source_commit": "ffd4be75f36f4590272832691df04b06ae9e388a",
+      "stages": [
+        "Checkout Gitea master",
+        "Check deployed revision",
+        "Fast release boundaries",
+        "Build immutable release",
+        "Build Windows portable client",
+        "Check current master",
+        "Backup, migrate and deploy",
+        "Schedule target-host verification",
+        "Publish Windows client on NAS"
+      ],
+      "script_sha256": "8075bfc90d5028de91a631c4e1343fc67b9cd93ea98b5ee26adcb5daa3617a5a",
+      "parameter_definitions": []
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "graphato-postdeploy-quality",
+      "color": "blue",
+      "sha256": "11a75e468541465abdddaa48875c0137fbc68dc3692a455af22bb1c8e551266f",
+      "repositories": [
+        "http://gitea:3000/gitea-admin/graphato.git"
+      ],
+      "branches": [
+        "*/master"
+      ],
+      "script_paths": [
+        "Jenkinsfile.postdeploy-quality"
+      ],
+      "schedules": [],
+      "parameters": [
+        "RELEASE_COMMIT",
+        "CHECK_GROUP"
+      ],
+      "disabled": "false",
+      "source_repository": "graphato",
+      "source_commit": "ffd4be75f36f4590272832691df04b06ae9e388a",
+      "stages": [
+        "Checkout deployed revision",
+        "Verify quality on production host in isolated environment"
+      ],
+      "script_sha256": "a7d78d8b27038b30e2e2282aefa3c5a7101de3f337733db32f8f3a97fbfe718c",
+      "parameter_definitions": [
+        {
+          "name": "RELEASE_COMMIT",
+          "kind": "string",
+          "default": null,
+          "choices": [],
+          "description": "Full commit ID of the deployed release to verify on the target host."
+        },
+        {
+          "name": "CHECK_GROUP",
+          "kind": "choice",
+          "default": null,
+          "choices": [
+            "all",
+            "frontend",
+            "server",
+            "server-fmt",
+            "server-clippy",
+            "server-test",
+            "development",
+            "dev-profiles",
+            "dev-repositories",
+            "dev-reset",
+            "host"
+          ],
+          "description": "Run only this group; reuse successful checks of this exact release."
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "graphato-postdeploy-web",
+      "color": "blue",
+      "sha256": "cebec90f9f3416c59b7adbf69585066fe9032f34bec4cdb914b5f611af2401b6",
+      "repositories": [
+        "http://gitea:3000/gitea-admin/graphato.git"
+      ],
+      "branches": [
+        "*/master"
+      ],
+      "script_paths": [
+        "Jenkinsfile.postdeploy-web"
+      ],
+      "schedules": [],
+      "parameters": [
+        "RELEASE_COMMIT",
+        "CHECK_GROUP"
+      ],
+      "disabled": "false",
+      "source_repository": "graphato",
+      "source_commit": "ffd4be75f36f4590272832691df04b06ae9e388a",
+      "stages": [
+        "Checkout deployed revision",
+        "Verify web on production host in isolated environment"
+      ],
+      "script_sha256": "f13e082bbbf34f840b03775271a781d66268ff0f747d7f1b68d0bca0e4cb0f5c",
+      "parameter_definitions": [
+        {
+          "name": "RELEASE_COMMIT",
+          "kind": "string",
+          "default": null,
+          "choices": [],
+          "description": "Full commit ID of the deployed release to verify on the target host."
+        },
+        {
+          "name": "CHECK_GROUP",
+          "kind": "choice",
+          "default": null,
+          "choices": [
+            "all",
+            "core",
+            "open",
+            "merge",
+            "media",
+            "voice",
+            "permission",
+            "cleanup",
+            "drop",
+            "clipboard",
+            "skills",
+            "providers",
+            "database",
+            "expiry",
+            "rotation",
+            "dev-services",
+            "dev-environments",
+            "previews",
+            "git-device",
+            "release-switch",
+            "lifecycle",
+            "backup",
+            "soak"
+          ],
+          "description": "Run only this group; reuse successful checks of this exact release."
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "graphato-release-acceptance",
+      "color": "blue",
+      "sha256": "e706e5113df8d04e3058ed548c65d38f3caa744549cd97063c774e631d13baa3",
+      "repositories": [
+        "http://gitea:3000/gitea-admin/graphato.git"
+      ],
+      "branches": [
+        "*/master"
+      ],
+      "script_paths": [
+        "Jenkinsfile.acceptance"
+      ],
+      "schedules": [],
+      "parameters": [
+        "RELEASE_COMMIT"
+      ],
+      "disabled": "false",
+      "source_repository": "graphato",
+      "source_commit": "ffd4be75f36f4590272832691df04b06ae9e388a",
+      "stages": [
+        "Release delivered; acceptance running",
+        "Browser acceptance",
+        "Quality acceptance",
+        "Verify common release identity and total"
+      ],
+      "script_sha256": "03fabf5212e4f8f2550ceb6f85fd2eae0983f597c6ac006560e3bde03ab7756a",
+      "parameter_definitions": [
+        {
+          "name": "RELEASE_COMMIT",
+          "kind": "string",
+          "default": null,
+          "choices": [],
+          "description": "Full deployed commit; both complete postdeploy suites are required."
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "home-lab-ci",
+      "color": "blue",
+      "sha256": "fda4f2857c770ef6738899ab10a04268270de0edf491825f2caab6c5a3625f54",
+      "repositories": [
+        "http://gitea:3000/gitea-admin/home-lab-service-collection.git"
+      ],
+      "branches": [
+        "*/master"
+      ],
+      "script_paths": [
+        "Jenkinsfile"
+      ],
+      "schedules": [
+        "H/2 * * * *"
+      ],
+      "parameters": [],
+      "disabled": "false",
+      "source_repository": "home-lab-service-collection",
+      "source_commit": "9fb528a1bb4b736d53d294510b374d516e973a03",
+      "stages": [
+        "Checkout",
+        "Inspect Commit",
+        "Build And Push"
+      ],
+      "script_sha256": "916a421288c06cd530740813292a098ff3fd1432fa0138d4e04d86594d333976",
+      "parameter_definitions": []
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "music-library-sync-smartphone",
+      "color": "red",
+      "sha256": "4d4deb6a08cf4aca6fb8da40940aeefa757c78c81f5f7467600231ca74ed5303",
+      "repositories": [],
+      "branches": [],
+      "script_paths": [],
+      "schedules": [
+        "H 3 * * *"
+      ],
+      "parameters": [
+        "SOURCE_DIRS",
+        "PHONE_HOST",
+        "PHONE_PORT",
+        "PHONE_USER",
+        "PHONE_DEST_DIR",
+        "SSH_CREDENTIALS_ID",
+        "TIMEOUT_SECONDS",
+        "DRY_RUN",
+        "EXCLUDE_PATTERNS"
+      ],
+      "disabled": "false",
+      "source_repository": "live Jenkins inline",
+      "source_commit": null,
+      "stages": [
+        "Preflight",
+        "Sync Music Library"
+      ],
+      "script_sha256": "bf9944e5f1c15cda7f874d2cf396abb07b815e088d373d961eaed90207fbfefe",
+      "parameter_definitions": [
+        {
+          "name": "SOURCE_DIRS",
+          "kind": "text",
+          "default": "/srv/music/\n/srv/yt-music/",
+          "choices": [],
+          "description": "Source directories on Jenkins host; one per line."
+        },
+        {
+          "name": "PHONE_HOST",
+          "kind": "string",
+          "default": "192.168.178.84",
+          "choices": [],
+          "description": "Smartphone SSH host/IP (for example Termux sshd)."
+        },
+        {
+          "name": "PHONE_PORT",
+          "kind": "string",
+          "default": "8022",
+          "choices": [],
+          "description": "Smartphone SSH port."
+        },
+        {
+          "name": "PHONE_USER",
+          "kind": "string",
+          "default": "u0_a31",
+          "choices": [],
+          "description": "Optional SSH username override. If empty, username from SSH credential is used."
+        },
+        {
+          "name": "PHONE_DEST_DIR",
+          "kind": "string",
+          "default": "/data/data/com.termux/files/home/storage/music/",
+          "choices": [],
+          "description": "Destination directory on smartphone."
+        },
+        {
+          "name": "SSH_CREDENTIALS_ID",
+          "kind": "string",
+          "default": "phone-music-sync-ssh",
+          "choices": [],
+          "description": "Jenkins SSH private key credential ID for smartphone."
+        },
+        {
+          "name": "TIMEOUT_SECONDS",
+          "kind": "string",
+          "default": "30",
+          "choices": [],
+          "description": "SSH/rsync timeout in seconds."
+        },
+        {
+          "name": "DRY_RUN",
+          "kind": "boolean",
+          "default": false,
+          "choices": [],
+          "description": "Preview changes only. No files are modified."
+        },
+        {
+          "name": "EXCLUDE_PATTERNS",
+          "kind": "text",
+          "default": "# One pattern per line (rsync syntax).\n*.tmp\n.DS_Store\n.Trashes\n",
+          "choices": [],
+          "description": "Optional rsync exclude patterns; one per line, # for comments."
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "nikicas-hub-bootstrap-host",
+      "color": "blue",
+      "sha256": "080f9825bd9ad2a7796ef2287ab73388c2c4cc86ce55ac5f03d49416d61305be",
+      "repositories": [],
+      "branches": [],
+      "script_paths": [],
+      "schedules": [],
+      "parameters": [
+        "TARGET_HOST",
+        "TARGET_PORT",
+        "BOOTSTRAP_USER",
+        "BOOTSTRAP_SSH_CREDENTIALS_ID",
+        "DEPLOY_USER",
+        "DEPLOY_DIR",
+        "DEPLOY_SSH_CREDENTIALS_ID",
+        "PUBLIC_ORIGIN",
+        "TRAEFIK_HOST_RULE",
+        "ACME_STORAGE_PATH",
+        "CONFIGURE_FIREWALL",
+        "DRY_RUN"
+      ],
+      "disabled": null,
+      "source_repository": "live Jenkins inline",
+      "source_commit": null,
+      "stages": [
+        "Preflight",
+        "Bootstrap Host"
+      ],
+      "script_sha256": "624a0cbb254fe2bd130c1a93665f3662c1d65f5fd15d1233a191fac6d8122567",
+      "parameter_definitions": [
+        {
+          "name": "TARGET_HOST",
+          "kind": "string",
+          "default": "213.165.73.233",
+          "choices": [],
+          "description": "Remote target host/IP."
+        },
+        {
+          "name": "TARGET_PORT",
+          "kind": "string",
+          "default": "22",
+          "choices": [],
+          "description": "SSH port of the remote target."
+        },
+        {
+          "name": "BOOTSTRAP_USER",
+          "kind": "string",
+          "default": "root",
+          "choices": [],
+          "description": "Optional SSH username override for bootstrap/root access. If empty, SSH credential username is used."
+        },
+        {
+          "name": "BOOTSTRAP_SSH_CREDENTIALS_ID",
+          "kind": "string",
+          "default": "nikicas-hub-bootstrap-ssh",
+          "choices": [],
+          "description": "Jenkins SSH private key credential ID with root/sudo privileges on the target host."
+        },
+        {
+          "name": "DEPLOY_USER",
+          "kind": "string",
+          "default": "nikicas-hub-deploy",
+          "choices": [],
+          "description": "Deploy user to create and authorize for later application deployments."
+        },
+        {
+          "name": "DEPLOY_DIR",
+          "kind": "string",
+          "default": "/opt/nikicas-hub",
+          "choices": [],
+          "description": "Remote base directory for nikicas-hub."
+        },
+        {
+          "name": "DEPLOY_SSH_CREDENTIALS_ID",
+          "kind": "string",
+          "default": "nikicas-hub-deploy-ssh",
+          "choices": [],
+          "description": "Jenkins SSH private key credential ID used by the deploy job. Its public key is authorized on the target host."
+        },
+        {
+          "name": "PUBLIC_ORIGIN",
+          "kind": "string",
+          "default": "https://nikica-strugar.de",
+          "choices": [],
+          "description": "Public HTTPS origin of the app."
+        },
+        {
+          "name": "TRAEFIK_HOST_RULE",
+          "kind": "string",
+          "default": "nikica-strugar.de",
+          "choices": [],
+          "description": "Primary FQDN used by Traefik."
+        },
+        {
+          "name": "ACME_STORAGE_PATH",
+          "kind": "string",
+          "default": "/opt/nikicas-hub/letsencrypt/acme.json",
+          "choices": [],
+          "description": "Absolute Traefik ACME storage file path on the target host."
+        },
+        {
+          "name": "CONFIGURE_FIREWALL",
+          "kind": "boolean",
+          "default": false,
+          "choices": [],
+          "description": "Configure UFW to allow SSH and HTTPS, then enable it."
+        },
+        {
+          "name": "DRY_RUN",
+          "kind": "boolean",
+          "default": false,
+          "choices": [],
+          "description": "Run Ansible in --check mode."
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "nikicas-hub-ci",
+      "color": "blue",
+      "sha256": "a237f3a2f85d85cb44d7a937c31f51e0d27f7e94f19460c1264e236511cf1d9d",
+      "repositories": [
+        "http://gitea:3000/gitea-admin/nikicas-hub.git"
+      ],
+      "branches": [
+        "*/master"
+      ],
+      "script_paths": [
+        "Jenkinsfile"
+      ],
+      "schedules": [
+        "H/2 * * * *"
+      ],
+      "parameters": [],
+      "disabled": "false",
+      "source_repository": "nikicas-hub",
+      "source_commit": "f7fcfcf78e8f3717217f841734be824a8e97bbd2",
+      "stages": [
+        "Checkout",
+        "Inspect Commit",
+        "Build And Push"
+      ],
+      "script_sha256": "90e6614464fc5c17bd0d308837d36e004b934cc9ac836eb5330b7c27c26c0abe",
+      "parameter_definitions": []
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "nikicas-hub-deploy",
+      "color": "blue",
+      "sha256": "e25dd61c1e4b3bce3252bf16aae47d795ecebbe7e39e11fa51a23ade9b05578b",
+      "repositories": [],
+      "branches": [],
+      "script_paths": [],
+      "schedules": [],
+      "parameters": [
+        "GIT_URL",
+        "GIT_BRANCH",
+        "GIT_CREDENTIALS_ID",
+        "DEPLOY_HOST",
+        "DEPLOY_PORT",
+        "DEPLOY_USER",
+        "DEPLOY_DIR",
+        "SSH_CREDENTIALS_ID",
+        "REGISTRY_URL",
+        "REGISTRY_NAMESPACE",
+        "REGISTRY_CREDENTIALS_ID",
+        "IMAGE_NAME",
+        "IMAGE_TAG",
+        "PUBLIC_ORIGIN",
+        "ALLOWED_ORIGINS",
+        "TRAEFIK_HOST_RULE",
+        "ACME_EMAIL",
+        "ACME_STORAGE_PATH",
+        "TRUST_PROXY_HOPS",
+        "DEFAULT_ADMIN_USER",
+        "DEFAULT_ADMIN_LOGIN_SECRET_CREDENTIALS_ID",
+        "EVENT_HASH_SALT_CREDENTIALS_ID",
+        "APP_SALT_CREDENTIALS_ID",
+        "DRY_RUN"
+      ],
+      "disabled": null,
+      "source_repository": "live Jenkins inline",
+      "source_commit": null,
+      "stages": [
+        "Preflight",
+        "Checkout",
+        "Resolve Commit",
+        "Prepare Image",
+        "Deploy Remote"
+      ],
+      "script_sha256": "b975ee00e4c683f72d00c5168993bf8b53423fbf6a1f84e9e679050a126632c6",
+      "parameter_definitions": [
+        {
+          "name": "GIT_URL",
+          "kind": "string",
+          "default": "http://gitea:3000/gitea-admin/nikicas-hub.git",
+          "choices": [],
+          "description": "Git URL of the nikicas-hub repository."
+        },
+        {
+          "name": "GIT_BRANCH",
+          "kind": "string",
+          "default": "master",
+          "choices": [],
+          "description": "Branch to deploy."
+        },
+        {
+          "name": "GIT_CREDENTIALS_ID",
+          "kind": "string",
+          "default": "gitea-http",
+          "choices": [],
+          "description": "Optional Jenkins Git credentials ID for checkout."
+        },
+        {
+          "name": "DEPLOY_HOST",
+          "kind": "string",
+          "default": "213.165.73.233",
+          "choices": [],
+          "description": "Remote deployment host."
+        },
+        {
+          "name": "DEPLOY_PORT",
+          "kind": "string",
+          "default": "22",
+          "choices": [],
+          "description": "SSH port of remote deployment host."
+        },
+        {
+          "name": "DEPLOY_USER",
+          "kind": "string",
+          "default": "nikicas-hub-deploy",
+          "choices": [],
+          "description": "Optional SSH username override. If empty, SSH credential username is used."
+        },
+        {
+          "name": "DEPLOY_DIR",
+          "kind": "string",
+          "default": "/opt/nikicas-hub",
+          "choices": [],
+          "description": "Remote base directory where nikicas-hub compose/env files and image archives are deployed."
+        },
+        {
+          "name": "SSH_CREDENTIALS_ID",
+          "kind": "string",
+          "default": "nikicas-hub-deploy-ssh",
+          "choices": [],
+          "description": "Jenkins SSH private key credential ID for remote deployment host."
+        },
+        {
+          "name": "REGISTRY_URL",
+          "kind": "string",
+          "default": "127.0.0.1:5005",
+          "choices": [],
+          "description": "Registry host reachable by Jenkins, for example 127.0.0.1:5005."
+        },
+        {
+          "name": "REGISTRY_NAMESPACE",
+          "kind": "string",
+          "default": "home-lab",
+          "choices": [],
+          "description": "Registry namespace containing the nikicas-hub image."
+        },
+        {
+          "name": "REGISTRY_CREDENTIALS_ID",
+          "kind": "string",
+          "default": "local-registry",
+          "choices": [],
+          "description": "Optional Jenkins username/password credentials ID for registry pull."
+        },
+        {
+          "name": "IMAGE_NAME",
+          "kind": "string",
+          "default": "nikicas-hub",
+          "choices": [],
+          "description": "Docker image name."
+        },
+        {
+          "name": "IMAGE_TAG",
+          "kind": "string",
+          "default": "latest",
+          "choices": [],
+          "description": "Docker image tag to deploy, for example <commit12>-<yyyymmdd>."
+        },
+        {
+          "name": "PUBLIC_ORIGIN",
+          "kind": "string",
+          "default": "https://nikica-strugar.de",
+          "choices": [],
+          "description": "Public HTTPS origin of the app (for cookies/CORS)."
+        },
+        {
+          "name": "ALLOWED_ORIGINS",
+          "kind": "string",
+          "default": "https://nikica-strugar.de",
+          "choices": [],
+          "description": "Comma-separated CORS origins."
+        },
+        {
+          "name": "TRAEFIK_HOST_RULE",
+          "kind": "string",
+          "default": "nikica-strugar.de",
+          "choices": [],
+          "description": "Host rule for Traefik router, for example app.example.com."
+        },
+        {
+          "name": "ACME_EMAIL",
+          "kind": "string",
+          "default": "",
+          "choices": [],
+          "description": "Optional email address for Lets Encrypt ACME registration."
+        },
+        {
+          "name": "ACME_STORAGE_PATH",
+          "kind": "string",
+          "default": "/opt/nikicas-hub/letsencrypt/acme.json",
+          "choices": [],
+          "description": "Absolute Traefik ACME storage file path on the remote host."
+        },
+        {
+          "name": "TRUST_PROXY_HOPS",
+          "kind": "string",
+          "default": "1",
+          "choices": [],
+          "description": "Express trust proxy hops."
+        },
+        {
+          "name": "DEFAULT_ADMIN_USER",
+          "kind": "string",
+          "default": "admin",
+          "choices": [],
+          "description": "Initial/default admin username consumed by nikicas-hub."
+        },
+        {
+          "name": "DEFAULT_ADMIN_LOGIN_SECRET_CREDENTIALS_ID",
+          "kind": "string",
+          "default": "nikicas-hub-default-admin-login-secret",
+          "choices": [],
+          "description": "Secret text credential ID for the default admin login secret."
+        },
+        {
+          "name": "EVENT_HASH_SALT_CREDENTIALS_ID",
+          "kind": "string",
+          "default": "nikicas-hub-event-hash-salt",
+          "choices": [],
+          "description": "Secret text credential ID for EVENT_HASH_SALT."
+        },
+        {
+          "name": "APP_SALT_CREDENTIALS_ID",
+          "kind": "string",
+          "default": "nikicas-hub-app-salt",
+          "choices": [],
+          "description": "Secret text credential ID for APP_SALT."
+        },
+        {
+          "name": "DRY_RUN",
+          "kind": "boolean",
+          "default": false,
+          "choices": [],
+          "description": "Validate deployment on remote host without starting/updating containers."
+        }
+      ]
+    },
+    {
+      "_class": "org.jenkinsci.plugins.workflow.job.WorkflowJob",
+      "name": "paperless-ngx-bootstrap-rules",
+      "color": "blue",
+      "sha256": "88b3f9b2ea8c177422ebe35c01ed5c4b443ccfbcd36d8f77cdc97327d5329058",
+      "repositories": [],
+      "branches": [],
+      "script_paths": [],
+      "schedules": [],
+      "parameters": [],
+      "disabled": null,
+      "source_repository": "live Jenkins inline",
+      "source_commit": null,
+      "stages": [
+        "Preflight",
+        "Bootstrap Rules"
+      ],
+      "script_sha256": "ca1cd43661d4011acaaab6929f0ef115bc63de8b165dbb5fffa6e10f381c045e",
+      "parameter_definitions": []
+    }
+  ]
+}

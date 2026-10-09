@@ -1,0 +1,17 @@
+---
+- name: Align writable bind mounts with the image runtime user
+  hosts: nikicas_hub
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Permit the runtime UID and deployment group to write application data
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ nikicas_hub_runtime_uid }}"
+        group: "{{ nikicas_hub_deploy_user }}"
+        mode: "2770"
+      loop:
+        - "{{ nikicas_hub_deploy_dir }}/data"
+        - "{{ nikicas_hub_deploy_dir }}/react-app/server/public_gallery"
+        - "{{ nikicas_hub_deploy_dir }}/react-app/server/private_gallery"

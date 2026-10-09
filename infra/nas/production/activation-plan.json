@@ -1,0 +1,110 @@
+[
+  {
+    "pipeline": "gitea-bootstrap-repo",
+    "enabled": false,
+    "intended_poll_seconds": 0,
+    "intended_schedule": null,
+    "original_native_triggers": []
+  },
+  {
+    "pipeline": "graphato-bootstrap-host",
+    "enabled": false,
+    "intended_poll_seconds": 0,
+    "intended_schedule": null,
+    "original_native_triggers": []
+  },
+  {
+    "pipeline": "graphato-ci",
+    "enabled": false,
+    "intended_poll_seconds": 120,
+    "intended_schedule": null,
+    "original_native_triggers": [
+      {
+        "kind": "hudson.triggers.SCMTrigger",
+        "spec": "H/2 * * * *",
+        "ignore_post_commit_hooks": "false"
+      }
+    ]
+  },
+  {
+    "pipeline": "graphato-postdeploy-quality",
+    "enabled": false,
+    "intended_poll_seconds": 0,
+    "intended_schedule": null,
+    "original_native_triggers": []
+  },
+  {
+    "pipeline": "graphato-postdeploy-web",
+    "enabled": false,
+    "intended_poll_seconds": 0,
+    "intended_schedule": null,
+    "original_native_triggers": []
+  },
+  {
+    "pipeline": "graphato-release-acceptance",
+    "enabled": false,
+    "intended_poll_seconds": 0,
+    "intended_schedule": null,
+    "original_native_triggers": []
+  },
+  {
+    "pipeline": "home-lab-ci",
+    "enabled": false,
+    "intended_poll_seconds": 120,
+    "intended_schedule": null,
+    "original_native_triggers": [
+      {
+        "kind": "hudson.triggers.SCMTrigger",
+        "spec": "H/2 * * * *",
+        "ignore_post_commit_hooks": "false"
+      }
+    ]
+  },
+  {
+    "pipeline": "music-library-sync-smartphone",
+    "enabled": false,
+    "intended_poll_seconds": 0,
+    "intended_schedule": "H 3 * * *",
+    "original_native_triggers": [
+      {
+        "kind": "hudson.triggers.TimerTrigger",
+        "spec": "H 3 * * *",
+        "ignore_post_commit_hooks": null
+      }
+    ]
+  },
+  {
+    "pipeline": "nikicas-hub-bootstrap-host",
+    "enabled": false,
+    "intended_poll_seconds": 0,
+    "intended_schedule": null,
+    "original_native_triggers": []
+  },
+  {
+    "pipeline": "nikicas-hub-ci",
+    "enabled": false,
+    "intended_poll_seconds": 120,
+    "intended_schedule": null,
+    "original_native_triggers": [
+      {
+        "kind": "hudson.triggers.SCMTrigger",
+        "spec": "H/2 * * * *",
+        "ignore_post_commit_hooks": "false"
+      }
+    ]
+  },
+  {
+    "pipeline": "nikicas-hub-deploy",
+    "enabled": false,
+    "intended_poll_seconds": 0,
+    "intended_schedule": null,
+    "original_native_triggers": []
+  },
+  {
+    "pipeline": "paperless-ngx-bootstrap-rules",
+    "enabled": false,
+    "intended_poll_seconds": 0,
+    "intended_schedule": null,
+    "original_native_triggers": []
+  }
+]

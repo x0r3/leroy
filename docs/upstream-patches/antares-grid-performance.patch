@@ -1,0 +1,56 @@
+diff --git a/apps/game/src/PlanetView.tsx b/apps/game/src/PlanetView.tsx
+index 4bb807c..ad0fb89 100644
+--- a/apps/game/src/PlanetView.tsx
++++ b/apps/game/src/PlanetView.tsx
+@@ -1376,6 +1376,17 @@ export const PlanetView = memo(function PlanetView({
+     }
+     return tiles;
+   }, [detailedRendering, model.columns, model.rows, model.tiles, renderBackend, viewport.bottom, viewport.left, viewport.right, viewport.top]);
++  // Bound sibling reconciliation to one visible row when the viewport changes.
++  // Layout still belongs to the parent CSS grid through display: contents.
++  const renderedTileRows = useMemo(() => {
++    const rows = new Map<number, PlanetSurfaceTile[]>();
++    for (const tile of renderedTiles) {
++      const row = rows.get(tile.y);
++      if (row) row.push(tile);
++      else rows.set(tile.y, [tile]);
++    }
++    return [...rows.entries()];
++  }, [renderedTiles]);
+   const visibleStructureIds = useMemo(() => new Set(structures.filter((structure) => {
+     const tile = model.tiles[structure.y * model.columns + structure.x];
+     return tile?.visibility === 'visible' || (tile?.visibility === 'scanned' && model.informationLevel >= 3);
+@@ -2371,7 +2382,8 @@ export const PlanetView = memo(function PlanetView({
+             tabIndex={0}
+             onKeyDown={handleGridKeyboard}
+           >
+-            {renderedTiles.map((tile) => <PlanetSurfaceCell
++            {renderedTileRows.map(([y, tiles]) => <div key={y} className="planet-surface-tile-row" style={{ display: 'contents' }} aria-hidden="true">
++              {tiles.map((tile) => <PlanetSurfaceCell
+                 key={tile.index}
+                 model={model}
+                 tile={tile}
+@@ -2380,6 +2392,7 @@ export const PlanetView = memo(function PlanetView({
+                   ? hoverPlacement?.valid ? 'valid' : 'invalid'
+                   : null}
+               />)}
++            </div>)}
+             {selectedTile && <div
+               role="row"
+               aria-rowindex={selectedTile.y + 1}
+diff --git a/docs/architecture.md b/docs/architecture.md
+index b0729ec..ad77481 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -60,6 +60,11 @@ Diese Kopien teilen Datenbank und Fehlerbereich mit dem Livezustand. Sie sind ei
+ - Geheimnisse und Auth-Felder werden in strukturierten Logs redigiert.
+ - Schemainstallation und Seed verwenden einen getrennten Datenbank-Owner; Public, Admin und Worker laufen als `antares_app` ohne Superuser-, DDL-, Rollen- oder Datenbankerstellungsrechte.
+ 
++Die visuellen DOM-Nahdetailzellen der Spieleransicht sind nach Weltzeilen in
++`display: contents`-Wrappern gruppiert. Dadurch bleiben CSS-Grid-Platzierung und
++der einzelne semantische Zellproxy unverändert, während React bei Zoom und Pan
++nicht tausende Geschwister in einem flachen DOM-Container umordnen muss.
++
+ ## Testgrenzen
+ 
+ - Unit-/Property-Tests prüfen zusätzlich 21:9-/Vier-Sektoren-Genesis, Portrait-/Wasserableitung, zusammenhängende Terrainvielfalt, Dschungeldominanz, dschungelgebundene Formationen, Atlaszeilen, exklusive 6×8-Kernmodule, asymmetrische Makroformen und vollständige 4/3-Hüllen, Clusterabdeckung, Footprints, Kontrollanteile, 81-Prozent-Herrschaft, lokalen Pufferstopp, Lagertransfer und 40-Prozent-Recycling.

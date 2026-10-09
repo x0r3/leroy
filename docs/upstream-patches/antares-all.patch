@@ -1,0 +1,501 @@
+diff --git a/apps/game/src/PlanetView.tsx b/apps/game/src/PlanetView.tsx
+index 4bb807c..ad0fb89 100644
+--- a/apps/game/src/PlanetView.tsx
++++ b/apps/game/src/PlanetView.tsx
+@@ -1376,6 +1376,17 @@ export const PlanetView = memo(function PlanetView({
+     }
+     return tiles;
+   }, [detailedRendering, model.columns, model.rows, model.tiles, renderBackend, viewport.bottom, viewport.left, viewport.right, viewport.top]);
++  // Bound sibling reconciliation to one visible row when the viewport changes.
++  // Layout still belongs to the parent CSS grid through display: contents.
++  const renderedTileRows = useMemo(() => {
++    const rows = new Map<number, PlanetSurfaceTile[]>();
++    for (const tile of renderedTiles) {
++      const row = rows.get(tile.y);
++      if (row) row.push(tile);
++      else rows.set(tile.y, [tile]);
++    }
++    return [...rows.entries()];
++  }, [renderedTiles]);
+   const visibleStructureIds = useMemo(() => new Set(structures.filter((structure) => {
+     const tile = model.tiles[structure.y * model.columns + structure.x];
+     return tile?.visibility === 'visible' || (tile?.visibility === 'scanned' && model.informationLevel >= 3);
+@@ -2371,7 +2382,8 @@ export const PlanetView = memo(function PlanetView({
+             tabIndex={0}
+             onKeyDown={handleGridKeyboard}
+           >
+-            {renderedTiles.map((tile) => <PlanetSurfaceCell
++            {renderedTileRows.map(([y, tiles]) => <div key={y} className="planet-surface-tile-row" style={{ display: 'contents' }} aria-hidden="true">
++              {tiles.map((tile) => <PlanetSurfaceCell
+                 key={tile.index}
+                 model={model}
+                 tile={tile}
+@@ -2380,6 +2392,7 @@ export const PlanetView = memo(function PlanetView({
+                   ? hoverPlacement?.valid ? 'valid' : 'invalid'
+                   : null}
+               />)}
++            </div>)}
+             {selectedTile && <div
+               role="row"
+               aria-rowindex={selectedTile.y + 1}
+diff --git a/apps/shared/CombatLiveArena.tsx b/apps/shared/CombatLiveArena.tsx
+index 7d39006..dd06054 100644
+--- a/apps/shared/CombatLiveArena.tsx
++++ b/apps/shared/CombatLiveArena.tsx
+@@ -1,4 +1,4 @@
+-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
++import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+ 
+ import {
+   DEFAULT_COMBAT_LIVE_ARENA_LAYOUT,
+@@ -1507,21 +1507,12 @@ function ArenaForceEllipseShipFans({ side, segments, rectangle, transform }: {
+   />)}</g>;
+ }
+ 
+-function ArenaEllipseCountdownDivider({
+-  midpoint,
+-  countdownKey,
+-  countdownDurationMilliseconds,
+-  countdownRemainingRatio,
+-  countdownDue,
+-  containerRef,
+-}: {
+-  readonly midpoint: number;
+-  readonly countdownKey: string;
+-  readonly countdownDurationMilliseconds: number;
+-  readonly countdownRemainingRatio: number;
+-  readonly countdownDue: boolean;
+-  readonly containerRef: RefObject<HTMLDivElement | null>;
+-}) {
++function useEllipseCountdownProgress(
++  countdownKey: string,
++  countdownDurationMilliseconds: number,
++  countdownRemainingRatio: number,
++  countdownDue: boolean,
++): number {
+   const duration = Math.max(1, countdownDurationMilliseconds);
+   const targetElapsedRatio = countdownDue
+     ? 1
+@@ -1530,7 +1521,7 @@ function ArenaEllipseCountdownDivider({
+   const progressRef = useRef({
+     key: countdownKey,
+     elapsedRatio: targetElapsedRatio,
+-    updatedAt: 0,
++    updatedAt: typeof performance === 'undefined' ? 0 : performance.now(),
+   });
+ 
+   useLayoutEffect(() => {
+@@ -1571,14 +1562,18 @@ function ArenaEllipseCountdownDivider({
+     return () => window.cancelAnimationFrame(frame);
+   }, [countdownKey, duration]);
+ 
++  return elapsedRatio;
++}
++
++function ArenaEllipseCountdownDivider({ midpoint, elapsedRatio, countdownDue }: {
++  readonly midpoint: number;
++  readonly elapsedRatio: number;
++  readonly countdownDue: boolean;
++}) {
+   const dividerCenterX = COMBAT_ELLIPSE_WIDTH / 2;
+   const leftProgressX = dividerCenterX * elapsedRatio;
+   const rightProgressX = COMBAT_ELLIPSE_WIDTH - leftProgressX;
+   const countdownElapsedValue = elapsedRatio.toFixed(6);
+-  useLayoutEffect(() => {
+-    const container = containerRef.current;
+-    if (container) container.dataset.countdownElapsedRatio = countdownElapsedValue;
+-  }, [containerRef, countdownElapsedValue]);
+ 
+   return <g
+     className="combat-force-ellipse-divider-rail"
+@@ -1669,9 +1664,11 @@ function ArenaEllipseStageFans({ forces, definitions, countdownKey, countdownDur
+   }, []);
+   const viewBoxHeight = COMBAT_ELLIPSE_HEIGHT * 2 + extension * 2;
+   const midpoint = viewBoxHeight / 2;
+-  const countdownElapsedValue = (countdownDue
+-    ? 1
+-    : 1 - Math.max(0, Math.min(1, countdownRemainingRatio))).toFixed(6);
++  // One progress value owns the canvas metadata and every divider coordinate.
++  const elapsedRatio = useEllipseCountdownProgress(
++    countdownKey, countdownDurationMilliseconds, countdownRemainingRatio, countdownDue,
++  );
++  const countdownElapsedValue = elapsedRatio.toFixed(6);
+   const attackerRectangle = {
+     ...COMBAT_ELLIPSE_RECTANGLE,
+     maxY: COMBAT_ELLIPSE_HEIGHT + extension,
+@@ -1722,11 +1719,8 @@ function ArenaEllipseStageFans({ forces, definitions, countdownKey, countdownDur
+       />
+       <ArenaEllipseCountdownDivider
+         midpoint={midpoint}
+-        countdownKey={countdownKey}
+-        countdownDurationMilliseconds={countdownDurationMilliseconds}
+-        countdownRemainingRatio={countdownRemainingRatio}
++        elapsedRatio={elapsedRatio}
+         countdownDue={countdownDue}
+-        containerRef={containerRef}
+       />
+     </svg>
+   </div>;
+diff --git a/apps/shared/__tests__/combat-live-arena.test.tsx b/apps/shared/__tests__/combat-live-arena.test.tsx
+index 6923109..43145af 100644
+--- a/apps/shared/__tests__/combat-live-arena.test.tsx
++++ b/apps/shared/__tests__/combat-live-arena.test.tsx
+@@ -277,6 +277,8 @@ describe('combat live half ellipse arena', () => {
+   });
+ 
+   it('moves the symmetric divider countdown from both outer edges to the exact center', () => {
++    // Remounting a layout after a long page session must not count page uptime.
++    vi.spyOn(performance, 'now').mockReturnValue(120_000);
+     const props = {
+       ...commonProps,
+       forces: [],
+@@ -296,6 +298,8 @@ describe('combat live half ellipse arena', () => {
+ 
+     expect(elapsedRatio()).toBeGreaterThanOrEqual(0);
+     expect(elapsedRatio()).toBeLessThan(0.05);
++    expect(view.container.querySelector('.combat-force-ellipse-stage-fans'))
++      .toHaveAttribute('data-countdown-elapsed-ratio', divider()!.dataset.countdownElapsedRatio);
+     expect(divider()).toHaveAttribute('data-countdown-due', 'false');
+     expect(headPositions()[0]).toBeCloseTo(elapsedRatio() * 600, 3);
+     expect(headPositions()[1]).toBeCloseTo(1_200 - elapsedRatio() * 600, 3);
+diff --git a/docs/architecture.md b/docs/architecture.md
+index b0729ec..cbd67d9 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -60,6 +60,28 @@ Diese Kopien teilen Datenbank und Fehlerbereich mit dem Livezustand. Sie sind ei
+ - Geheimnisse und Auth-Felder werden in strukturierten Logs redigiert.
+ - Schemainstallation und Seed verwenden einen getrennten Datenbank-Owner; Public, Admin und Worker laufen als `antares_app` ohne Superuser-, DDL-, Rollen- oder Datenbankerstellungsrechte.
+ 
++Die visuellen DOM-Nahdetailzellen der Spieleransicht sind nach Weltzeilen in
++`display: contents`-Wrappern gruppiert. Dadurch bleiben CSS-Grid-Platzierung und
++der einzelne semantische Zellproxy unverändert, während React bei Zoom und Pan
++nicht tausende Geschwister in einem flachen DOM-Container umordnen muss.
++
++Lange Snapshot-Operationen deaktivieren den Idle-Timer des echten HTTP-Sockets.
++Der Fastify-Injection-Transport besitzt diesen Timer nicht; auch dort durchlaufen
++Anfragen dieselbe Eingabevalidierung und liefern bei falscher Restore-Bestätigung
++HTTP 422 statt eines internen Fehlers.
++
++Reader-Leases berücksichtigen auch einen HTTP-Abbruch während der asynchronen
++Gate-Transaktion. Ist die Antwort beim Abschluss bereits geschlossen, wird die
++Lease unmittelbar freigegeben und der Gameplay-Handler nicht mehr gestartet.
++Damit blockieren abgebrochene Browseranfragen keine spätere Wiederherstellung.
++Ein Integrationstest erzwingt dieses Rennen über eine echte TCP-Verbindung und
++PostgreSQL.
++
++Der animierte Trenner der Kampfarena verwendet für Canvas-Metadaten und
++SVG-Koordinaten denselben Fortschrittszustand. Beim Einblenden eines Layouts
++beginnt seine monotone Zeitmessung am aktuellen Zeitpunkt; die bisherige
++Seitenlaufzeit wird nicht als verstrichene Rundenzeit mitgezählt.
++
+ ## Testgrenzen
+ 
+ - Unit-/Property-Tests prüfen zusätzlich 21:9-/Vier-Sektoren-Genesis, Portrait-/Wasserableitung, zusammenhängende Terrainvielfalt, Dschungeldominanz, dschungelgebundene Formationen, Atlaszeilen, exklusive 6×8-Kernmodule, asymmetrische Makroformen und vollständige 4/3-Hüllen, Clusterabdeckung, Footprints, Kontrollanteile, 81-Prozent-Herrschaft, lokalen Pufferstopp, Lagertransfer und 40-Prozent-Recycling.
+diff --git a/package-lock.json b/package-lock.json
+index c36b8bf..4f59b41 100644
+--- a/package-lock.json
++++ b/package-lock.json
+@@ -11,11 +11,11 @@
+         "@fastify/compress": "9.0.0",
+         "@fastify/cookie": "11.1.1",
+         "@fastify/helmet": "13.1.0",
+-        "@fastify/static": "9.3.0",
++        "@fastify/static": "10.1.5",
+         "argon2": "0.44.0",
+-        "fastify": "5.10.0",
++        "fastify": "5.12.5",
+         "ipaddr.js": "2.4.0",
+-        "nodemailer": "9.0.3",
++        "nodemailer": "10.0.13",
+         "ogl": "1.0.11",
+         "pg": "8.22.0",
+         "prom-client": "15.1.3",
+@@ -1434,9 +1434,9 @@
+       }
+     },
+     "node_modules/@fastify/static": {
+-      "version": "9.3.0",
+-      "resolved": "https://registry.npmjs.org/@fastify/static/-/static-9.3.0.tgz",
+-      "integrity": "sha512-9YMYRpCOtMBrqKYWcqiw7ykOrn4D0jogHpJrFS0KGeSuOwzKMM5/mjj7B0CFLVoQ6htqKYw//Zs7APn9DBq05w==",
++      "version": "10.1.5",
++      "resolved": "https://registry.npmjs.org/@fastify/static/-/static-10.1.5.tgz",
++      "integrity": "sha512-3r0ZFXo82nKlPzySOUYhwWVfPZStfiwjmyevkX7cJWL2yXmEzl0Rpxv+L6L1R4OxqvlDGqf3g8OdBzILKgqe6w==",
+       "funding": [
+         {
+           "type": "github",
+@@ -1450,8 +1450,9 @@
+       "license": "MIT",
+       "dependencies": {
+         "@fastify/accept-negotiator": "^2.0.0",
++        "@fastify/error": "^4.0.0",
+         "@fastify/send": "^4.0.0",
+-        "content-disposition": "^1.0.1",
++        "content-disposition": "^3.0.0",
+         "fastify-plugin": "^6.0.0",
+         "fastq": "^1.17.1",
+         "glob": "^13.0.0"
+@@ -2840,15 +2841,15 @@
+       "license": "MIT"
+     },
+     "node_modules/brace-expansion": {
+-      "version": "5.0.7",
+-      "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.7.tgz",
+-      "integrity": "sha512-7oFy703dxfY3/NLxC1fh2SUCQ0H9rmAY+5EpDVfXjUTTs+HEwR2nYaqLv+GWcTsumwxPfiz6CzCNkwXwBUwqCA==",
++      "version": "5.0.12",
++      "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-5.0.12.tgz",
++      "integrity": "sha512-YovQ3rzhaLMIrDjNDMkNS01tea93qhEhG5xy8f6+R0l+dw3Ki+5sCoIoI942iuLZTHWogWktgwVDhU09iNEimQ==",
+       "license": "MIT",
+       "dependencies": {
+         "balanced-match": "^4.0.2"
+       },
+       "engines": {
+-        "node": "18 || 20 || >=22"
++        "node": "20 || >=22"
+       }
+     },
+     "node_modules/browserslist": {
+@@ -3000,12 +3001,12 @@
+       }
+     },
+     "node_modules/content-disposition": {
+-      "version": "1.1.0",
+-      "resolved": "https://registry.npmjs.org/content-disposition/-/content-disposition-1.1.0.tgz",
+-      "integrity": "sha512-5jRCH9Z/+DRP7rkvY83B+yGIGX96OYdJmzngqnw2SBSxqCFPd0w2km3s5iawpGX8krnwSGmF0FW5Nhr0Hfai3g==",
++      "version": "3.0.0",
++      "resolved": "https://registry.npmjs.org/content-disposition/-/content-disposition-3.0.0.tgz",
++      "integrity": "sha512-ZH/0Xs9rMIFWCOmGdmS9eHBTF62qqQYNz4nVjQhkdIO/a0fCP4UIM3mRz/wiqL0L14YgAz/1xio4OaSY4+ON/A==",
+       "license": "MIT",
+       "engines": {
+-        "node": ">=18"
++        "node": ">=22"
+       },
+       "funding": {
+         "type": "opencollective",
+@@ -3630,9 +3631,9 @@
+       }
+     },
+     "node_modules/fast-json-stringify/node_modules/ajv/node_modules/fast-uri": {
+-      "version": "3.1.3",
+-      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.3.tgz",
+-      "integrity": "sha512-i70LwGWUduXqzicKXWshooq+sWL1K3WUU5rKZNG/0i3a1OSoX3HqhH5WbWwTmqWfor4urUakGPiRQcleRZTwOg==",
++      "version": "3.1.8",
++      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.8.tgz",
++      "integrity": "sha512-GZMtZUTNRpOVIECoXwLNZS5xUGE+mVNbTB8h/7Rwh2TFWcBQiPzTgyZi05BF9UMZKkLJv8XBRJTlU7zg8+ZfMg==",
+       "funding": [
+         {
+           "type": "github",
+@@ -3646,9 +3647,9 @@
+       "license": "BSD-3-Clause"
+     },
+     "node_modules/fast-json-stringify/node_modules/fast-uri": {
+-      "version": "4.1.0",
+-      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-4.1.0.tgz",
+-      "integrity": "sha512-ZodJ2cRiLVWGi9IgPb3mbgSqM4CD3LexCHkuv0FfBXHJI1ADfucTD06m6clO2Cy5RZYsw/SiCVl/dyrFI/SYWA==",
++      "version": "4.2.1",
++      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-4.2.1.tgz",
++      "integrity": "sha512-TmHQgewjHtMq1E5QKA0tOE0yeYGQs25KZC/ziJpubRtWI15W92e6vPFydWOeZBVROSHBYw/QhD9d5OefdD6LDg==",
+       "funding": [
+         {
+           "type": "github",
+@@ -3684,9 +3685,9 @@
+       }
+     },
+     "node_modules/fast-uri": {
+-      "version": "3.1.3",
+-      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.3.tgz",
+-      "integrity": "sha512-i70LwGWUduXqzicKXWshooq+sWL1K3WUU5rKZNG/0i3a1OSoX3HqhH5WbWwTmqWfor4urUakGPiRQcleRZTwOg==",
++      "version": "3.1.8",
++      "resolved": "https://registry.npmjs.org/fast-uri/-/fast-uri-3.1.8.tgz",
++      "integrity": "sha512-GZMtZUTNRpOVIECoXwLNZS5xUGE+mVNbTB8h/7Rwh2TFWcBQiPzTgyZi05BF9UMZKkLJv8XBRJTlU7zg8+ZfMg==",
+       "funding": [
+         {
+           "type": "github",
+@@ -3700,9 +3701,9 @@
+       "license": "BSD-3-Clause"
+     },
+     "node_modules/fastify": {
+-      "version": "5.10.0",
+-      "resolved": "https://registry.npmjs.org/fastify/-/fastify-5.10.0.tgz",
+-      "integrity": "sha512-A9L0ziuWGQHgEEVgF3davQ9vbD93IuX+lo2IsxapQmu5b/Y/ynn9m9K5JHt9dvyJXOFc5iN0Zk5GHEOqnzhWjg==",
++      "version": "5.12.5",
++      "resolved": "https://registry.npmjs.org/fastify/-/fastify-5.12.5.tgz",
++      "integrity": "sha512-OB2k1dlxs5/NAABqeKV2FUHkSD2BbENsCak8yULVcymn3fHIPDVa9TI3SDnJSWYSllZmSYuZXy2gTnsT+Sut1A==",
+       "funding": [
+         {
+           "type": "github",
+@@ -3725,7 +3726,7 @@
+         "find-my-way": "^9.6.0",
+         "light-my-request": "^6.0.0",
+         "pino": "^9.14.0 || ^10.1.0",
+-        "process-warning": "^5.0.0",
++        "process-warning": "^5.1.0",
+         "rfdc": "^1.3.1",
+         "secure-json-parse": "^4.0.0",
+         "semver": "^7.6.0",
+@@ -3801,9 +3802,9 @@
+       }
+     },
+     "node_modules/find-my-way": {
+-      "version": "9.6.0",
+-      "resolved": "https://registry.npmjs.org/find-my-way/-/find-my-way-9.6.0.tgz",
+-      "integrity": "sha512-Zf4Xve4RymLl7NgaavNebZ01joJ8MfVerOG43wy7SHLO+r+K0C6d/SE0BiR7AV5V1VOCFlOP7ecdo+I4qmiHrQ==",
++      "version": "9.9.0",
++      "resolved": "https://registry.npmjs.org/find-my-way/-/find-my-way-9.9.0.tgz",
++      "integrity": "sha512-sJsgZ1sQH2UDuowPuMKg8az7Qc8F0jnj+SKkFWU/+T0xcFlgV5skgXOGUqmQzOdmW6ALA7AhJINWx3qFBkbLHA==",
+       "license": "MIT",
+       "dependencies": {
+         "fast-deep-equal": "^3.1.3",
+@@ -4852,12 +4853,12 @@
+       }
+     },
+     "node_modules/nodemailer": {
+-      "version": "9.0.3",
+-      "resolved": "https://registry.npmjs.org/nodemailer/-/nodemailer-9.0.3.tgz",
+-      "integrity": "sha512-n+YP+NKwR5zRWa60k3GiQ6Q3B4KXCoAw40dAKeCtYn020iNN74aWK2liXIC3ZEATeGql7we3tE3t8QwhY0eskw==",
++      "version": "10.0.13",
++      "resolved": "https://registry.npmjs.org/nodemailer/-/nodemailer-10.0.13.tgz",
++      "integrity": "sha512-SzG86OlvcW/NNhUFC6uROMwRTL4n7MswfQqC/T8mhkmnY1YVa23zUEMYi4ijSeXSl9GLz9ZeTJDUatEDuY5FeQ==",
+       "license": "MIT-0",
+       "engines": {
+-        "node": ">=6.0.0"
++        "node": ">=20.0.0"
+       }
+     },
+     "node_modules/obug": {
+@@ -5310,9 +5311,9 @@
+       "license": "MIT"
+     },
+     "node_modules/process-warning": {
+-      "version": "5.0.0",
+-      "resolved": "https://registry.npmjs.org/process-warning/-/process-warning-5.0.0.tgz",
+-      "integrity": "sha512-a39t9ApHNx2L4+HBnQKqxxHNs1r7KF+Intd8Q/g1bUh6q0WIp9voPXJ/x0j+ZL45KF1pJd9+q2jLIRMfvEshkA==",
++      "version": "5.1.0",
++      "resolved": "https://registry.npmjs.org/process-warning/-/process-warning-5.1.0.tgz",
++      "integrity": "sha512-jQSaVHsPgtyw60e1rQ/A+/ArPEj/S8pS/vFnyGa/gYFXrKk/6RuDkoqVDQ5NI5MmS01698ltlAk0NoDBNLujRw==",
+       "funding": [
+         {
+           "type": "github",
+diff --git a/package.json b/package.json
+index 8551356..3900478 100644
+--- a/package.json
++++ b/package.json
+@@ -52,11 +52,11 @@
+     "@fastify/compress": "9.0.0",
+     "@fastify/cookie": "11.1.1",
+     "@fastify/helmet": "13.1.0",
+-    "@fastify/static": "9.3.0",
++    "@fastify/static": "10.1.5",
+     "argon2": "0.44.0",
+-    "fastify": "5.10.0",
++    "fastify": "5.12.5",
+     "ipaddr.js": "2.4.0",
+-    "nodemailer": "9.0.3",
++    "nodemailer": "10.0.13",
+     "ogl": "1.0.11",
+     "pg": "8.22.0",
+     "prom-client": "15.1.3",
+diff --git a/src/server/admin/routes.ts b/src/server/admin/routes.ts
+index 505c513..28f301b 100644
+--- a/src/server/admin/routes.ts
++++ b/src/server/admin/routes.ts
+@@ -235,14 +235,16 @@ export async function registerAdminRoutes(
+     // Capturing materialized worlds can legitimately exceed the global idle
+     // socket timeout. The operation remains serialized and observable through
+     // the game-state operation endpoint while this response stays connected.
+-    request.raw.socket.setTimeout(0);
++    // Fastify injection has no real socket timer; actual TCP sockets retain
++    // the same explicit timeout exemption for long snapshot operations.
++    request.raw.socket.setTimeout?.(0);
+     const body = parseInput(snapshotCreateSchema, request.body);
+     const admin = getAuthenticatedSession(request);
+     const snapshot = await createGameStateSnapshot(database, admin.userId, request.id, body.name);
+     await reply.status(201).send({ snapshot });
+   });
+   app.post('/api/admin/game-state-snapshots/:snapshotId/restore', async (request) => {
+-    request.raw.socket.setTimeout(0);
++    request.raw.socket.setTimeout?.(0);
+     const params = parseInput(z.object({ snapshotId: uuid }).strict(), request.params);
+     parseInput(snapshotRestoreSchema, request.body);
+     const admin = getAuthenticatedSession(request);
+diff --git a/src/server/game/routes.ts b/src/server/game/routes.ts
+index 9a47f43..3846c2a 100644
+--- a/src/server/game/routes.ts
++++ b/src/server/game/routes.ts
+@@ -212,6 +212,13 @@ export function createMaintenancePreHandler(database: Database) {
+     };
+     reply.raw.once('finish', releaseReader);
+     reply.raw.once('close', releaseReader);
++    // A browser may disconnect while the gate transaction is awaiting I/O.
++    // Its close event then precedes these listeners: release the committed
++    // reader immediately and prevent gameplay from starting on a dead reply.
++    if (reply.raw.destroyed) {
++      releaseReader();
++      reply.hijack();
++    }
+   };
+ }
+ 
+diff --git a/tests/integration/maintenance-readers.test.ts b/tests/integration/maintenance-readers.test.ts
+new file mode 100644
+index 0000000..b821d25
+--- /dev/null
++++ b/tests/integration/maintenance-readers.test.ts
+@@ -0,0 +1,58 @@
++import { get } from 'node:http';
++
++import Fastify from 'fastify';
++import { expect, it } from 'vitest';
++
++import { createMaintenancePreHandler } from '../../src/server/game/routes.js';
++import { openTestDatabase } from './helpers/test-database.js';
++
++it('releases a reader when the client disconnects while its gate is being acquired', async () => {
++  const database = openTestDatabase();
++  const acquired = Promise.withResolvers<void>();
++  const resume = Promise.withResolvers<void>();
++  const disconnected = Promise.withResolvers<void>();
++  const completed = Promise.withResolvers<void>();
++  const app = Fastify();
++  let handlerCalls = 0;
++  app.addHook('onRequest', async (_request, reply) => {
++    reply.raw.once('close', () => disconnected.resolve());
++  });
++  const preHandler = createMaintenancePreHandler({
++    ...database,
++    async transaction(operation) {
++      const result = await database.transaction(operation);
++      acquired.resolve();
++      await resume.promise;
++      return result;
++    },
++  });
++  app.addHook('preHandler', async (request, reply) => {
++    await preHandler(request, reply);
++    completed.resolve();
++  });
++  app.get('/', async () => {
++    handlerCalls += 1;
++    return { ok: true };
++  });
++  try {
++    const address = await app.listen({ host: '127.0.0.1', port: 0 });
++    const request = get(address);
++    request.on('error', () => undefined);
++    await acquired.promise;
++    request.destroy();
++    await disconnected.promise;
++    resume.resolve();
++    await completed.promise;
++    await expect.poll(async () => {
++      const result = await database.query<{ count: number }>(
++        'SELECT count(*)::integer AS count FROM game_state_readers',
++      );
++      return result.rows[0]?.count;
++    }).toBe(0);
++    expect(handlerCalls).toBe(0);
++  } finally {
++    resume.resolve();
++    await app.close();
++    await database.close();
++  }
++});

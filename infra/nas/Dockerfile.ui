@@ -1,0 +1,3 @@
+ARG CONTROLLER_BASE=leroy-controller:nas-parity
+FROM ${CONTROLLER_BASE}
+COPY dist/ /app/web/dist/

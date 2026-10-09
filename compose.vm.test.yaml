@@ -1,0 +1,15 @@
+# Explicitly opt in to Graphato acceptance connectivity. Guest private egress
+# remains blocked; jobs initiate SSH to port 2222 in the QEMU container.
+services:
+  vm:
+    mem_limit: 11g
+    environment:
+      VM_MEMORY_MB: "10240"
+    networks:
+      default: {}
+      acceptance:
+        ipv4_address: 10.231.88.11
+networks:
+  acceptance:
+    external: true
+    name: leroy-test_default

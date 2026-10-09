@@ -1,0 +1,19 @@
+services:
+  vm-access:
+    image: leroy-vm-access:nas-parity
+    networks:
+      default: {ipv4_address: 10.232.98.11}
+    ports: ["192.168.178.97:12226:22"]
+    volumes: ["./config/vm-access:/config:ro"]
+    read_only: true
+    tmpfs: ["/run:size=8m", "/tmp:size=4m"]
+    cap_drop: [NET_RAW]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 48m
+    cpus: 0.25
+    pids_limit: 32
+    restart: unless-stopped
+    labels: {io.leroy.nas-parity: "true"}
+    logging:
+      driver: json-file
+      options: {max-size: "1m", max-file: "2"}

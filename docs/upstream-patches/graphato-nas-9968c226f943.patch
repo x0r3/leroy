@@ -1,0 +1,358 @@
+From d053af94bddeb867bd6f93610eee8b2b653f3b38 Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sat, 3 Oct 2026 22:37:35 +0200
+Subject: [PATCH 1/3] Keep postdeploy control state private on fresh hosts
+
+---
+ .../src-tauri/src/maintenance/host_service.rs | 66 ++++++++++++++++++-
+ docs/arch/maintenance-storage-inventory.md    |  6 ++
+ 2 files changed, 70 insertions(+), 2 deletions(-)
+
+diff --git a/apps/desktop/src-tauri/src/maintenance/host_service.rs b/apps/desktop/src-tauri/src/maintenance/host_service.rs
+index b91ae0c3..caa77930 100644
+--- a/apps/desktop/src-tauri/src/maintenance/host_service.rs
++++ b/apps/desktop/src-tauri/src/maintenance/host_service.rs
+@@ -14,7 +14,7 @@ use std::{
+     os::{
+         fd::AsRawFd,
+         unix::{
+-            fs::{OpenOptionsExt, PermissionsExt},
++            fs::{DirBuilderExt, MetadataExt, OpenOptionsExt, PermissionsExt},
+             net::{UnixListener, UnixStream},
+         },
+     },
+@@ -282,7 +282,7 @@ fn serve() -> AppResult<()> {
+     }
+     fs::set_permissions(SOCKET, fs::Permissions::from_mode(0o660))?;
+     let paths = Paths::production();
+-    fs::create_dir_all(paths.state.join("postdeploy"))?;
++    private_postdeploy_directory(&paths.state.join("postdeploy"), 0)?;
+     let engine = Arc::new(Mutex::new(Engine::default()));
+     let connections = Arc::new(AtomicUsize::new(0));
+     for stream in listener.incoming() {
+@@ -306,6 +306,25 @@ fn serve() -> AppResult<()> {
+     }
+     Ok(())
+ }
++fn private_postdeploy_directory(path: &Path, owner: u32) -> AppResult<()> {
++    match fs::DirBuilder::new().mode(0o700).create(path) {
++        Ok(()) => {}
++        Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
++        Err(error) => return Err(error.into()),
++    }
++    let directory = OpenOptions::new()
++        .read(true)
++        .custom_flags(libc::O_DIRECTORY | libc::O_NOFOLLOW | libc::O_CLOEXEC)
++        .open(path)?;
++    if directory.metadata()?.uid() != owner {
++        return Err(host_inventory::invalid(
++            "Postdeploy state has an unexpected owner",
++        ));
++    }
++    directory.set_permissions(fs::Permissions::from_mode(0o700))?;
++    Ok(())
++}
++
+ fn authorized_connection(uid: u32, pid: i32, server_pid: i32) -> bool {
+     uid == 0 || uid == 1000 && pid == server_pid
+ }
+@@ -327,6 +346,49 @@ pub(crate) fn run_cli() -> Option<AppResult<()>> {
+ mod tests {
+     use super::*;
+     #[test]
++    fn postdeploy_state_is_private_for_fresh_and_existing_directories() {
++        let root =
++            std::env::temp_dir().join(format!("graphato-private-state-{}", uuid::Uuid::new_v4()));
++        fs::create_dir(&root).unwrap();
++        let state = root.join("postdeploy");
++        let uid = unsafe { libc::geteuid() };
++        private_postdeploy_directory(&state, uid).unwrap();
++        assert_eq!(
++            fs::metadata(&state).unwrap().permissions().mode() & 0o777,
++            0o700
++        );
++        fs::set_permissions(&state, fs::Permissions::from_mode(0o755)).unwrap();
++        private_postdeploy_directory(&state, uid).unwrap();
++        assert_eq!(
++            fs::metadata(&state).unwrap().permissions().mode() & 0o777,
++            0o700
++        );
++        assert!(private_postdeploy_directory(&state, uid ^ 1).is_err());
++        fs::remove_dir_all(root).unwrap();
++    }
++    #[test]
++    fn postdeploy_state_rejects_symlinks_and_files_without_changing_them() {
++        let root =
++            std::env::temp_dir().join(format!("graphato-private-state-{}", uuid::Uuid::new_v4()));
++        fs::create_dir(&root).unwrap();
++        let target = root.join("target");
++        fs::create_dir(&target).unwrap();
++        fs::set_permissions(&target, fs::Permissions::from_mode(0o755)).unwrap();
++        let link = root.join("postdeploy");
++        std::os::unix::fs::symlink(&target, &link).unwrap();
++        let uid = unsafe { libc::geteuid() };
++        assert!(private_postdeploy_directory(&link, uid).is_err());
++        assert_eq!(
++            fs::metadata(&target).unwrap().permissions().mode() & 0o777,
++            0o755
++        );
++        let file = root.join("file");
++        fs::write(&file, "retained").unwrap();
++        assert!(private_postdeploy_directory(&file, uid).is_err());
++        assert_eq!(fs::read_to_string(&file).unwrap(), "retained");
++        fs::remove_dir_all(root).unwrap();
++    }
++    #[test]
+     fn cleanup_admits_only_server_and_health_peers_before_reading() {
+         assert!(authorized_connection(1000, 7, 7));
+         assert!(authorized_connection(0, 42, 7));
+diff --git a/docs/arch/maintenance-storage-inventory.md b/docs/arch/maintenance-storage-inventory.md
+index aad6b1d3..ed244e36 100644
+--- a/docs/arch/maintenance-storage-inventory.md
++++ b/docs/arch/maintenance-storage-inventory.md
+@@ -5,6 +5,12 @@ Inventory date: 2026-10-02. Source catalogue:
+ directly by Graphato or by tools it starts, including deployment/verification.
+ It does not treat every file on the host as Graphato-owned.
+ 
++The maintenance service creates `/var/lib/graphato-host/postdeploy` with mode
++0700, matching the root-private run-marker contract. Existing root-owned
++directories have their permissions tightened through a directory descriptor;
++symlinks, regular files and unexpected owners are rejected. This also permits
++postdeploy checks on a freshly bootstrapped host with the usual 0022 umask.
++
+ `D` is the resolved server data directory (dedicated host `/var/lib/graphato`),
+ `W` the configured repository root (`/workspaces`), `A` the resolved managed
+ worktree store (`D/agent-worktrees`), `S` the resolved Demo Services private
+-- 
+2.53.0.windows.2
+
+
+From 78e92e09fa5f6f4f40c5e60e2b149ab66b76987c Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Sat, 3 Oct 2026 22:51:42 +0200
+Subject: [PATCH 2/3] Find the browser shell contract below layout wrappers
+
+---
+ apps/desktop/scripts/browser-models.test.mjs | 12 ++++++++++--
+ docs/arch/maintenance-storage-inventory.md   |  7 +++++++
+ 2 files changed, 17 insertions(+), 2 deletions(-)
+
+diff --git a/apps/desktop/scripts/browser-models.test.mjs b/apps/desktop/scripts/browser-models.test.mjs
+index 62ca4c09..135f8616 100644
+--- a/apps/desktop/scripts/browser-models.test.mjs
++++ b/apps/desktop/scripts/browser-models.test.mjs
+@@ -64,7 +64,6 @@ test("terminal links never execute scripts or open credential URLs", () => {
+ test("browser contract changes preserve the loaded shell and web builds cannot expose E2E hooks", () => {
+   const app = readFileSync(new URL("../src/lib/components/BrowserApp.svelte", import.meta.url), "utf8");
+   const tree = parse(app, { modern: true });
+-  const shellBranch = tree.fragment.nodes.find(node => node.type === "IfBlock");
+   const nodes = [];
+   function visit(node) {
+     if (!node || typeof node !== "object") return;
+@@ -74,6 +73,12 @@ test("browser contract changes preserve the loaded shell and web builds cannot e
+       else if (value && typeof value === "object") visit(value);
+     }
+   }
++  visit(tree.fragment);
++  const shellBranches = nodes.filter(node => node.type === "IfBlock"
++    && node.consequent.nodes.some(child => child.type === "Component" && child.name === "WorkspaceReveal"));
++  assert.equal(shellBranches.length, 1, "exactly one branch must own the preserved shell reveal, including inside layout wrappers");
++  const shellBranch = shellBranches[0];
++  nodes.length = 0;
+   visit(shellBranch.consequent);
+   assert.ok(nodes.some(node => node.type === "Component" && node.name === "Shell"), "the preserved branch must contain Shell");
+   const shellHost = nodes.find(node => node.type === "Component" && node.name === "WorkspaceReveal");
+@@ -81,10 +86,13 @@ test("browser contract changes preserve the loaded shell and web builds cannot e
+   const expression = (attribute) => Array.isArray(attribute.value) ? attribute.value[0].expression : attribute.value.expression;
+   const blocked = expression(shellHost.attributes.find(attribute => attribute.name === "blocked"));
+   for (const ready of [true, false]) {
+-    const context = { $serverConnection: { configured: true }, shell: {}, ready };
++    const context = { $serverConnection: { configured: true }, shell: {}, ready, connectionFailed: true, loading: false };
+     assert.ok(runInNewContext(app.slice(shellBranch.test.start, shellBranch.test.end), context));
+     assert.equal(runInNewContext(app.slice(blocked.start, blocked.end), context), !ready);
+   }
++  assert.equal(runInNewContext(app.slice(shellBranch.test.start, shellBranch.test.end), {
++    $serverConnection: { configured: false }, shell: null, ready: false, connectionFailed: false, loading: false
++  }), false, "an unauthenticated settled connection must not reveal the shell");
+   const modal = nodes.find(node => node.type === "Component" && node.name === "ModalDialog");
+   const canClose = expression(modal.attributes.find(attribute => attribute.name === "canClose"));
+   assert.equal(runInNewContext(app.slice(canClose.start, canClose.end)), false);
+diff --git a/docs/arch/maintenance-storage-inventory.md b/docs/arch/maintenance-storage-inventory.md
+index ed244e36..a3df3940 100644
+--- a/docs/arch/maintenance-storage-inventory.md
++++ b/docs/arch/maintenance-storage-inventory.md
+@@ -11,6 +11,13 @@ directories have their permissions tightened through a directory descriptor;
+ symlinks, regular files and unexpected owners are rejected. This also permits
+ postdeploy checks on a freshly bootstrapped host with the usual 0022 umask.
+ 
++The NAS comparison also retains the browser contract test after the version-footer
++layout wrapper was introduced: the AST check locates the branch owning
++`WorkspaceReveal` below layout elements, then still verifies preservation of the
++loaded shell, blocked editing, the non-dismissible compatibility dialog, and the
++absence of browser E2E hooks. This corrects the same test-discovery failure observed
++in the original production Jenkins web and frontend-quality logs.
++
+ `D` is the resolved server data directory (dedicated host `/var/lib/graphato`),
+ `W` the configured repository root (`/workspaces`), `A` the resolved managed
+ worktree store (`D/agent-worktrees`), `S` the resolved Demo Services private
+-- 
+2.53.0.windows.2
+
+
+From 9968c226f943eb177f31c36fa0e97e7fc7f260d5 Mon Sep 17 00:00:00 2001
+From: "NIKICA-DESKTOP\\nikic" <nikica@nstrugar.com>
+Date: Mon, 5 Oct 2026 09:50:54 +0200
+Subject: [PATCH 3/3] Respect typed pre-dispatch throttling in browser
+ acceptance
+
+---
+ apps/desktop/e2e-web/open-runner.mjs          |  8 +--
+ apps/desktop/scripts/acceptance-command.mjs   | 21 ++++++++
+ .../scripts/acceptance-command.test.mjs       | 54 +++++++++++++++++++
+ .../browser-throttle-recovery-2026-09-21.md   | 17 ++++++
+ 4 files changed, 97 insertions(+), 3 deletions(-)
+ create mode 100644 apps/desktop/scripts/acceptance-command.mjs
+ create mode 100644 apps/desktop/scripts/acceptance-command.test.mjs
+
+diff --git a/apps/desktop/e2e-web/open-runner.mjs b/apps/desktop/e2e-web/open-runner.mjs
+index 50127248..f804e62e 100644
+--- a/apps/desktop/e2e-web/open-runner.mjs
++++ b/apps/desktop/e2e-web/open-runner.mjs
+@@ -9,6 +9,7 @@ import { setTimeout as delay } from 'node:timers/promises';
+ import { firefox, chromium, expect } from '@playwright/test';
+ import { apiContractHeaders } from '../../../scripts/api-contract.mjs';
+ import { acceptanceFailure } from '../scripts/owned-client-server-fixture.mjs';
++import { acceptanceCommandRequest } from '../scripts/acceptance-command.mjs';
+ import { assertPromptResponse } from './prompt-response.mjs';
+ import { audioConverterFixture, transcriptionFixture, voiceTranscript, observeBrowserMedia } from './open-fixtures.mjs';
+ import { followupCases } from './followup-cases.mjs';
+@@ -57,10 +58,11 @@ function watchPage(target) {
+   });
+ }
+ async function nativeCommand(command, args = {}) {
+-  const response = await fetch(`${fixture.apiBase}/api/v1/commands`, { method: 'POST', redirect: 'error',
++  const { response, value } = await acceptanceCommandRequest(`${fixture.apiBase}/api/v1/commands`, { method: 'POST', redirect: 'error',
+     headers: { ...(fixture.contractHeaders ?? apiContractHeaders), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+-    body: JSON.stringify({ command, args, clientId: 'web-open-fixture', requestId: randomUUID() }), signal: AbortSignal.timeout(90_000) });
+-  const value = await response.json();
++    body: JSON.stringify({ command, args, clientId: 'web-open-fixture', requestId: randomUUID() }), signal: AbortSignal.timeout(90_000) }, {
++    onRetry: seconds => console.log(JSON.stringify({ event: 'fixtureRateLimitRetry', command, retryAfterSeconds: seconds })),
++  });
+   if (response.status !== 200 || value.error) throw acceptanceFailure(value.error ?? new Error(`HTTP ${response.status}`), { command, secrets });
+   return value.result;
+ }
+diff --git a/apps/desktop/scripts/acceptance-command.mjs b/apps/desktop/scripts/acceptance-command.mjs
+new file mode 100644
+index 00000000..94605b8a
+--- /dev/null
++++ b/apps/desktop/scripts/acceptance-command.mjs
+@@ -0,0 +1,21 @@
++// Only a typed pre-dispatch rate rejection is safe to repeat. Preserve the
++// exact request identity/body; transport failures and other errors stay fatal.
++import { setTimeout as delay } from 'node:timers/promises';
++
++export async function acceptanceCommandRequest(url, init, {
++  fetchRequest = fetch, wait = delay, now = Date.now, maxWaitMs = 60_000,
++  onRetry = () => {},
++} = {}) {
++  const deadline = now() + maxWaitMs;
++  for (;;) {
++    const response = await fetchRequest(url, init);
++    const value = await response.json();
++    const seconds = value.error?.retryAfterSeconds;
++    if (response.status !== 429 || value.error?.kind !== 'serverRateLimited'
++        || !Number.isInteger(seconds) || seconds < 1 || seconds > 60
++        || Number(response.headers.get('retry-after')) !== seconds
++        || now() + seconds * 1000 > deadline) return { response, value };
++    onRetry(seconds);
++    await wait(seconds * 1000);
++  }
++}
+diff --git a/apps/desktop/scripts/acceptance-command.test.mjs b/apps/desktop/scripts/acceptance-command.test.mjs
+new file mode 100644
+index 00000000..9e39bc2b
+--- /dev/null
++++ b/apps/desktop/scripts/acceptance-command.test.mjs
+@@ -0,0 +1,54 @@
++import assert from 'node:assert/strict';
++import { test } from 'node:test';
++import { acceptanceCommandRequest } from './acceptance-command.mjs';
++
++const limited = () => new Response(JSON.stringify({ error: {
++  kind: 'serverRateLimited', retryAfterSeconds: 1,
++} }), { status: 429, headers: { 'Retry-After': '1' } });
++
++test('typed pre-dispatch rejection respects Retry-After and preserves request identity', async () => {
++  const request = { method: 'POST', body: JSON.stringify({ requestId: 'fixed', command: 'sendSessionPrompt' }) };
++  let calls = 0, clock = 0;
++  const waits = [];
++  const result = await acceptanceCommandRequest('https://fixture.test/commands', request, {
++    fetchRequest: async (_url, init) => {
++      assert.equal(init, request);
++      return ++calls === 1 ? limited() : new Response('{"result":"accepted"}');
++    },
++    now: () => clock,
++    wait: async ms => { waits.push(ms); clock += ms; },
++  });
++  assert.equal(calls, 2);
++  assert.deepEqual(waits, [1000]);
++  assert.equal(result.value.result, 'accepted');
++});
++
++test('persistent throttling exhausts a bounded budget and stays a failure', async () => {
++  let calls = 0, clock = 0;
++  const result = await acceptanceCommandRequest('https://fixture.test/commands', {}, {
++    fetchRequest: async () => { calls++; return limited(); },
++    now: () => clock, wait: async ms => { clock += ms; }, maxWaitMs: 2000,
++  });
++  assert.equal(result.response.status, 429);
++  assert.equal(calls, 3);
++});
++
++test('untyped errors, inconsistent retry headers and ambiguous transport failures never retry', async () => {
++  for (const response of [
++    new Response('{"error":{"kind":"serverRateLimited","retryAfterSeconds":1}}', { status: 429, headers: { 'Retry-After': '2' } }),
++    new Response('{"error":{"kind":"other"}}', { status: 429 }),
++    new Response('{"error":{"kind":"serverRateLimited","retryAfterSeconds":1}}', { status: 500 }),
++  ]) {
++    let calls = 0;
++    await acceptanceCommandRequest('https://fixture.test/commands', {}, {
++      fetchRequest: async () => { calls++; return response; },
++      wait: async () => assert.fail('must not wait'),
++    });
++    assert.equal(calls, 1);
++  }
++  let calls = 0;
++  await assert.rejects(acceptanceCommandRequest('https://fixture.test/commands', {}, {
++    fetchRequest: async () => { calls++; throw new Error('connection reset after possible dispatch'); },
++  }), /connection reset/);
++  assert.equal(calls, 1);
++});
+diff --git a/docs/qa/browser-throttle-recovery-2026-09-21.md b/docs/qa/browser-throttle-recovery-2026-09-21.md
+index 500c10a8..ed70cacd 100644
+--- a/docs/qa/browser-throttle-recovery-2026-09-21.md
++++ b/docs/qa/browser-throttle-recovery-2026-09-21.md
+@@ -69,3 +69,20 @@ Beide erfolgreichen Browserläufe verwendeten das neue lokale Runtime-Image
+ `sha256:edb749133df2af1886e7d25868e37f9a6d3a63951c615920aed5f0c1bf75c04c`
+ mit dem Worker `graphato/web-tests:rate-limit-f295`. Die Jenkins-Abnahme des
+ committeten Releases folgt über den regulären Master-Push.
++# Nachprüfung des Testtreibers am 5. Oktober 2026
++
++Der isolierte NAS-Jenkins-Vergleich von `78e92e09fa5f` besteht 20 Webgruppen,
++scheitert aber in `browser-soak`: Ein direkter `sendSessionPrompt` des Testtreibers
++erhält die serverseitige Ratenbegrenzung. Der vorherige Jenkins-Lauf und Leroy
++hatten dieselbe Quelle erfolgreich geprüft; der Fehler ist zeitabhängig.
++
++Der offene Browser-Testtreiber berücksichtigt deshalb ausschließlich den
++typisierten HTTP-429-Fehler `serverRateLimited` vor Dispatch. Er wartet gemäß
++konsistentem `Retry-After`-Header und JSON-Wert und wiederholt exakt denselben
++Request einschließlich Request-ID. Das gesamte Wartebudget beträgt 60 Sekunden;
++Transportfehler, uneindeutige Antworten und andere Fehler bleiben fatal.
++Serverlimits, fünfminütige Laufzeit, 120 eindeutige Prompts und sämtliche
++Dauertest-Assertions bleiben unverändert. Drei gezielte Regressionstests prüfen
++Wartezeit/Identität, dauerhaftes Throttling und nicht wiederholbare Fehler.
++Eine erfolgreiche vollständige NAS-Abnahme dieses neuen Kandidaten ist damit
++noch nicht belegt.
+-- 
+2.53.0.windows.2
+

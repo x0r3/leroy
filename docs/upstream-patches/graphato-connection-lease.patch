@@ -1,0 +1,74 @@
+commit e4e31e6a28d6fe6d9762830524c4276d257d2f7f
+Author:     NIKICA-DESKTOP\nikic <nikica@nstrugar.com>
+AuthorDate: Sat Oct 3 11:32:26 2026 +0200
+Commit:     NIKICA-DESKTOP\nikic <nikica@nstrugar.com>
+CommitDate: Sat Oct 3 11:34:57 2026 +0200
+
+    Release model connection flock when its logical lease ends
+
+diff --git a/apps/desktop/src-tauri/src/providers/model_connections/store.rs b/apps/desktop/src-tauri/src/providers/model_connections/store.rs
+index 203d9b27..36b1e9a4 100644
+--- a/apps/desktop/src-tauri/src/providers/model_connections/store.rs
++++ b/apps/desktop/src-tauri/src/providers/model_connections/store.rs
+@@ -21,6 +21,14 @@ pub(super) struct Lease {
+     id: String,
+     exclusive: bool,
+ }
++impl Drop for Lease {
++    fn drop(&mut self) {
++        // A concurrent fork can retain this open file description until exec,
++        // despite O_CLOEXEC. Closing our descriptor alone may leave its flock
++        // active; the logical lease must release it before another owner enters.
++        let _ = FileExt::unlock(&self._file);
++    }
++}
+ #[derive(Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
+ #[serde(rename_all = "camelCase")]
+ pub(super) enum Operation {
+diff --git a/apps/desktop/src-tauri/src/providers/model_connections/store/tests.rs b/apps/desktop/src-tauri/src/providers/model_connections/store/tests.rs
+index ded8d52e..3cfda8ce 100644
+--- a/apps/desktop/src-tauri/src/providers/model_connections/store/tests.rs
++++ b/apps/desktop/src-tauri/src/providers/model_connections/store/tests.rs
+@@ -38,6 +38,25 @@ fn read_and_projection_leases_fence_mutations_without_serializing_readers() {
+     assert!(fixture.store.lock(&fixture.id, true).is_ok());
+ }
+ 
++#[test]
++fn dropping_lease_unlocks_even_while_a_fork_duplicate_remains_open() {
++    let fixture = Fixture::new();
++    for exclusive in [false, true] {
++        let lease = fixture.store.lock(&fixture.id, exclusive).unwrap();
++        // dup and fork share the same open file description and flock. Holding
++        // a duplicate reproduces the pre-exec window without a timing race.
++        let inherited = lease._file.try_clone().unwrap();
++        assert!(fixture.store.lock(&fixture.id, true).is_err());
++        drop(lease);
++        let replacement = fixture.store.lock(&fixture.id, true).unwrap();
++        assert!(fixture.store.lock(&fixture.id, false).is_err());
++        drop(inherited);
++        assert!(fixture.store.lock(&fixture.id, true).is_err());
++        drop(replacement);
++        assert!(fixture.store.lock(&fixture.id, true).is_ok());
++    }
++}
++
+ #[test]
+ fn cleanup_removes_all_recorded_credentials_but_preserves_sessions_and_other_connections() {
+     let fixture = Fixture::new();
+diff --git a/docs/phases/agent-harness-followups.md b/docs/phases/agent-harness-followups.md
+index b0c962b1..c144f6e0 100644
+--- a/docs/phases/agent-harness-followups.md
++++ b/docs/phases/agent-harness-followups.md
+@@ -198,3 +198,12 @@ SHA-256 matched the newly built artifact. A bounded check of the native WebView
+ confirmed the login screen, a fitting phone-width layout, and no fatal exception
+ in the updated process. No server login or authenticated production session test
+ was performed on the phone; the app remains at login. Version remains 0.3.0 (3).
++
++## Isolated migration acceptance: lease lifetime
++
++A concurrent fork can temporarily retain a connection lock descriptor before
++exec, even with O_CLOEXEC. Lease destruction now explicitly unlocks the flock,
++so a completed rotation can immediately reacquire its lock. The lock inode stays
++persistent. A deterministic duplicate-descriptor regression covers both shared
++and exclusive leases and confirms that the replacement lease still fences
++other readers/writers. Linux flock semantics: https://man7.org/linux/man-pages/man2/flock.2.html.

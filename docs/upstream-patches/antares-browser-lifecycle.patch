@@ -1,0 +1,225 @@
+diff --git a/apps/shared/CombatLiveArena.tsx b/apps/shared/CombatLiveArena.tsx
+index 7d39006..dd06054 100644
+--- a/apps/shared/CombatLiveArena.tsx
++++ b/apps/shared/CombatLiveArena.tsx
+@@ -1,4 +1,4 @@
+-import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
++import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+ 
+ import {
+   DEFAULT_COMBAT_LIVE_ARENA_LAYOUT,
+@@ -1507,21 +1507,12 @@ function ArenaForceEllipseShipFans({ side, segments, rectangle, transform }: {
+   />)}</g>;
+ }
+ 
+-function ArenaEllipseCountdownDivider({
+-  midpoint,
+-  countdownKey,
+-  countdownDurationMilliseconds,
+-  countdownRemainingRatio,
+-  countdownDue,
+-  containerRef,
+-}: {
+-  readonly midpoint: number;
+-  readonly countdownKey: string;
+-  readonly countdownDurationMilliseconds: number;
+-  readonly countdownRemainingRatio: number;
+-  readonly countdownDue: boolean;
+-  readonly containerRef: RefObject<HTMLDivElement | null>;
+-}) {
++function useEllipseCountdownProgress(
++  countdownKey: string,
++  countdownDurationMilliseconds: number,
++  countdownRemainingRatio: number,
++  countdownDue: boolean,
++): number {
+   const duration = Math.max(1, countdownDurationMilliseconds);
+   const targetElapsedRatio = countdownDue
+     ? 1
+@@ -1530,7 +1521,7 @@ function ArenaEllipseCountdownDivider({
+   const progressRef = useRef({
+     key: countdownKey,
+     elapsedRatio: targetElapsedRatio,
+-    updatedAt: 0,
++    updatedAt: typeof performance === 'undefined' ? 0 : performance.now(),
+   });
+ 
+   useLayoutEffect(() => {
+@@ -1571,14 +1562,18 @@ function ArenaEllipseCountdownDivider({
+     return () => window.cancelAnimationFrame(frame);
+   }, [countdownKey, duration]);
+ 
++  return elapsedRatio;
++}
++
++function ArenaEllipseCountdownDivider({ midpoint, elapsedRatio, countdownDue }: {
++  readonly midpoint: number;
++  readonly elapsedRatio: number;
++  readonly countdownDue: boolean;
++}) {
+   const dividerCenterX = COMBAT_ELLIPSE_WIDTH / 2;
+   const leftProgressX = dividerCenterX * elapsedRatio;
+   const rightProgressX = COMBAT_ELLIPSE_WIDTH - leftProgressX;
+   const countdownElapsedValue = elapsedRatio.toFixed(6);
+-  useLayoutEffect(() => {
+-    const container = containerRef.current;
+-    if (container) container.dataset.countdownElapsedRatio = countdownElapsedValue;
+-  }, [containerRef, countdownElapsedValue]);
+ 
+   return <g
+     className="combat-force-ellipse-divider-rail"
+@@ -1669,9 +1664,11 @@ function ArenaEllipseStageFans({ forces, definitions, countdownKey, countdownDur
+   }, []);
+   const viewBoxHeight = COMBAT_ELLIPSE_HEIGHT * 2 + extension * 2;
+   const midpoint = viewBoxHeight / 2;
+-  const countdownElapsedValue = (countdownDue
+-    ? 1
+-    : 1 - Math.max(0, Math.min(1, countdownRemainingRatio))).toFixed(6);
++  // One progress value owns the canvas metadata and every divider coordinate.
++  const elapsedRatio = useEllipseCountdownProgress(
++    countdownKey, countdownDurationMilliseconds, countdownRemainingRatio, countdownDue,
++  );
++  const countdownElapsedValue = elapsedRatio.toFixed(6);
+   const attackerRectangle = {
+     ...COMBAT_ELLIPSE_RECTANGLE,
+     maxY: COMBAT_ELLIPSE_HEIGHT + extension,
+@@ -1722,11 +1719,8 @@ function ArenaEllipseStageFans({ forces, definitions, countdownKey, countdownDur
+       />
+       <ArenaEllipseCountdownDivider
+         midpoint={midpoint}
+-        countdownKey={countdownKey}
+-        countdownDurationMilliseconds={countdownDurationMilliseconds}
+-        countdownRemainingRatio={countdownRemainingRatio}
++        elapsedRatio={elapsedRatio}
+         countdownDue={countdownDue}
+-        containerRef={containerRef}
+       />
+     </svg>
+   </div>;
+diff --git a/apps/shared/__tests__/combat-live-arena.test.tsx b/apps/shared/__tests__/combat-live-arena.test.tsx
+index 6923109..43145af 100644
+--- a/apps/shared/__tests__/combat-live-arena.test.tsx
++++ b/apps/shared/__tests__/combat-live-arena.test.tsx
+@@ -277,6 +277,8 @@ describe('combat live half ellipse arena', () => {
+   });
+ 
+   it('moves the symmetric divider countdown from both outer edges to the exact center', () => {
++    // Remounting a layout after a long page session must not count page uptime.
++    vi.spyOn(performance, 'now').mockReturnValue(120_000);
+     const props = {
+       ...commonProps,
+       forces: [],
+@@ -296,6 +298,8 @@ describe('combat live half ellipse arena', () => {
+ 
+     expect(elapsedRatio()).toBeGreaterThanOrEqual(0);
+     expect(elapsedRatio()).toBeLessThan(0.05);
++    expect(view.container.querySelector('.combat-force-ellipse-stage-fans'))
++      .toHaveAttribute('data-countdown-elapsed-ratio', divider()!.dataset.countdownElapsedRatio);
+     expect(divider()).toHaveAttribute('data-countdown-due', 'false');
+     expect(headPositions()[0]).toBeCloseTo(elapsedRatio() * 600, 3);
+     expect(headPositions()[1]).toBeCloseTo(1_200 - elapsedRatio() * 600, 3);
+diff --git a/docs/architecture.md b/docs/architecture.md
+index 4bae861..cbd67d9 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -70,6 +70,18 @@ Der Fastify-Injection-Transport besitzt diesen Timer nicht; auch dort durchlaufe
+ Anfragen dieselbe Eingabevalidierung und liefern bei falscher Restore-Bestätigung
+ HTTP 422 statt eines internen Fehlers.
+ 
++Reader-Leases berücksichtigen auch einen HTTP-Abbruch während der asynchronen
++Gate-Transaktion. Ist die Antwort beim Abschluss bereits geschlossen, wird die
++Lease unmittelbar freigegeben und der Gameplay-Handler nicht mehr gestartet.
++Damit blockieren abgebrochene Browseranfragen keine spätere Wiederherstellung.
++Ein Integrationstest erzwingt dieses Rennen über eine echte TCP-Verbindung und
++PostgreSQL.
++
++Der animierte Trenner der Kampfarena verwendet für Canvas-Metadaten und
++SVG-Koordinaten denselben Fortschrittszustand. Beim Einblenden eines Layouts
++beginnt seine monotone Zeitmessung am aktuellen Zeitpunkt; die bisherige
++Seitenlaufzeit wird nicht als verstrichene Rundenzeit mitgezählt.
++
+ ## Testgrenzen
+ 
+ - Unit-/Property-Tests prüfen zusätzlich 21:9-/Vier-Sektoren-Genesis, Portrait-/Wasserableitung, zusammenhängende Terrainvielfalt, Dschungeldominanz, dschungelgebundene Formationen, Atlaszeilen, exklusive 6×8-Kernmodule, asymmetrische Makroformen und vollständige 4/3-Hüllen, Clusterabdeckung, Footprints, Kontrollanteile, 81-Prozent-Herrschaft, lokalen Pufferstopp, Lagertransfer und 40-Prozent-Recycling.
+diff --git a/src/server/game/routes.ts b/src/server/game/routes.ts
+index 9a47f43..3846c2a 100644
+--- a/src/server/game/routes.ts
++++ b/src/server/game/routes.ts
+@@ -212,6 +212,13 @@ export function createMaintenancePreHandler(database: Database) {
+     };
+     reply.raw.once('finish', releaseReader);
+     reply.raw.once('close', releaseReader);
++    // A browser may disconnect while the gate transaction is awaiting I/O.
++    // Its close event then precedes these listeners: release the committed
++    // reader immediately and prevent gameplay from starting on a dead reply.
++    if (reply.raw.destroyed) {
++      releaseReader();
++      reply.hijack();
++    }
+   };
+ }
+ 
+diff --git a/tests/integration/maintenance-readers.test.ts b/tests/integration/maintenance-readers.test.ts
+new file mode 100644
+index 0000000..b821d25
+--- /dev/null
++++ b/tests/integration/maintenance-readers.test.ts
+@@ -0,0 +1,58 @@
++import { get } from 'node:http';
++
++import Fastify from 'fastify';
++import { expect, it } from 'vitest';
++
++import { createMaintenancePreHandler } from '../../src/server/game/routes.js';
++import { openTestDatabase } from './helpers/test-database.js';
++
++it('releases a reader when the client disconnects while its gate is being acquired', async () => {
++  const database = openTestDatabase();
++  const acquired = Promise.withResolvers<void>();
++  const resume = Promise.withResolvers<void>();
++  const disconnected = Promise.withResolvers<void>();
++  const completed = Promise.withResolvers<void>();
++  const app = Fastify();
++  let handlerCalls = 0;
++  app.addHook('onRequest', async (_request, reply) => {
++    reply.raw.once('close', () => disconnected.resolve());
++  });
++  const preHandler = createMaintenancePreHandler({
++    ...database,
++    async transaction(operation) {
++      const result = await database.transaction(operation);
++      acquired.resolve();
++      await resume.promise;
++      return result;
++    },
++  });
++  app.addHook('preHandler', async (request, reply) => {
++    await preHandler(request, reply);
++    completed.resolve();
++  });
++  app.get('/', async () => {
++    handlerCalls += 1;
++    return { ok: true };
++  });
++  try {
++    const address = await app.listen({ host: '127.0.0.1', port: 0 });
++    const request = get(address);
++    request.on('error', () => undefined);
++    await acquired.promise;
++    request.destroy();
++    await disconnected.promise;
++    resume.resolve();
++    await completed.promise;
++    await expect.poll(async () => {
++      const result = await database.query<{ count: number }>(
++        'SELECT count(*)::integer AS count FROM game_state_readers',
++      );
++      return result.rows[0]?.count;
++    }).toBe(0);
++    expect(handlerCalls).toBe(0);
++  } finally {
++    resume.resolve();
++    await app.close();
++    await database.close();
++  }
++});

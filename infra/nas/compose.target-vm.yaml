@@ -1,0 +1,29 @@
+# Runs on the Windows Docker host, reached from NAS jobs through an SSH tunnel.
+name: leroy-nas-target
+services:
+  vm:
+    image: leroy-vm-host:local
+    container_name: leroy-nas-target-vm
+    labels: {io.leroy.nas-parity: "true"}
+    devices: ["/dev/kvm:/dev/kvm"]
+    cap_drop: [ALL]
+    cap_add: [NET_ADMIN]
+    security_opt: ["no-new-privileges:true"]
+    read_only: true
+    tmpfs: ["/tmp:size=64m", "/run:size=16m"]
+    mem_limit: 11g
+    cpus: 4
+    pids_limit: 256
+    environment: {VM_MEMORY_MB: "10240", VM_CPUS: "4"}
+    entrypoint: [sh, -c, "for destination in 87.106.133.233/32 213.165.73.233/32 11.254.254.254/32; do iptables -A OUTPUT -d $$destination -j REJECT || exit 1; done; exec python3 /opt/leroy-vm/launch.py"]
+    ports: ["127.0.0.1:2225:2222", "127.0.0.1:8090:8080", "127.0.0.1:8445:8443"]
+    volumes:
+      - disk:/vm
+      - ../../.local/nas-parity/vm/config:/config:ro
+      - ../../.local/vm/cache:/cache:ro
+    stop_grace_period: 240s
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+volumes:
+  disk:

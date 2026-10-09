@@ -1,0 +1,19 @@
+# NAS inventory pins this to the image used by production Jenkins.
+ARG JENKINS_IMAGE
+FROM leroy-runner:nas-parity AS worker
+FROM ${JENKINS_IMAGE}
+USER root
+# Use the very same Python as Jenkins, including Python modules loaded by actions.
+# Install Leroy in its own venv without altering the application's python3 or
+# Ansible dependencies. Bootstrap pip is pure Python and only used while building.
+COPY --from=worker /usr/local/lib/python3.14/site-packages/pip /opt/leroy-build/pip
+COPY --from=worker /app /opt/leroy-build/source
+RUN python3 -m venv --without-pip /opt/leroy-worker \
+    && PYTHONPATH=/opt/leroy-build /opt/leroy-worker/bin/python -m pip install --no-cache-dir /opt/leroy-build/source \
+    && printf '#!/bin/sh\nexec /opt/leroy-worker/bin/python "$@"\n' > /usr/local/bin/python \
+    && chmod 755 /usr/local/bin/python && mkdir -p /job /work \
+    && python -c 'import leroy.worker; import sys; print(sys.version)' \
+    && rm -r /opt/leroy-build
+ENV GIT_TERMINAL_PROMPT=0 PYTHONUNBUFFERED=1
+ENTRYPOINT []
+CMD ["python", "-m", "leroy.worker"]

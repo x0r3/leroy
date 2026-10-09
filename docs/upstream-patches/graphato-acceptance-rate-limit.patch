@@ -1,0 +1,114 @@
+diff --git a/apps/desktop/e2e-web/open-runner.mjs b/apps/desktop/e2e-web/open-runner.mjs
+index 50127248..f804e62e 100644
+--- a/apps/desktop/e2e-web/open-runner.mjs
++++ b/apps/desktop/e2e-web/open-runner.mjs
+@@ -9,6 +9,7 @@ import { setTimeout as delay } from 'node:timers/promises';
+ import { firefox, chromium, expect } from '@playwright/test';
+ import { apiContractHeaders } from '../../../scripts/api-contract.mjs';
+ import { acceptanceFailure } from '../scripts/owned-client-server-fixture.mjs';
++import { acceptanceCommandRequest } from '../scripts/acceptance-command.mjs';
+ import { assertPromptResponse } from './prompt-response.mjs';
+ import { audioConverterFixture, transcriptionFixture, voiceTranscript, observeBrowserMedia } from './open-fixtures.mjs';
+ import { followupCases } from './followup-cases.mjs';
+@@ -57,10 +58,11 @@ function watchPage(target) {
+   });
+ }
+ async function nativeCommand(command, args = {}) {
+-  const response = await fetch(`${fixture.apiBase}/api/v1/commands`, { method: 'POST', redirect: 'error',
++  const { response, value } = await acceptanceCommandRequest(`${fixture.apiBase}/api/v1/commands`, { method: 'POST', redirect: 'error',
+     headers: { ...(fixture.contractHeaders ?? apiContractHeaders), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+-    body: JSON.stringify({ command, args, clientId: 'web-open-fixture', requestId: randomUUID() }), signal: AbortSignal.timeout(90_000) });
+-  const value = await response.json();
++    body: JSON.stringify({ command, args, clientId: 'web-open-fixture', requestId: randomUUID() }), signal: AbortSignal.timeout(90_000) }, {
++    onRetry: seconds => console.log(JSON.stringify({ event: 'fixtureRateLimitRetry', command, retryAfterSeconds: seconds })),
++  });
+   if (response.status !== 200 || value.error) throw acceptanceFailure(value.error ?? new Error(`HTTP ${response.status}`), { command, secrets });
+   return value.result;
+ }
+diff --git a/apps/desktop/scripts/acceptance-command.mjs b/apps/desktop/scripts/acceptance-command.mjs
+new file mode 100644
+index 00000000..94605b8a
+--- /dev/null
++++ b/apps/desktop/scripts/acceptance-command.mjs
+@@ -0,0 +1,21 @@
++// Only a typed pre-dispatch rate rejection is safe to repeat. Preserve the
++// exact request identity/body; transport failures and other errors stay fatal.
++import { setTimeout as delay } from 'node:timers/promises';
++
++export async function acceptanceCommandRequest(url, init, {
++  fetchRequest = fetch, wait = delay, now = Date.now, maxWaitMs = 60_000,
++  onRetry = () => {},
++} = {}) {
++  const deadline = now() + maxWaitMs;
++  for (;;) {
++    const response = await fetchRequest(url, init);
++    const value = await response.json();
++    const seconds = value.error?.retryAfterSeconds;
++    if (response.status !== 429 || value.error?.kind !== 'serverRateLimited'
++        || !Number.isInteger(seconds) || seconds < 1 || seconds > 60
++        || Number(response.headers.get('retry-after')) !== seconds
++        || now() + seconds * 1000 > deadline) return { response, value };
++    onRetry(seconds);
++    await wait(seconds * 1000);
++  }
++}
+diff --git a/apps/desktop/scripts/acceptance-command.test.mjs b/apps/desktop/scripts/acceptance-command.test.mjs
+new file mode 100644
+index 00000000..9e39bc2b
+--- /dev/null
++++ b/apps/desktop/scripts/acceptance-command.test.mjs
+@@ -0,0 +1,54 @@
++import assert from 'node:assert/strict';
++import { test } from 'node:test';
++import { acceptanceCommandRequest } from './acceptance-command.mjs';
++
++const limited = () => new Response(JSON.stringify({ error: {
++  kind: 'serverRateLimited', retryAfterSeconds: 1,
++} }), { status: 429, headers: { 'Retry-After': '1' } });
++
++test('typed pre-dispatch rejection respects Retry-After and preserves request identity', async () => {
++  const request = { method: 'POST', body: JSON.stringify({ requestId: 'fixed', command: 'sendSessionPrompt' }) };
++  let calls = 0, clock = 0;
++  const waits = [];
++  const result = await acceptanceCommandRequest('https://fixture.test/commands', request, {
++    fetchRequest: async (_url, init) => {
++      assert.equal(init, request);
++      return ++calls === 1 ? limited() : new Response('{"result":"accepted"}');
++    },
++    now: () => clock,
++    wait: async ms => { waits.push(ms); clock += ms; },
++  });
++  assert.equal(calls, 2);
++  assert.deepEqual(waits, [1000]);
++  assert.equal(result.value.result, 'accepted');
++});
++
++test('persistent throttling exhausts a bounded budget and stays a failure', async () => {
++  let calls = 0, clock = 0;
++  const result = await acceptanceCommandRequest('https://fixture.test/commands', {}, {
++    fetchRequest: async () => { calls++; return limited(); },
++    now: () => clock, wait: async ms => { clock += ms; }, maxWaitMs: 2000,
++  });
++  assert.equal(result.response.status, 429);
++  assert.equal(calls, 3);
++});
++
++test('untyped errors, inconsistent retry headers and ambiguous transport failures never retry', async () => {
++  for (const response of [
++    new Response('{"error":{"kind":"serverRateLimited","retryAfterSeconds":1}}', { status: 429, headers: { 'Retry-After': '2' } }),
++    new Response('{"error":{"kind":"other"}}', { status: 429 }),
++    new Response('{"error":{"kind":"serverRateLimited","retryAfterSeconds":1}}', { status: 500 }),
++  ]) {
++    let calls = 0;
++    await acceptanceCommandRequest('https://fixture.test/commands', {}, {
++      fetchRequest: async () => { calls++; return response; },
++      wait: async () => assert.fail('must not wait'),
++    });
++    assert.equal(calls, 1);
++  }
++  let calls = 0;
++  await assert.rejects(acceptanceCommandRequest('https://fixture.test/commands', {}, {
++    fetchRequest: async () => { calls++; throw new Error('connection reset after possible dispatch'); },
++  }), /connection reset/);
++  assert.equal(calls, 1);
++});

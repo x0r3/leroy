@@ -1,0 +1,32 @@
+name: leroy-vm
+services:
+  vm:
+    image: leroy-vm-host:local
+    build: ./infra/vm
+    container_name: leroy-linux-vm
+    devices: ["/dev/kvm:/dev/kvm"]
+    cap_drop: [ALL]
+    cap_add: [NET_ADMIN]
+    security_opt: ["no-new-privileges:true"]
+    read_only: true
+    tmpfs: ["/tmp:size=64m", "/run:size=16m"]
+    mem_limit: 5g
+    cpus: 4
+    pids_limit: 256
+    environment:
+      VM_MEMORY_MB: "4096"
+      VM_CPUS: "4"
+    ports:
+      - "127.0.0.1:2224:2222"
+      - "127.0.0.1:8089:8080"
+      - "127.0.0.1:8444:8443"
+    volumes:
+      - disk:/vm
+      - ./.local/vm/config:/config:ro
+      - ./.local/vm/cache:/cache:ro
+    stop_grace_period: 240s
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+volumes:
+  disk:

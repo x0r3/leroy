@@ -1,0 +1,64 @@
+--- a/apps/desktop/e2e-web/open-runner.mjs
++++ b/apps/desktop/e2e-web/open-runner.mjs
+@@ -56,13 +56,28 @@
+     }
+   });
+ }
+-async function nativeCommand(command, args = {}) {
+-  const response = await fetch(`${fixture.apiBase}/api/v1/commands`, { method: 'POST', redirect: 'error',
+-    headers: { ...(fixture.contractHeaders ?? apiContractHeaders), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+-    body: JSON.stringify({ command, args, clientId: 'web-open-fixture', requestId: randomUUID() }), signal: AbortSignal.timeout(90_000) });
+-  const value = await response.json();
+-  if (response.status !== 200 || value.error) throw acceptanceFailure(value.error ?? new Error(`HTTP ${response.status}`), { command, secrets });
+-  return value.result;
++async function nativeCommand(command, args = {}, options = {}) {
++  const deadline = Date.now() + 90_000;
++  const body = JSON.stringify({ command, args, clientId: 'web-open-fixture', requestId: randomUUID() });
++  for (let attempt = 0; ; attempt++) {
++    const response = await fetch(`${fixture.apiBase}/api/v1/commands`, { method: 'POST', redirect: 'error',
++      headers: { ...(fixture.contractHeaders ?? apiContractHeaders), Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
++      body, signal: AbortSignal.timeout(Math.max(1, deadline - Date.now())) });
++    const value = await response.json();
++    if (response.status === 429 && value.error?.kind === 'serverRateLimited'
++        && attempt < (options.rateLimitRetries ?? 0)) {
++      const retryAfter = response.headers.get('Retry-After');
++      const seconds = Number(retryAfter);
++      if (Number.isInteger(seconds) && seconds >= 1 && seconds <= 60
++          && seconds === value.error.retryAfterSeconds && Date.now() + seconds * 1000 < deadline) {
++        options.onRateLimit?.({ kind: value.error.kind, retryAfterSeconds: seconds, retryAfter });
++        await delay(seconds * 1000);
++        continue;
++      }
++    }
++    if (response.status !== 200 || value.error) throw acceptanceFailure(value.error ?? new Error(`HTTP ${response.status}`), { command, secrets });
++    return value.result;
++  }
+ }
+ const operation = req => nativeCommand('e2eFixtureOperation', { req });
+ const readFixture = async path => Buffer.from((await operation({ operation: 'readFile', path })).dataBase64, 'base64');
+--- a/apps/desktop/e2e-web/followup-cases.mjs
++++ b/apps/desktop/e2e-web/followup-cases.mjs
+@@ -37,8 +37,13 @@
+     });
+     await chat().getByRole('textbox', { name: 'Message agent', exact: true }).fill('Soak unsent draft');
+     // All work belongs to the fixture's fake provider; real queue/events/HTTP run.
++    const nativeRateLimits = [];
++    const sendOptions = { rateLimitRetries: 2, onRateLimit: response => {
++      nativeRateLimits.push(response);
++      assert.ok(nativeRateLimits.length < 12, 'Sustained prompt throttling is not a successful soak');
++    } };
+     for (let index = 0; index < 120; index++) {
+-      await nativeCommand('sendSessionPrompt', { req: { sessionId: h.session.id, prompt: `SOAK_HISTORY_${index}` } });
++      await nativeCommand('sendSessionPrompt', { req: { sessionId: h.session.id, prompt: `SOAK_HISTORY_${index}` } }, sendOptions);
+       if (index % 10 === 0) await tabs[(index / 10) % tabs.length].bringToFront();
+       await delay(100);
+     }
+@@ -61,7 +66,7 @@
+     const entries = history.filter(entry => entry.prompt.startsWith('SOAK_HISTORY_'));
+     assert.equal(entries.length, 120); assert.equal(new Set(entries.map(entry => entry.prompt)).size, 120);
+     console.log(JSON.stringify({ event: 'boundedSoak', tabs: tabs.length, prompts: entries.length, polls,
+-      durationSeconds: (Date.now() - started) / 1000, failedResponses, statuses,
++      durationSeconds: (Date.now() - started) / 1000, failedResponses, statuses, nativeRateLimits: nativeRateLimits.length,
+       secondsSinceLastRateLimit: lastRateLimitAt ? (Date.now() - lastRateLimitAt) / 1000 : null }));
+     for (const response of await Promise.all(rateLimits)) {
+       assert.equal(response.kind, 'serverRateLimited');
