@@ -46,8 +46,9 @@ Voraussetzungen: Docker mit Linux-Containern und Compose mit `!override`, Python
 3.12, Git und Zugriff auf die inventarisierten Quell-Repositories. Die vollständigen
 Projekt-Builds benötigen deutlich mehr Ressourcen als Leroy selbst. Die
 ursprüngliche Umgebung stellte Docker 12 CPUs und 16 GiB RAM zur Verfügung.
-Aktuell bleiben die lokalen Leroy-Dienste und die Test-VM gestoppt;
-gemäß Nutzerwunsch läuft lokal nur NameFinder. Die folgenden Befehle starten
+Aktuell bleiben die lokalen Leroy-Dienste und die Test-VM gestoppt.
+Bei der Bereinigung am 7. Oktober blieb lokal nur NameFinder aktiv.
+Die folgenden Befehle starten
 die Testumgebung ausdrücklich neu.
 
 ```powershell

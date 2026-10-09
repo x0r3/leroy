@@ -2,8 +2,10 @@
 
 Aktueller Projektstand und weiterer Plan: [status.md](status.md). Die folgenden
 Aufbau- und Ausführungsbeschreibungen enthalten auch ältere Abnahmeszenarien.
-Die lokale Leroy-Docker-Umgebung bleibt derzeit gestoppt; lokal läuft nur
-NameFinder. Private Detailnachweise unter `test-results/` gehören nicht zum Clone.
+Die lokale Leroy-Docker-Umgebung bleibt derzeit gestoppt. Bei der Bereinigung
+am 7. Oktober blieb lokal nur NameFinder aktiv; das ist keine dauerhafte Vorgabe
+für andere Entwicklungsaufgaben. Private Detailnachweise unter `test-results/`
+gehören nicht zum Clone.
 
 Aktueller NAS-Umfang gemäß Nutzerentscheidung: zwölf Pipelines; Antares als Artefakt
 ausgenommen. Controller und CI-Worker bleiben auf dem NAS. Die folgenden lokalen

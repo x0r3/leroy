@@ -120,7 +120,10 @@ es wurden dabei keine Soak-Tests gestartet. Dieser Importfehler wird nicht als
 belegter Speicher-, Archiv- oder Anwendungsfehler eingeordnet.
 
 Die lokale Leroy-Docker-Umgebung und die zuvor durch OOM beendete Windows-Test-VM
-bleiben gestoppt. Lokal läuft gemäß Nutzerwunsch ausschließlich NameFinder.
+bleiben gestoppt. Bei der Bereinigung am 7. Oktober blieb gemäß Nutzerwunsch
+lokal ausschließlich NameFinder aktiv. Am 9. Oktober sind bei der abschließenden
+Veröffentlichungsprüfung zusätzlich zwei Graphato-Entwicklungscontainer aktiv;
+die Aussage zur Bereinigung ist deshalb eine datierte Momentaufnahme.
 Volumes, Images und bisherige Nachweise sind erhalten.
 
 ## Weiterer Plan
