@@ -23,7 +23,7 @@ def main():
     (fixtures / "jenkins.yaml").write_text(
         """jenkins:
   systemMessage: "Isolierter Leroy-NAS-Vergleich"
-  numExecutors: 1
+  numExecutors: 2
   mode: NORMAL
   securityRealm:
     local:
@@ -48,7 +48,7 @@ if (server.getItem("antares-ci") == null) {
     server.createProjectFromXML("antares-ci", it)
   }
 }
-server.setNumExecutors(1)
+server.setNumExecutors(2)
 server.save()
 """,
         encoding="utf-8",

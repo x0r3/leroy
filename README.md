@@ -3,21 +3,24 @@
 Python-Pipelines mit PostgreSQL, getrennten Docker-Runnern und einer Oberfläche für
 Abhängigkeiten, Zeitachsen, Logs, Artefakte und die Herkunft jedes Ausführungsversuchs.
 
-**Stand 9. Oktober 2026: implementiert und isoliert geprüft;
-die vollständige Produktionsfreigabe bleibt offen.** Jenkins läuft weiterhin
-produktiv. Bisherige Arbeiten, geprüfte Ergebnisse, offene Punkte und die nächsten
-Schritte stehen in [docs/status.md](docs/status.md).
+**Stand 26. Oktober 2026: Die Jenkins-Ablöse ist auf Nutzerwunsch verschoben,
+bis ein eigener Build-Server außerhalb des NAS bereitsteht.** Der produktive
+Jenkins entspricht dem ursprünglichen NAS-Inventar und läuft gesund. Alle sieben
+NAS-Anwendungen laufen regulär. Leroy-Testcontainer und Test-VM sind angehalten;
+ihr automatischer Neustart ist deaktiviert. Es besteht keine Produktionsfreigabe.
 
-Die frühere lokale Abnahme aller 13 Jobs verwendet bei Antares und Graphato
-separat dokumentierte Anwendungskorrekturen. Für den NAS-Betrieb bleiben
-Controller und CI-Worker auf dem NAS; Antares ist ausgenommen, sodass zwölf
-Pipelines abgenommen werden. Infrastruktur, Sicherung/Rücksicherung,
-Home-Lab-Buildvergleich und 227 UI-Ansichten sind geprüft. Der unveränderte
-Graphato-Vergleich bleibt wegen fehlgeschlagener Originalprüfungen und einer
-noch nicht erklärten früheren Qualitätsabweichung offen. Spätere vollständige
-Qualitätsproben bestehen; die Original-Release-Abnahme bleibt am Browser-Soak rot.
-Die neue J/L/L/J-Serie auf dem NAS ist vorbereitet, hat nach einem Runtime-
-Importfehler aber noch keine Tests gestartet.
+Der [gesicherte Projektstand und Wiederaufnahmeplan](docs/checkpoint-2026-10-26.md)
+beschreibt Umsetzung, Ergebnisse, Sicherungen und die noch erforderliche Abnahme.
+Die ausführliche Chronologie steht in [docs/status.md](docs/status.md).
+
+Die frühere lokale Abnahme aller 13 Jobs verwendete bei Antares und Graphato
+separat dokumentierte Anwendungskorrekturen. Im anschließenden NAS-Vergleich
+wurden zwölf Pipelines betrachtet; Antares war dort ausgenommen. Infrastruktur,
+Sicherung/Rücksicherung, einzelne Pipelinevergleiche und viele UI-Ansichten sind
+geprüft. Erfolgreiche Web- und Soak-Proben ersetzen jedoch nicht die fehlende
+vollständige Graphato-Release-Abnahme mit unveränderten Originalquellen und Tests.
+Die letzten ursprünglichen Rust-Läufe scheiterten in beiden Engines, ohne Tests
+auszuführen. Die offenen Nachweise werden auf dem neuen Build-Server fortgesetzt.
 
 Die [Abnahmematrix](docs/nas-acceptance.md),
 [historische Implementierungsabnahme](docs/implementation.md) und der

@@ -49,7 +49,7 @@ for (name in ["antares-ci", "home-lab-ci", "nikicas-hub-ci"]) {
     new File("/fixtures/"+name+".xml").withInputStream { server.createProjectFromXML(name,it) }
   }
 }
-server.setNumExecutors(1)
+server.setNumExecutors(2)
 server.save()
 """,
         encoding="utf-8",

@@ -6,23 +6,132 @@ import os
 import shutil
 import signal
 import socket
+import stat
 import subprocess
 import time
 from pathlib import Path
+
+
+def validate_memory_file(path, size):
+    root = Path('/vm-memory')
+    source = Path(path)
+    if source != root / 'ram.bin' or source.resolve(strict=True) != source:
+        raise ValueError('Only the dedicated private VM memory file is allowed')
+    parent, info = root.stat(), source.stat()
+    if (root.resolve(strict=True) != root or parent.st_uid != 0 or stat.S_IMODE(parent.st_mode) != 0o700
+            or info.st_uid != 0 or stat.S_IMODE(info.st_mode) != 0o600 or info.st_nlink != 1
+            or not stat.S_ISREG(info.st_mode) or info.st_size != size):
+        raise ValueError('VM memory file ownership, permissions, or size differ')
+
+
+def file_memory_options():
+    path = os.environ.get('VM_MEMORY_FILE')
+    if path is None:
+        return None
+    if path != '/vm-memory/ram.bin':
+        raise ValueError('Unexpected VM memory file')
+    size_mb = int(os.environ.get('VM_MEMORY_MB', '4096'))
+    if not 512 <= size_mb <= 16384:
+        raise ValueError('VM file memory size is outside the qualified range')
+    validate_memory_file(path, size_mb * 1024**2)
+    return ['-object', f'memory-backend-file,id=leroyram,size={size_mb}M,mem-path={path},'
+            'share=on,prealloc=off,discard-data=on,dump=off']
+
+
+def disk_throttle_options():
+    read = os.environ.get('VM_DISK_READ_BPS')
+    write = os.environ.get('VM_DISK_WRITE_BPS')
+    if read is None and write is None:
+        return ''
+    if read is None or write is None:
+        raise ValueError('Both guest disk throughput limits are required')
+    if (read, write) != ('134217728', '33554432'):
+        raise ValueError('Only the qualified 128/32 MiB/s guest disk limits are allowed')
+    return f',bps_rd={read},bps_wr={write}'
 
 
 def command(*args):
     subprocess.run(args, check=True)
 
 
+def file_sha256(path):
+    """Verify every byte and advise eviction of the consumed snapshot pages."""
+    digest = hashlib.sha256()
+    with path.open('rb') as stream:
+        offset = 0
+        while block := stream.read(8 * 1024**2):
+            digest.update(block)
+            if hasattr(os, 'posix_fadvise'):
+                try:
+                    os.posix_fadvise(stream.fileno(), offset, len(block), os.POSIX_FADV_DONTNEED)
+                except OSError:
+                    # Advice can be unsupported. The complete hash remains mandatory.
+                    pass
+            offset += len(block)
+    return digest.hexdigest()
+
+
+def memory_floor():
+    floors = {name: int(os.environ.get(variable, "0")) * 1024 for name, variable in (
+        ("SwapFree", "VM_MIN_HOST_SWAP_MB"), ("MemAvailable", "VM_MIN_HOST_AVAILABLE_MB"))}
+    if any(value < 0 for value in floors.values()):
+        raise ValueError("Host memory floors cannot be negative")
+    return floors
+
+
+def memory_pressure(floors):
+    if not any(floors.values()):
+        return None
+    memory = {line.split(":")[0]: int(line.split()[1])
+              for line in Path("/proc/meminfo").read_text().splitlines()
+              if line.startswith(("MemAvailable:", "SwapFree:"))}
+    if any(memory[key] < floor for key, floor in floors.items() if floor):
+        return {"host_memory_kib": memory, "minimum_host_memory_kib": floors}
+    return None
+
+
+def disk_pressure():
+    minimum = int(os.environ.get("VM_MIN_DISK_FREE_MB", "0")) * 1024**2
+    if minimum < 0:
+        raise ValueError("Disk reserve cannot be negative")
+    if minimum:
+        info = os.statvfs("/vm")
+        available = info.f_bavail * info.f_frsize
+        if available < minimum:
+            return {"vm_disk_available_bytes": available, "minimum_vm_disk_available_bytes": minimum}
+    return None
+
+
 def prepare():
+    prepared = Path("/config/prepared.json")
+    if prepared.exists():
+        # An acceptance target can use an exported, already installed snapshot.
+        # Each engine gets a new overlay; the immutable baseline stays read-only.
+        manifest = json.loads(prepared.read_text())
+        source = Path("/baseline/baseline.qcow2")
+        identity = Path("/vm/prepared.json")
+        if identity.exists():
+            if json.loads(identity.read_text()) != manifest:
+                raise RuntimeError("Prepared VM baseline changed; refusing to reuse its disk")
+        else:
+            if Path("/vm/system.qcow2").exists():
+                raise RuntimeError("Unidentified prepared disk; refusing to replace it")
+            if file_sha256(source) != manifest["sha256"]:
+                raise RuntimeError("Prepared VM snapshot checksum mismatch")
+            command("qemu-img", "create", "-f", "qcow2", "-F", "qcow2", "-b",
+                    str(source), "/vm/system.qcow2")
+            identity.write_text(json.dumps(manifest, indent=2))
+        for name in ("seed.img", "uefi-vars.fd"):
+            destination = Path("/vm") / name
+            if not destination.exists():
+                shutil.copyfile(Path("/baseline") / name, destination)
+        return
     manifest = json.loads(Path("/config/image.json").read_text())
     source = Path("/cache") / manifest["filename"]
     destination = Path("/vm/base.qcow2")
     if not destination.exists():
-        with source.open("rb") as stream:
-            if hashlib.file_digest(stream, "sha256").hexdigest() != manifest["sha256"]:
-                raise RuntimeError("Ubuntu cloud image checksum mismatch")
+        if file_sha256(source) != manifest["sha256"]:
+            raise RuntimeError("Ubuntu cloud image checksum mismatch")
         temporary = destination.with_suffix(".copying")
         shutil.copyfile(source, temporary)
         temporary.replace(destination)
@@ -88,8 +197,17 @@ def powerdown():
 
 
 def main():
+    floors = memory_floor()
+    if memory_pressure(floors) or disk_pressure():
+        raise RuntimeError("NAS resource reserve insufficient; no guest started")
     prepare()
     firewall()
+    ssh_port = int(os.environ.get("VM_SSH_PORT", "2222"))
+    if not 1024 <= ssh_port <= 65535:
+        raise ValueError("VM SSH forwarding port must be between 1024 and 65535")
+    disk_cache = os.environ.get("VM_DISK_CACHE", "none")
+    if disk_cache not in {"none", "writeback"}:
+        raise ValueError("VM disk cache must preserve flushes: none or writeback")
     args = [
         "qemu-system-x86_64",
         "-name",
@@ -107,15 +225,17 @@ def main():
         "-drive",
         "if=pflash,format=raw,file=/vm/uefi-vars.fd",
         "-drive",
-        "file=/vm/system.qcow2,format=qcow2,if=virtio,cache=none,discard=unmap",
+        f"file=/vm/system.qcow2,format=qcow2,if=virtio,cache={disk_cache},discard=unmap" + disk_throttle_options(),
         "-drive",
         "file=/vm/seed.img,format=raw,if=virtio,readonly=on",
         "-netdev",
-        "user,id=net0,net=10.90.0.0/24,ipv6=off,hostfwd=tcp:0.0.0.0:2222-:22,hostfwd=tcp:0.0.0.0:8080-:80,hostfwd=tcp:0.0.0.0:8443-:443",
+        f"user,id=net0,net=10.90.0.0/24,ipv6=off,hostfwd=tcp:0.0.0.0:{ssh_port}-:22,hostfwd=tcp:0.0.0.0:8080-:80,hostfwd=tcp:0.0.0.0:8443-:443",
         "-device",
         "virtio-net-pci,netdev=net0",
         "-device",
         "virtio-rng-pci",
+        "-device",
+        "virtio-balloon-pci,free-page-reporting=on",
         "-display",
         "none",
         "-serial",
@@ -124,9 +244,14 @@ def main():
         "none",
         "-qmp",
         "unix:/run/qmp.sock,server=on,wait=off",
+        "-trace",
+        "enable=file_flush_fdatasync_failed,file=/vm/disk-errors.trace",
         "-sandbox",
         "on,obsolete=deny,elevateprivileges=deny,spawn=deny,resourcecontrol=deny",
     ]
+    if options := file_memory_options():
+        args[args.index('-machine') + 1] += ',memory-backend=leroyram'
+        args.extend(options)
     stopping = None
 
     def stop(*_):
@@ -146,8 +271,15 @@ def main():
     )
     process = subprocess.Popen(args)
     forced = False
+    resource_guard = False
     while process.poll() is None:
-        if stopping is not None and time.monotonic() - stopping > 210 and not forced:
+        if stopping is None and (pressure := memory_pressure(floors) or disk_pressure()):
+            resource_guard = True
+            Path("/vm/resource-guard.json").write_text(json.dumps({"at": time.time(), **pressure}))
+            print("NAS resource reserve reached; shutting down the owned test guest", flush=True)
+            stop()
+        grace = 45 if resource_guard else 210
+        if stopping is not None and time.monotonic() - stopping > grace and not forced:
             forced = True
             print("Guest shutdown timed out; forcing QEMU termination", flush=True)
             process.terminate()
@@ -158,6 +290,7 @@ def main():
                 "finished_at": time.time(),
                 "forced": forced,
                 "qemu_exit_code": process.returncode,
+                "resource_guard_triggered": resource_guard,
             }
         )
     )

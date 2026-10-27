@@ -82,6 +82,10 @@ def upload_file(local, remote, credential_file, *, timeout=600):
         raise ValueError("Upload destination must be inside the owned NAS test directory")
     if ".." in remote.split("/"):
         raise ValueError("Parent path traversal is not allowed")
+    import nas_native
+
+    if nas_native.enabled():
+        return nas_native.upload(local, remote, ROOT)
     settings, args, env = connection(credential_file)
     # UGOS restricts SFTP paths; stream through the already authorized SSH shell.
     # The final name only appears after the entire stream has been received.
@@ -103,6 +107,10 @@ def upload_file(local, remote, credential_file, *, timeout=600):
 
 
 def run_script(script, credential_file, *, sudo=False, timeout=120):
+    import nas_native
+
+    if nas_native.enabled():
+        return nas_native.run(script, ROOT, timeout=timeout)
     settings, args, env = connection(credential_file)
     command = "sh -s"
     stdin = script

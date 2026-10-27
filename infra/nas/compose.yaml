@@ -1,9 +1,10 @@
 name: leroy-nas-parity
 x-logging: &logs
   driver: json-file
-  options: {max-size: "10m", max-file: "3"}
+  options: {max-size: "10m", max-file: "3", mode: "non-blocking", max-buffer-size: "4m"}
 services:
   postgres:
+    init: true
     image: postgres:18.4-alpine3.24
     logging: *logs
     mem_limit: 256m
@@ -16,6 +17,8 @@ services:
       POSTGRES_PASSWORD_FILE: /run/secrets/db_password
     secrets: [db_password]
     volumes: [database:/var/lib/postgresql]
+    networks:
+      default: {ipv4_address: 10.232.98.2}
     healthcheck:
       test: [CMD-SHELL, "pg_isready -U leroy -d leroy"]
       interval: 3s
@@ -24,8 +27,8 @@ services:
   controller:
     image: leroy-controller:nas-parity
     logging: *logs
-    mem_limit: 256m
-    memswap_limit: 256m
+    mem_limit: 512m
+    memswap_limit: 512m
     mem_reservation: 128m
     cpus: 1
     env_file: config/controller.env
@@ -61,6 +64,8 @@ services:
       - ./sources:/sources:ro
       - ./config/test-secrets:/test-secrets:ro
       - ./fixtures:/fixtures:ro
+    networks:
+      default: {ipv4_address: 10.232.98.3}
     healthcheck:
       test: [CMD-SHELL, "test -f /run/leroy-isolation-ready && docker info >/dev/null"]
       interval: 5s
@@ -80,6 +85,8 @@ services:
       LEROY_RUNNER_ID: runner-nas-parity
     secrets: [runner_token]
     volumes: ["./config/runner.toml:/config/runner.toml:ro", "./config/test-secrets:/test-secrets:ro"]
+    networks:
+      default: {ipv4_address: 10.232.98.4}
     depends_on:
       docker: {condition: service_healthy}
       controller: {condition: service_healthy}

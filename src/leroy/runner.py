@@ -16,11 +16,64 @@ from pathlib import Path
 import httpx
 
 from .config import secret
+from .worker import Reporter, maintain_lease
 
 
 def docker(*args, **kwargs):
     kwargs.setdefault("timeout", 30)
     return subprocess.run(["docker", *map(str, args)], check=True, capture_output=True, text=True, **kwargs)
+
+
+class StartupCancelled(RuntimeError):
+    """The assigned attempt no longer authorizes starting repository code."""
+
+
+class StartupLease:
+    """Keep ownership during bounded Docker preparation, then hand it to the worker."""
+
+    def __init__(self, url, run, supervisor_stop):
+        self.reporter = Reporter(url, run["id"], run["token"])
+        self.stop = threading.Event()
+        self.cancelled = threading.Event()
+        self.reason = ["Runner startup cancelled"]
+        self.supervisor_stop = supervisor_stop
+        self.phase = "assignment preparation"
+        self.thread = threading.Thread(target=maintain_lease,
+            args=(self.reporter.heartbeat, self.stop, self.cancelled, self.reason), daemon=True)
+        self.closed = False
+
+    def start(self):
+        self.thread.start()
+
+    def check(self):
+        if self.supervisor_stop.is_set() or self.cancelled.is_set():
+            raise StartupCancelled("Runner startup no longer authorized")
+
+    def docker(self, phase, *args, timeout=30):
+        self.phase = phase
+        self.check()
+        result = docker(*args, timeout=timeout)
+        self.check()
+        return result
+
+    def failure_reason(self, exc):
+        # Docker create arguments contain attempt tokens. Never report cmd,
+        # stderr or the exception text, even when diagnosing a timeout.
+        reason = "Runner infrastructure failure during " + self.phase + ": " + type(exc).__name__
+        if isinstance(exc, subprocess.TimeoutExpired):
+            reason += " (" + str(exc.timeout) + "s)"
+        return reason
+
+    def close(self):
+        if self.closed:
+            return
+        self.closed = True
+        self.stop.set()
+        if self.thread.ident is not None:
+            self.thread.join(timeout=10)
+        if not self.thread.is_alive():
+            self.reporter.client.close()
+            self.reporter.heartbeat_client.close()
 
 
 def cleanup_finished_run(run_id):
@@ -55,7 +108,9 @@ def main():
     def launch(run):
         name = "leroy-" + run["id"]
         volume = name + "-work"
+        startup = StartupLease(url, run, stop)
         try:
+            startup.start()
             profile = dict(config["profiles"][run["snapshot"]["profile"]])
             secrets_data = {}
             file_secrets = {}
@@ -90,7 +145,7 @@ def main():
                             secrets_data[group][key] = content
             profile["secrets"] = secrets_data
             image = profile.get("image", "leroy-job:local")
-            image_id = docker("image", "inspect", image, "--format", "{{.Id}}").stdout.strip()
+            image_id = startup.docker("image inspection", "image", "inspect", image, "--format", "{{.Id}}").stdout.strip()
             with tempfile.TemporaryDirectory(prefix="leroy-assignment-") as folder:
                 folder = Path(folder)
                 (folder / "assignment.json").write_text(
@@ -116,6 +171,10 @@ def main():
                     str(profile.get("cpus", 2)),
                     "--pids-limit",
                     str(profile.get("pids_limit", 1024)),
+                    "--log-opt",
+                    "mode=non-blocking",
+                    "--log-opt",
+                    "max-buffer-size=4m",
                     "--cap-drop",
                     "ALL",
                     "--security-opt",
@@ -144,40 +203,46 @@ def main():
                     args += ["--mount", "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"]
                 for key, value in profile.get("environment", {}).items():
                     args += ["--env", str(key) + "=" + str(value)]
-                docker(*args, image_id, "python", "-m", "leroy.worker")
-                profile["host_workspace"] = docker(
-                    "volume", "inspect", volume, "--format", "{{.Mountpoint}}"
+                startup.docker("container creation", *args, image_id, "python", "-m", "leroy.worker", timeout=120)
+                profile["host_workspace"] = startup.docker(
+                    "workspace inspection", "volume", "inspect", volume, "--format", "{{.Mountpoint}}"
                 ).stdout.strip()
                 (folder / "profile.json").write_text(json.dumps(profile))
-                docker("cp", str(folder) + "/.", name + ":/job")
+                startup.docker("assignment copy", "cp", str(folder) + "/.", name + ":/job", timeout=120)
+                startup.phase = "identity reporting"
+                startup.check()
                 response = client.post(
                     url + "/internal/runs/" + run["id"] + "/identity",
                     headers={"Authorization": "Bearer " + run["token"]},
                     json={"image_digest": image_id},
                 )
                 response.raise_for_status()
-                docker("start", name)
+                startup.docker("container start", "start", name, timeout=120)
             # Workers own their lease and report completion. Startup threads must not
             # remain occupied while parents wait for children to acquire capacity.
         except Exception as exc:
+            startup.close()
+            reason = startup.failure_reason(exc)
             try:
                 client.post(
                     url + "/internal/runs/" + run["id"] + "/complete",
                     headers={"Authorization": "Bearer " + run["token"]},
                     json={
-                        "status": "failed",
-                        "reason": "Runner infrastructure failure: " + type(exc).__name__,
+                        "status": "cancelled" if isinstance(exc, StartupCancelled) else "failed",
+                        "reason": reason,
                     },
                 )
             except Exception:
                 pass
-            print("Runner execution failed:", type(exc).__name__, flush=True)
+            print(reason, flush=True)
             # Only resources bearing this exact run name are owned by this supervisor.
             for command in (("rm", "-f", "-v", name), ("volume", "rm", volume)):
                 try:
                     docker(*command)
                 except subprocess.SubprocessError:
                     print("Runner cleanup deferred:", name, flush=True)
+        finally:
+            startup.close()
 
     def reap_finished():
         """Recover containers whose supervising process was restarted mid-run."""

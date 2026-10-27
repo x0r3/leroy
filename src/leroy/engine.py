@@ -190,9 +190,22 @@ def claim(db, runner_id, profiles, capacity):
 
 def reconcile(db):
     db.execute(text("SELECT pg_advisory_xact_lock(7046101)"))
-    for run in db.scalars(
-        select(Run).where(Run.status.in_(("running", "waiting"))).with_for_update(skip_locked=True)
-    ):
+    # Healthy runs need no mutation or row lock. Holding FOR UPDATE until a
+    # slow commit completes otherwise blocks their independent heartbeats.
+    for candidate in db.scalars(select(Run).where(Run.status.in_(("running", "waiting")))):
+        observed = now()
+        expired = candidate.lease_until and candidate.lease_until < observed
+        overdue = candidate.started_at and (observed - candidate.started_at).total_seconds() > candidate.snapshot["timeout"]
+        if not (expired or overdue):
+            continue
+        run = db.scalar(
+            select(Run).where(Run.id == candidate.id, Run.status.in_(("running", "waiting")))
+            .with_for_update(skip_locked=True).execution_options(populate_existing=True)
+        )
+        if run is None:
+            continue
+        # A heartbeat may have committed after the unlocked candidate read.
+        # Only the refreshed locked row can authorise interruption/cancellation.
         if run.lease_until and run.lease_until < now():
             cancel_children(db, run, "Parent runner lease expired")
             finish(db, run, "interrupted", "Runner lease expired; external effects require reconciliation")

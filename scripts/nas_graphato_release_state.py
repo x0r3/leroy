@@ -35,6 +35,9 @@ for url in ['http://127.0.0.1:8042/api/v1/info','https://graphato.test/api/v1/in
 try:
  with urllib.request.urlopen('http://127.0.0.1:8042/api/v1/info',timeout=10) as response:anonymous=response.status
 except urllib.error.HTTPError as error:anonymous=error.code
+except OSError as error:
+ anonymous=None
+ probes['anonymous']={'error_type':type(error).__name__}
 source=release/'verification-source.tar.gz'
 with source.open('rb') as stream:source_digest=hashlib.file_digest(stream,'sha256').hexdigest()
 assert source_digest==manifest['files']['verification-source.tar.gz']

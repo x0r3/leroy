@@ -21,15 +21,18 @@ def main():
     parser.add_argument('--case', required=True, choices=sorted(CASES))
     parser.add_argument('--runtime', required=True)
     parser.add_argument('--coordinator-sha256', required=True)
+    parser.add_argument('--series', default='')
     args = parser.parse_args()
+    assert not args.series or re.fullmatch('[a-z0-9][a-z0-9-]{0,31}', args.series)
+    series_root = ROOT + '/series/' + args.series if args.series else ROOT
     assert re.fullmatch('sha256:[a-f0-9]{64}', args.runtime)
     assert re.fullmatch('[a-f0-9]{64}', args.coordinator_sha256)
-    name = 'leroy-original-soak-' + args.case
+    name = 'leroy-original-soak-' + (args.series + '-' if args.series else '') + args.case
     existing = subprocess.run(['docker', 'inspect', name], capture_output=True, timeout=30)
     assert existing.returncode != 0, 'Retain any earlier coordinator; no implicit rerun'
     output = pathlib.Path('diagnostic')
     output.mkdir(mode=0o700, exist_ok=False)
-    probe = 'import hashlib,pathlib;print(hashlib.sha256(pathlib.Path(' + repr(ROOT + '/nas-soak-case.py') + ').read_bytes()).hexdigest())'
+    probe = 'import hashlib,pathlib;print(hashlib.sha256(pathlib.Path(' + repr(series_root + '/nas-soak-case.py') + ').read_bytes()).hexdigest())'
     observed = docker('run', '--rm', '--network', 'none', '--read-only', '--memory', '128m', '--user', '0:0',
                       '--mount', 'type=bind,src=' + ROOT + ',dst=' + ROOT + ',readonly',
                       '--entrypoint', 'python3', args.runtime, '-B', '-c', probe)
@@ -42,7 +45,8 @@ def main():
                       '--mount', 'type=bind,src=' + ROOT + ',dst=' + ROOT,
                       '--mount', 'type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock',
                       '--env', 'DOCKER_HOST=unix:///var/run/docker.sock',
-                      '--entrypoint', 'python3', args.runtime, '-B', ROOT + '/nas-soak-case.py', '--case', args.case)
+                      '--entrypoint', 'python3', args.runtime, '-B', series_root + '/nas-soak-case.py', '--case', args.case,
+                      '--series', args.series)
     assert re.fullmatch('[a-f0-9]{64}', identity)
     before = json.loads(docker('inspect', identity))[0]
     assert before['Image'] == args.runtime
@@ -59,7 +63,7 @@ def main():
                'coordinator_limits': {key: state['HostConfig'][key] for key in ('Memory', 'MemorySwap', 'NanoCpus', 'PidsLimit')},
                'copied': [], 'complete_original_pipeline': False}
     for filename in ('result.json', 'artifacts.tar.gz'):
-        copied = subprocess.run(['docker', 'cp', identity + ':' + ROOT + '/cases/' + args.case + '/' + filename,
+        copied = subprocess.run(['docker', 'cp', identity + ':' + series_root + '/cases/' + args.case + '/' + filename,
                                  str(output / filename)], capture_output=True, timeout=90)
         if copied.returncode == 0:
             receipt['copied'].append(filename)

@@ -1,9 +1,10 @@
 name: leroy
 x-logging: &bounded-logs
   driver: json-file
-  options: {max-size: "20m", max-file: "3"}
+  options: {max-size: "20m", max-file: "3", mode: "non-blocking", max-buffer-size: "4m"}
 services:
   postgres:
+    init: true
     logging: *bounded-logs
     image: postgres:18.4-alpine3.24
     environment:

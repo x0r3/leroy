@@ -25,40 +25,79 @@ def call(*args,timeout=120):return subprocess.check_output([*prefix,*args],text=
 for name,digest in FILES.items():
  with (stage/name).open('rb') as stream:assert hashlib.file_digest(stream,'sha256').hexdigest()==digest,name
 assert FILES['verification-source.tar.gz']==SOURCE_SHA
+attempt=pathlib.Path(ATTEMPT_DIR);assert attempt.resolve().is_relative_to(stage.resolve())
+attempt.mkdir(parents=True,mode=0o700,exist_ok=False)
 source=stage/'source'
-assert not source.exists(),'Keep the first preparation; no implicit rebuild'
-source.mkdir(mode=0o755)
+if RESUME:
+ assert source.is_dir(),'A reviewed partial preparation is required'
+else:
+ assert not source.exists(),'Keep the first preparation; no implicit rebuild'
+ source.mkdir(mode=0o755)
 with tarfile.open(stage/'verification-source.tar.gz') as archive:
  members=archive.getmembers();assert len(members)<15000 and sum(m.size for m in members)<256*1024**2
+ expected_files=set()
  for member in members:
   name=pathlib.PurePosixPath(member.name)
   assert not name.is_absolute() and '..' not in name.parts and (member.isdir() or member.isfile())
   path=source.joinpath(*name.parts);assert path.resolve().is_relative_to(source.resolve())
-  if member.isdir():path.mkdir(parents=True,exist_ok=True,mode=0o755)
+  if member.isdir():
+   if RESUME:assert path.is_dir() and not path.is_symlink()
+   else:path.mkdir(parents=True,exist_ok=True,mode=0o755)
   else:
-   path.parent.mkdir(parents=True,exist_ok=True,mode=0o755)
-   with archive.extractfile(member) as original,path.open('xb') as output:shutil.copyfileobj(original,output)
-   path.chmod(0o755 if member.mode&0o111 else 0o644)
+   expected_files.add(path.relative_to(source).as_posix())
+   if RESUME:
+    assert path.is_file() and not path.is_symlink() and path.stat().st_size==member.size,member.name
+    with archive.extractfile(member) as original,path.open('rb') as current:
+     assert hashlib.file_digest(original,'sha256').digest()==hashlib.file_digest(current,'sha256').digest(),member.name
+   else:
+    path.parent.mkdir(parents=True,exist_ok=True,mode=0o755)
+    with archive.extractfile(member) as original,path.open('xb') as output:shutil.copyfileobj(original,output)
+    path.chmod(0o755 if member.mode&0o111 else 0o644)
+ assert expected_files=={p.relative_to(source).as_posix() for p in source.rglob('*') if p.is_file()}
 profile=source/'deployments/linux/host/graphato-server.apparmor'
 assert hashlib.sha256(profile.read_bytes()).hexdigest()==PROFILE_SHA
 profiles=pathlib.Path('/sys/kernel/security/apparmor/profiles').read_text().splitlines()
-assert not any(line.startswith('graphato-server ') for line in profiles),'Do not replace an existing host profile'
+if RESUME:
+ owned=json.loads((stage/'apparmor-added.json').read_text())
+ assert owned['profile_sha256']==PROFILE_SHA and owned['profile_added']=='graphato-server'
+ assert 'graphato-server (enforce)' in profiles,'Inspect a missing owned profile before continuing'
+else:assert not any(line.startswith('graphato-server ') for line in profiles),'Do not replace an existing host profile'
 call('mkdir','-p',INNER,timeout=30)
-for name in ['source','verification-source.tar.gz','nas-passive-http.py','nas-soak-case.py']:
- subprocess.run(['docker','cp',str(stage/name),'leroy-nas-parity-docker-1:'+INNER+'/'+name],check=True,capture_output=True,timeout=120)
+if RESUME:
+ for name in ['verification-source.tar.gz','nas-passive-http.py','nas-soak-case.py']:
+  assert call('sha256sum',INNER+'/'+name).split()[0]==FILES[name],name
+ checks={INNER+'/source/'+name:hashlib.sha256((source/name).read_bytes()).hexdigest() for name in expected_files}
+ paths=sorted(checks)
+ for offset in range(0,len(paths),100):
+  lines=call('sha256sum',*paths[offset:offset+100],timeout=60).splitlines()
+  assert len(lines)==len(paths[offset:offset+100])
+  for line in lines:
+   digest,name=line.split(None,1);assert digest==checks[name],name
+ inner_files=set(call('find',INNER+'/source','-type','f',timeout=60).splitlines())
+ assert inner_files==set(checks),'Do not reuse changed or additional inner source files'
+else:
+ for name in ['source','verification-source.tar.gz','nas-passive-http.py','nas-soak-case.py']:
+  subprocess.run(['docker','cp',str(stage/name),'leroy-nas-parity-docker-1:'+INNER+'/'+name],check=True,capture_output=True,timeout=120)
 # The NAS system parser cannot read ABI 4. Install its matching compiler and
 # includes only in our existing Alpine test daemon, without host package changes
 # or init scripts. Package signatures remain checked by apk.
-call('apk','add','--no-cache','apparmor','apparmor-profiles-api','apparmor-profiles-abstractions','apparmor-profiles-tunables',timeout=180)
+if not RESUME:call('apk','add','--no-cache','apparmor','apparmor-profiles-api','apparmor-profiles-abstractions','apparmor-profiles-tunables',timeout=180)
 parser_version=call('apparmor_parser','--version',timeout=15)
 call('apparmor_parser','-Q','-T',INNER+'/source/deployments/linux/host/graphato-server.apparmor',timeout=30)
-call('apparmor_parser','-a','-T',INNER+'/source/deployments/linux/host/graphato-server.apparmor',timeout=30)
+if not RESUME:call('apparmor_parser','-a','-T',INNER+'/source/deployments/linux/host/graphato-server.apparmor',timeout=30)
 after_profiles=pathlib.Path('/sys/kernel/security/apparmor/profiles').read_text().splitlines()
 assert set(after_profiles)==set(profiles)|{'graphato-server (enforce)'}
-(stage/'apparmor-added.json').write_text(json.dumps({'profile_sha256':PROFILE_SHA,'existing_profiles_unchanged':True,
- 'profile_added':'graphato-server','loader_location':'owned test daemon','loader_version':parser_version,'nas_system_packages_modified':False})+'\n')
-with (stage/'native-runtime.docker.tar').open('rb') as stream:
- subprocess.run([*prefix,'docker','load'],stdin=stream,check=True,capture_output=True,timeout=900)
+if not RESUME:
+ (stage/'apparmor-added.json').write_text(json.dumps({'profile_sha256':PROFILE_SHA,'existing_profiles_unchanged':True,
+  'profile_added':'graphato-server','loader_location':'owned test daemon','loader_version':parser_version,'nas_system_packages_modified':False})+'\n')
+print(json.dumps({'phase':'runtime-import','stdin_forwarding':True,'source_files_verified':len(expected_files)}),flush=True)
+with (stage/'native-runtime.docker.tar').open('rb') as stream,(attempt/'runtime-import.stdout.log').open('xb') as out,(attempt/'runtime-import.stderr.log').open('xb') as err:
+ loaded=subprocess.run(['docker','exec','-i','leroy-nas-parity-docker-1','docker','load'],stdin=stream,stdout=out,stderr=err,timeout=900)
+(attempt/'runtime-import.json').write_text(json.dumps({'exit_code':loaded.returncode,'stdin_forwarding':True,
+ 'archive_sha256':FILES['native-runtime.docker.tar'],'source_files_verified':len(expected_files),
+ 'stdout_sha256':hashlib.sha256((attempt/'runtime-import.stdout.log').read_bytes()).hexdigest(),
+ 'stderr_sha256':hashlib.sha256((attempt/'runtime-import.stderr.log').read_bytes()).hexdigest()})+'\n')
+assert loaded.returncode==0,'Inspect the retained runtime-import logs; no test was started'
 image=json.loads(call('docker','image','inspect',RUNTIME_REFERENCE,timeout=60))[0]
 assert image['RootFS']['Layers']==RUNTIME_LAYERS
 runtime=image['Id'];assert image['Config']['Labels']['org.opencontainers.image.revision']==COMMIT
@@ -70,7 +109,8 @@ assert subprocess.run([*prefix,'docker','buildx','inspect',builder],capture_outp
 call('docker','buildx','create','--name',builder,'--driver','docker-container','--driver-opt',
  'image=moby/buildkit:v0.28.1,memory=2g,memory-swap=2g,cpu-period=100000,cpu-quota=200000','--bootstrap',timeout=240)
 worker_tag='leroy-soak/browser:'+COMMIT
-log=stage/'worker-build.log'
+log=attempt/'worker-build.log'
+print(json.dumps({'phase':'original-worker-build','runtime_verified':runtime}),flush=True)
 try:
  with log.open('xb') as output:
   result=subprocess.run([*prefix,'docker','buildx','build','--builder',builder,'--load','--platform','linux/amd64',
@@ -139,6 +179,7 @@ def main():
     finish(FOLDER, 'native-soak-prepare', first)
     before = begin(FOLDER, 'native-soak-materialize')
     parameters = {'REMOTE': REMOTE, 'INNER': INNER, 'COMMIT': COMMIT, 'SOURCE_SHA': SOURCE_SHA,
+                  'RESUME': False, 'ATTEMPT_DIR': REMOTE + '/initial-materialization',
                   'FILES': hashes, 'RUNTIME_REFERENCE': original['test_reference'], 'RUNTIME_LAYERS': original['rootfs_diff_ids'],
                   'REGISTRY_DIGEST': original['original_registry_manifest_digest'], 'WORKER_FILES': previous_worker['files'],
                   'PROFILE_SHA': profile_sha}

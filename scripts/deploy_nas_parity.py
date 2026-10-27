@@ -13,8 +13,6 @@ import tarfile
 
 from nas_ssh import ROOT, run_script, upload_file
 
-from leroy.catalog import catalog
-
 REMOTE = "/volume1/docker/leroy-nas-parity"
 LOCAL = ROOT / ".local/nas-parity"
 CREDENTIALS = ROOT / ".local/nas-ssh.json"
@@ -29,6 +27,8 @@ def remote(script, timeout=300):
 
 
 def prepare():
+    from leroy.catalog import catalog
+
     LOCAL.mkdir(parents=True, exist_ok=True)
     config = LOCAL / "config"
     config.mkdir(exist_ok=True)
@@ -58,7 +58,7 @@ def prepare():
             toml += f'repository = "/sources/{repository_name}"\nref = "master"\n'
     (config / "leroy.toml").write_text(toml, encoding="utf-8")
     (config / "runner.toml").write_text(
-        'capacity = 1\n[profiles.antares]\nimage = "leroy-job:nas-parity"\n'
+        'capacity = 2\n[profiles.antares]\nimage = "leroy-job:nas-parity"\n'
         'network = "leroy-jobs"\nmemory = "2g"\ncpus = 2\ndocker = true\n'
         'host_mappings = {controller = "10.232.98.10"}\n'
         'mounts = ["type=bind,source=/sources,target=/sources,readonly"]\n',

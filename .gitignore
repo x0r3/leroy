@@ -13,3 +13,6 @@ playwright-report/
 *.egg-info/
 dist/
 build/
+*.dump
+*.qcow2
+*.vhdx

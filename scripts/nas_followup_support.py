@@ -1,10 +1,29 @@
 """Bounded helpers for the owned comparison Docker daemon and test Jenkins."""
 
 import json
+import threading
 import time
 
 from compare_nas_antares import jenkins_python
 from nas_ssh import ROOT, run_script
+from nas_verified_container import discover_program, verify_program
+
+_PRODUCTION_PIN = None
+_PRODUCTION_PIN_LOCK = threading.Lock()
+
+
+def production_prelude():
+    """Bind the read-only production data mount before adding VM load."""
+    global _PRODUCTION_PIN
+    with _PRODUCTION_PIN_LOCK:
+        if _PRODUCTION_PIN is None:
+            program = discover_program('jenkins', mounts=('/var/jenkins_home',))
+            response = run_script("python3 - <<'PY'\n" + program + '\nPY\n',
+                                  ROOT / '.local/nas-ssh.json', sudo=True, timeout=45)
+            if response.returncode:
+                raise RuntimeError(response.stderr[-1500:])
+            _PRODUCTION_PIN = json.loads(response.stdout)
+    return verify_program(_PRODUCTION_PIN) + "\nhome=pathlib.Path(PIN['mounts']['/var/jenkins_home']['source'])\n"
 
 
 def remote(program, timeout=120):
@@ -54,9 +73,6 @@ def production_build():
     """Read the existing production build record without loading its Java API."""
     program = r"""
 import json,pathlib,subprocess,xml.etree.ElementTree as ET
-info=json.loads(subprocess.check_output(['docker','inspect','jenkins'],text=True,timeout=20))[0]
-mount=next(item for item in info['Mounts'] if item['Destination']=='/var/jenkins_home')
-home=pathlib.Path(mount['Source']).resolve(strict=True)
 root=(home/'jobs/graphato-ci').resolve(strict=True)
 assert root.is_relative_to(home)
 number=int((root/'nextBuildNumber').read_text())-1
@@ -70,10 +86,11 @@ if record.is_file():
   tree=ET.parse(record).getroot()
   state.update(building=tree.findtext('completed')!='true',result=tree.findtext('result'),timestamp=tree.findtext('startTime'))
  except ET.ParseError:pass
+verify_pin(PIN)
 print(json.dumps(state))
 """
     response = run_script(
-        "python3 - <<'PY'\n" + program + "\nPY\n", ROOT / ".local/nas-ssh.json",
+        "python3 - <<'PY'\n" + production_prelude() + program + "\nPY\n", ROOT / ".local/nas-ssh.json",
         sudo=True, timeout=45,
     )
     if response.returncode:
@@ -96,12 +113,11 @@ def wait_production_build():
     raise TimeoutError("Production compilation still active; no competing test compiler started")
 
 
-def production_jobs():
-    """Read current production job records, including unbuilt and nested jobs."""
+def production_jobs_program(*, history=True):
+    """The same pinned read for Windows SSH and NAS-local admission."""
+    assert type(history) is bool
     program = r"""
 import json,pathlib,subprocess,xml.etree.ElementTree as ET
-info=json.loads(subprocess.check_output(['docker','inspect','jenkins'],text=True,timeout=20))[0]
-home=pathlib.Path(next(m['Source'] for m in info['Mounts'] if m['Destination']=='/var/jenkins_home')).resolve(strict=True)
 jobs=(home/'jobs').resolve(strict=True);assert jobs.is_relative_to(home)
 rows={};pending=[jobs];visited=set();job_roots={}
 while pending:
@@ -135,7 +151,7 @@ active=[{'job':name,'number':row['number']} for name,row in rows.items() if row[
 # A completed latest build does not prove an older concurrent build completed.
 # Scan history only when the inexpensive latest-record check could report idle.
 history_verified=False
-if not active:
+if not active and VERIFY_HISTORY:
  count=0;total=0
  for name,root in job_roots.items():
   builds=root/'builds'
@@ -153,14 +169,25 @@ if not active:
     if tree.findtext('completed')!='true':active.append({'job':name,'number':number})
    except ET.ParseError:active.append({'job':name,'number':number,'record_incomplete':True})
  history_verified=True
+verify_pin(PIN)
 print(json.dumps({'read_only':True,'jobs':rows,'active_builds':active,
  'older_concurrent_build_history_verified':history_verified,'live_queue_state_verified':False}))
 """
+    return 'VERIFY_HISTORY=' + repr(history) + '\n' + production_prelude() + program
+
+
+def production_jobs(*, history=True, timeout=45):
+    """Read current production job records, including unbuilt and nested jobs."""
+    assert type(timeout) in (int, float) and 0 < timeout <= 45
     response = run_script(
-        "python3 - <<'PY'\n" + program + "\nPY\n", ROOT / ".local/nas-ssh.json",
-        sudo=True, timeout=45,
+        "python3 - <<'PY'\n" + production_jobs_program(history=history) + "\nPY\n", ROOT / ".local/nas-ssh.json",
+        sudo=True, timeout=timeout,
     )
     if response.returncode:
+        from nas_release_vm import SSHTransportUnavailable, ssh_transport_unavailable
+
+        if ssh_transport_unavailable(response):
+            raise SSHTransportUnavailable('NAS production observation unavailable; current state is unknown')
         raise RuntimeError(response.stderr[-1500:])
     return json.loads(response.stdout)
 

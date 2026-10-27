@@ -14,7 +14,7 @@ from nas_ssh import ROOT, run_script, upload_file
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--revision", choices=["route-loading", "detail-loading", "timeline-status"], default="route-loading")
+    parser.add_argument("--revision", choices=["route-loading", "detail-loading", "timeline-status", "terminal-run-labels"], default="route-loading")
     revision = parser.parse_args().revision
     marker = ROOT / f"test-results/nas-parity/{revision}-ui.json"
     if marker.exists():
@@ -41,7 +41,6 @@ def main():
 cd {REMOTE}
 test -f .leroy-owned
 test "$(docker inspect -f '{{{{index .Config.Labels "com.docker.compose.project"}}}}' leroy-nas-parity-controller-1)" = leroy-nas-parity
-chmod 644 config/leroy.toml
 docker tag "$(docker inspect -f '{{{{.Image}}}}' leroy-nas-parity-controller-1)" leroy-controller:nas-parity-before-{revision}
 mkdir -p ui-update-{revision}
 tar -xf {archive.name} -C ui-update-{revision}

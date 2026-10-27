@@ -14,9 +14,9 @@ import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
 
 from .git_auth import git_environment
-from .ssh_session import shared_ssh
 
 
 def run(*args, capture=False, **kwargs):
@@ -358,13 +358,20 @@ def graphato_module(c):
     module.builder = builder
 
     def transport():
-        return ssh_args(
-            required("host", config),
-            config.get("user", "root"),
-            config.get("port", 22),
-            required("DEPLOY_KEY"),
-            required("KNOWN_HOSTS"),
+        # Keep the checkout's validation and connection policy. The postdeploy
+        # command, its run-bound cancellation and its report downloads each need
+        # their own upstream connection, including after the first one fails.
+        deployment = load(Path(c["repo"]) / "scripts/deploy-remote.py", "upstream_deployment")
+        port = int(config.get("port", 22))
+        if not 1 <= port <= 65535:
+            raise ValueError("Invalid Graphato SSH port")
+        args = SimpleNamespace(
+            host=required("host", config),
+            user=config.get("user", "root"),
+            identity=Path(required("DEPLOY_KEY")),
+            known_hosts=Path(required("KNOWN_HOSTS")),
         )
+        return ["ssh", *deployment.ssh_options(args), "-o", f"Port={port}", f"{args.user}@{args.host}"]
 
     module.deployment_transport = transport
     return module
@@ -373,10 +380,6 @@ def graphato_module(c):
 def graphato(c):
     cmd = c["step"]["options"]["command"]
     module = graphato_module(c)
-    if cmd in {"release-needed", "deploy", "postdeploy", "release-status"}:
-        with shared_ssh(module.deployment_transport()) as transport:
-            module.deployment_transport = lambda: transport
-            return graphato_action(c, module, cmd)
     return graphato_action(c, module, cmd)
 
 

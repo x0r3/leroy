@@ -1,5 +1,6 @@
 """Order application shutdown before Docker stops the disposable VM's database."""
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -26,6 +27,12 @@ def command():
     ]
     for name in files:
         args += ["-f", str(directory / name)]
+    override = Path('/var/lib/leroy-vm/postgres-init.override.json')
+    if override.exists():
+        assert not override.is_symlink()
+        assert override.stat().st_uid == 0 and override.stat().st_mode & 0o022 == 0
+        assert json.loads(override.read_text()) == {'services': {'postgres': {'init': True}}}
+        args += ['-f', str(override)]
     return args
 
 

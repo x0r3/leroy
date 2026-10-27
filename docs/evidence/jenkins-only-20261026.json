@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "captured_at_utc": "2026-10-26T21:47:08.810411+00:00",
+  "decision": "Postpone Jenkins replacement until a separate build server is available",
+  "native_jenkins_healthy": true,
+  "native_jenkins_matches_original_inventory": true,
+  "native_jenkins_image": "sha256:03daffe03ae4aa3d90256f10e04b635bf6b8f5e981f55f97f1115105ae4d230f",
+  "native_jenkins_restarted_or_modified": false,
+  "seven_original_services_healthy_and_unchanged": true,
+  "nas_test_containers_stopped": [
+    "controller",
+    "docker",
+    "postgres",
+    "runner",
+    "vm-access"
+  ],
+  "test_vm_stopped": true,
+  "test_container_automatic_restart_disabled": true,
+  "test_data_retained": true,
+  "test_database_counts": {
+    "runs": 174,
+    "active": 0,
+    "steps": 476,
+    "artifacts": 610
+  },
+  "test_database_dump_sha256": "b22325ea2c0e14b53ad7c289bd247ab5f7ead9c46356f23aafa47e8f43a73986",
+  "production_build_history_checked": true,
+  "production_job_counters_unchanged": true,
+  "ci_dispatched": false,
+  "production_cutover": false,
+  "production_ready": false,
+  "original_suspension_proof_sha256": "a179732c1761004cd27dcd6fe2ce859ae1a487063efcd5305a50d6f2b02f7f0a",
+  "raw_evidence_in_git": false
+}

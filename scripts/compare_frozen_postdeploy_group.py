@@ -4,6 +4,7 @@ import argparse
 import base64
 import hashlib
 import json
+import os
 import re
 import subprocess
 import time
@@ -11,7 +12,7 @@ import urllib.parse
 from collections import Counter
 from contextlib import closing
 from datetime import datetime, timezone
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 
 from collect_nas_jenkins_evidence import PROGRAM as JENKINS_EVIDENCE
 from compare_nas_antares import client
@@ -20,10 +21,11 @@ from nas_followup_support import inner, jenkins_api, production_jobs, start_jenk
 from nas_gitea_target import idle
 from nas_graphato_release_state import VM_PROGRAM
 from nas_measurement_guard import begin, finish, qualification_report
+from nas_progress import publish
 from nas_ssh import ROOT, run_script
+from nas_test_environment import require_current_jenkins
 from prepare_nas_vm import guest, wait_guest_ready
 from watch_nas_graphato_jenkins import PROGRAM as JENKINS_STATE
-from watch_nas_graphato_via_leroy import JENKINS_ID
 
 COMPOSE = ['docker', 'compose', '-f', 'infra/nas/compose.target-vm.yaml']
 ACTIVE = {'running', 'waiting', 'queued'}
@@ -34,7 +36,7 @@ def read(path):
 
 
 def write(path, value):
-    path.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
+    publish(path, value)
 
 
 def timestamp():
@@ -99,20 +101,57 @@ def restore(folder, engine, commit, baseline):
     print(json.dumps({'engine': engine, 'baseline_restored': baseline, 'prior_receipts': False}), flush=True)
 
 
+class JenkinsReadUnavailable(RuntimeError):
+    """An unavailable read says nothing about the state of the original job."""
+
+
+def jenkins_read(script, *, timeout):
+    try:
+        response = run_script("python3 - <<'PY'\n" + script + '\nPY\n',
+                              ROOT / '.local/nas-ssh.json', sudo=True, timeout=timeout)
+    except (subprocess.TimeoutExpired, OSError) as error:
+        raise JenkinsReadUnavailable(type(error).__name__) from None
+    if response.returncode:
+        raise JenkinsReadUnavailable('SSHExit')
+    try:
+        return json.loads(response.stdout)
+    except (ValueError, TypeError):
+        raise JenkinsReadUnavailable('InvalidJSON') from None
+
+
 def original_jenkins_state(job, number):
     script = 'BUILDS=' + repr({job: number}) + '\n' + JENKINS_STATE
-    response = run_script("python3 - <<'PY'\n" + script + '\nPY\n',
-                          ROOT / '.local/nas-ssh.json', sudo=True, timeout=60)
-    assert response.returncode == 0, response.stderr[-1000:]
-    return json.loads(response.stdout)[job]
+    payload = jenkins_read(script, timeout=60)
+    state = payload.get(job) if isinstance(payload, dict) else None
+    if (not isinstance(state, dict) or type(state.get('number')) is not int or state['number'] != number
+            or type(state.get('started')) is not bool
+            or state['started'] and (type(state.get('building')) is not bool
+                or not state['building'] and state.get('result') not in {'SUCCESS', 'FAILURE', 'ABORTED', 'UNSTABLE', 'NOT_BUILT'})):
+        raise JenkinsReadUnavailable('InvalidStatus')
+    return state
+
+
+def record_jenkins_read_error(folder, job, number, error, *, phase='status'):
+    category = str(error) if str(error) in {'TimeoutExpired', 'OSError', 'SSHExit', 'InvalidJSON', 'InvalidStatus'} else 'Unclassified'
+    row = {'at': timestamp(), 'engine': 'jenkins', 'job': job, 'number': number,
+           'phase': phase, 'error_type': type(error).__name__, 'observation_available': False,
+           'error_category': category, 'original_ci_restarted': False}
+    with (folder / 'jenkins-observation-errors.jsonl').open('a', encoding='utf-8') as stream:
+        stream.write(json.dumps(row) + '\n')
+    write(folder / 'jenkins-observation-unavailable.json', row)
+
+
+def observe_original_jenkins(folder, job, number):
+    try:
+        return original_jenkins_state(job, number)
+    except JenkinsReadUnavailable as error:
+        record_jenkins_read_error(folder, job, number, error)
+        return None
 
 
 def collect_jenkins(folder, job, number, commit):
     script = 'JOB=' + repr(job) + '\nNUMBER=' + repr(number) + '\n' + JENKINS_EVIDENCE
-    response = run_script("python3 - <<'PY'\n" + script + '\nPY\n',
-                          ROOT / '.local/nas-ssh.json', sudo=True, timeout=90)
-    assert response.returncode == 0, response.stderr[-1000:]
-    value = json.loads(response.stdout)
+    value = jenkins_read(script, timeout=90)
     assert not value['build']['building'] and commit in value['build']['checkout_revisions']
     (folder / 'jenkins-console.log').write_text(value['console'], encoding='utf-8')
     archive = folder / ('jenkins-' + str(number) + '-artifacts')
@@ -124,6 +163,9 @@ def collect_jenkins(folder, job, number, commit):
         assert not name.is_absolute() and '..' not in name.parts
         destination = archive.joinpath(*name.parts)
         assert destination.resolve().is_relative_to(archive.resolve())
+        if os.name == 'nt':
+            resolved = str(destination.resolve())
+            destination = Path('\\\\?\\UNC\\' + resolved[2:] if resolved.startswith('\\\\') else '\\\\?\\' + resolved)
         data = base64.b64decode(content, validate=True)
         assert len(data) == item['size'] and hashlib.sha256(data).hexdigest() == item['sha256']
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -132,18 +174,34 @@ def collect_jenkins(folder, job, number, commit):
     write(folder / 'jenkins-artifact-index.json', value['artifacts'])
 
 
-def execute_engine(folder, engine, commit, job, parameters, baseline):
+def collect_original_jenkins(folder, job, number, commit, deadline):
+    """Retry reads of the same terminal attempt, never dispatch or reset it."""
+    while time.monotonic() < deadline:
+        try:
+            collect_jenkins(folder, job, number, commit)
+            return
+        except JenkinsReadUnavailable as error:
+            record_jenkins_read_error(folder, job, number, error, phase='artifacts')
+            time.sleep(20)
+    raise TimeoutError('Original Jenkins evidence unavailable; retain the same attempt')
+
+
+def execute_engine(folder, engine, commit, job, parameters, baseline, *, keep_private_jenkins=False):
     done = folder / (engine + '-target-after.json')
     marker = folder / (engine + '-start.json')
     if done.exists():
         finish(folder, engine, read(marker).get('production_guard_before'))
         return
     if not marker.exists():
+        # Environment admission belongs to dispatch. A known Leroy run must
+        # remain observable over HTTP when administrative NAS SSH is down.
+        identity = require_current_jenkins()
+        write(folder / 'comparison-environment.json', identity)
         restore(folder, engine, commit, baseline)
         production_before = begin(folder, engine)
         if engine == 'leroy':
-            assert inner('inspect', 'jenkins-parity', '--format', '{{.Id}}').strip() == JENKINS_ID
-            assert inner('inspect', 'jenkins-parity', '--format', '{{.State.Running}}').strip() == 'false'
+            assert require_current_jenkins()['id'] == identity['id']
+            assert inner('inspect', 'jenkins-parity', '--format', '{{.State.Running}}').strip() == str(keep_private_jenkins).lower()
             with closing(client()) as api:
                 definitions = api.get('/api/pipelines').json()
                 assert not any(row['enabled'] for row in definitions)
@@ -154,7 +212,10 @@ def execute_engine(folder, engine, commit, job, parameters, baseline):
                 response.raise_for_status()
                 started = {'at': timestamp(), 'id': response.json()['id']}
         else:
-            start_jenkins()
+            if keep_private_jenkins:
+                assert require_current_jenkins()['running']
+            else:
+                start_jenkins()
             state = json.loads(jenkins_api('/api/json?tree=jobs[name,nextBuildNumber,lastBuild[building]]')['text'])
             assert not any((row.get('lastBuild') or {}).get('building') for row in state['jobs'])
             assert not json.loads(jenkins_api('/queue/api/json?tree=items[id]')['text'])['items']
@@ -182,7 +243,10 @@ def execute_engine(folder, engine, commit, job, parameters, baseline):
                      'steps': {step['id']: step['status'] for step in run['steps']}}
             finished = run['status'] not in ACTIVE
         else:
-            state = original_jenkins_state(job, started['number'])
+            state = observe_original_jenkins(folder, job, started['number'])
+            if state is None:
+                time.sleep(20)
+                continue
             finished = state.get('started') and not state.get('building')
         if state != previous:
             print(json.dumps({'engine': engine, 'state': state}), flush=True)
@@ -202,9 +266,11 @@ def execute_engine(folder, engine, commit, job, parameters, baseline):
                 response.raise_for_status()
                 (folder / ('leroy-' + step['id'] + '.log')).write_text(response.json()['text'], encoding='utf-8')
     else:
-        collect_jenkins(folder, job, started['number'], commit)
+        write(folder / 'jenkins-terminal-observed.json', {'at': timestamp(), 'job': job, **state})
+        collect_original_jenkins(folder, job, started['number'], commit, deadline)
         idle()
-        inner('stop', '--time', '120', 'jenkins-parity', timeout=150)
+        if not keep_private_jenkins:
+            inner('stop', '--time', '120', 'jenkins-parity', timeout=150)
     value = target(commit)
     assert value['manifest'] == read(folder / (engine + '-target-before.json'))['manifest']
     write(done, value)
@@ -230,41 +296,46 @@ def rust_summary(data):
             'test_inventory_sha256': hashlib.sha256(json.dumps(sorted(row['name'] for row in terminal)).encode()).hexdigest()}
 
 
-def analyze(folder, commit, suite, group):
+def original_group_evidence(folder, engine, commit, suite, group):
+    """Read one complete original archive; partial test logs cannot pass."""
     import tarfile
 
-    values = {}
-    for engine in ('leroy', 'jenkins'):
-        root = folder / ('leroy-artifacts' if engine == 'leroy' else
-                         'jenkins-' + str(read(folder / 'jenkins-start.json')['number']) + '-artifacts')
-        path, = root.rglob('artifacts.tar.gz')
-        files = {}
-        with tarfile.open(path) as archive:
-            for member in archive:
-                assert member.isfile() and 0 <= member.size <= 64 * 1024**2
-                assert not PurePosixPath(member.name).is_absolute() and '..' not in PurePosixPath(member.name).parts
-                assert member.name not in files and len(files) < 1000
-                files[member.name] = archive.extractfile(member).read()
-        receipt = json.loads(files['result.json'])
-        assert receipt['commit'] == commit and receipt['suite'] == suite and receipt['requestedGroup'] == group
-        assert receipt['cleanupComplete'] and not receipt['cancelled'] and not receipt['reused']
-        value = {'requested_passed': receipt['requestedPassed'], 'complete_suite_passed': receipt['passed'],
-                 'checks': receipt['checks'], 'cleanup_complete': True,
-                 'archive_sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
-                 'identity': {key: receipt[key] for key in ('commit', 'runtimeImageId', 'sourceSha256', 'buildTimestamp')}}
-        if suite == 'quality' and group == 'server-test':
-            assert set(receipt['checks']) == {'server-test'}
-            value['rust'] = rust_summary(files['server-test.log'])
-            assert receipt['requestedPassed'] == (value['rust']['failed'] == 0)
-            original = ROOT / 'test-results/nas-parity/followup/candidates/graphato' / commit
-            original /= 'scenarios/root-private-existing-host/graphato-postdeploy-quality/jenkins-8-artifacts'
-            original_archive, = original.rglob('artifacts.tar.gz')
-            with tarfile.open(original_archive) as archive:
-                baseline_rust = rust_summary(archive.extractfile('server-test.log').read())
-            assert value['rust']['expected'] == baseline_rust['expected']
-            assert value['rust']['test_inventory_sha256'] == baseline_rust['test_inventory_sha256']
-            value['same_full_rust_test_inventory_as_original'] = True
-        values[engine] = value
+    assert engine in {'leroy', 'jenkins'}
+    root = folder / ('leroy-artifacts' if engine == 'leroy' else
+                     'jenkins-' + str(read(folder / 'jenkins-start.json')['number']) + '-artifacts')
+    path, = root.rglob('artifacts.tar.gz')
+    files = {}
+    with tarfile.open(path) as archive:
+        for member in archive:
+            assert member.isfile() and 0 <= member.size <= 64 * 1024**2
+            assert not PurePosixPath(member.name).is_absolute() and '..' not in PurePosixPath(member.name).parts
+            assert member.name not in files and len(files) < 1000
+            files[member.name] = archive.extractfile(member).read()
+    receipt = json.loads(files['result.json'])
+    assert receipt['commit'] == commit and receipt['suite'] == suite and receipt['requestedGroup'] == group
+    assert receipt['cleanupComplete'] and not receipt['cancelled'] and not receipt['reused']
+    value = {'requested_passed': receipt['requestedPassed'], 'complete_suite_passed': receipt['passed'],
+             'checks': receipt['checks'], 'cleanup_complete': True,
+             'archive_sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+             'identity': {key: receipt[key] for key in ('commit', 'runtimeImageId', 'sourceSha256', 'buildTimestamp')}}
+    if suite == 'quality' and group == 'server-test':
+        assert set(receipt['checks']) == {'server-test'}
+        value['rust'] = rust_summary(files['server-test.log'])
+        assert receipt['requestedPassed'] == (value['rust']['failed'] == 0)
+        original = ROOT / 'test-results/nas-parity/followup/candidates/graphato' / commit
+        original /= 'scenarios/root-private-existing-host/graphato-postdeploy-quality/jenkins-8-artifacts'
+        original_archive, = original.rglob('artifacts.tar.gz')
+        with tarfile.open(original_archive) as archive:
+            baseline_rust = rust_summary(archive.extractfile('server-test.log').read())
+        assert value['rust']['expected'] == baseline_rust['expected']
+        assert value['rust']['test_inventory_sha256'] == baseline_rust['test_inventory_sha256']
+        value['same_full_rust_test_inventory_as_original'] = True
+    return value
+
+
+def analyze(folder, commit, suite, group):
+    values = {engine: original_group_evidence(folder, engine, commit, suite, group)
+              for engine in ('leroy', 'jenkins')}
     assert values['jenkins']['identity'] == values['leroy']['identity']
     report = {'at': timestamp(), 'commit': commit, 'suite': suite, 'group': group, 'engines': values,
               **qualification_report(folder, ('leroy', 'jenkins')),

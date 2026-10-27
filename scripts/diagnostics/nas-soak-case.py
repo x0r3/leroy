@@ -26,11 +26,14 @@ def docker(*args, timeout=30):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--case', required=True, choices=sorted(CASE_IDS))
+    parser.add_argument('--series', default='')
     args = parser.parse_args()
-    inputs = json.loads((ROOT / 'inputs.json').read_text())
+    assert not args.series or re.fullmatch('[a-z0-9][a-z0-9-]{0,31}', args.series)
+    series = ROOT / 'series' / args.series if args.series else ROOT
+    inputs = json.loads((series / 'inputs.json').read_text())
     assert inputs['commit'] == COMMIT and inputs['source_sha256'] == SOURCE_SHA
     assert not docker('ps', '-q', '--filter', 'label=io.graphato.e2e.owner')
-    case = ROOT / 'cases' / args.case
+    case = series / 'cases' / args.case
     assert not case.exists(), 'Every original sample is retained; no implicit rerun'
     case.mkdir(parents=True, mode=0o700)
     work = case / 'work'
@@ -39,7 +42,9 @@ def main():
     source.mkdir(mode=0o755)
     helper = ROOT / 'source/deployments/linux/host/postdeploy.py'
     assert hashlib.sha256(helper.read_bytes()).hexdigest() == inputs['helper_sha256']
-    assert hashlib.sha256((ROOT / 'nas-passive-http.py').read_bytes()).hexdigest() == inputs['observer_sha256']
+    observer_script = pathlib.Path(inputs.get('observer_script_path', str(ROOT / 'nas-passive-http.py')))
+    assert observer_script.resolve().is_relative_to(ROOT.resolve())
+    assert hashlib.sha256(observer_script.read_bytes()).hexdigest() == inputs['observer_sha256']
     spec = importlib.util.spec_from_file_location('original_nas_soak_host', helper)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -69,9 +74,41 @@ def main():
     observation = {'started': False, 'errors': []}
     done = threading.Event()
 
+    def startup_snapshot():
+        identities = docker('ps', '-aq', '--filter', 'label=io.graphato.ci.development-smoke=' + project,
+                            '--filter', 'label=com.docker.compose.project', timeout=8).split()
+        if not identities:
+            return
+        secrets = [p.read_text().strip() for name in ('server-token', 'postgres-password')
+                   for p in (work / 'e2e-state').glob('graphato/e2e/docker-*/secrets/' + name) if p.is_file()]
+        snapshot = {'at_epoch': time.time(), 'containers': []}
+        for identity in identities:
+            inspected = subprocess.run(['docker', 'inspect', identity], capture_output=True, text=True, timeout=8)
+            if inspected.returncode:
+                continue  # Original cleanup can remove a resource between observations.
+            state = json.loads(inspected.stdout)[0]
+            service = state['Config']['Labels']['com.docker.compose.service']
+            captured = subprocess.run(['docker', 'logs', '--tail', '100', identity], capture_output=True, text=True, timeout=8)
+            snapshot['containers'].append({'id': identity, 'service': service, 'image': state['Image'],
+                                          'state': state['State'], 'networks': state['NetworkSettings']['Networks'],
+                                          'logs': captured.stdout + captured.stderr})
+        content = json.dumps(snapshot)
+        for secret in secrets:
+            if secret:
+                content = content.replace(secret, '[REDACTED]')
+        with (observer / 'startup-snapshots.jsonl').open('a') as stream:
+            stream.write(content + '\n')
+
     def watch():
         try:
+            snapshots, next_snapshot = 0, 0
             while not done.wait(0.4):
+                if snapshots < 50 and time.monotonic() >= next_snapshot:
+                    startup_snapshot()
+                    snapshots += 1
+                    next_snapshot = time.monotonic() + 3
+                if observation['started']:
+                    continue
                 ids = docker('ps', '-q', '--filter', 'label=io.graphato.ci.development-smoke=' + project,
                              '--filter', 'label=com.docker.compose.service=server', timeout=8).split()
                 if not ids:
@@ -79,7 +116,7 @@ def main():
                 assert len(ids) == 1
                 server = json.loads(docker('inspect', ids[0], timeout=8))[0]
                 assert server['Image'] == inputs['runtime_image_id']
-                name = 'leroy-passive-soak-' + args.case
+                name = 'leroy-passive-soak-' + (args.series + '-' if args.series else '') + args.case
                 command = [
                     'run', '-d', '--name', name, '--label', 'io.leroy.nas-soak=observer',
                     '--label', 'io.leroy.nas-soak.case=' + args.case,
@@ -88,7 +125,7 @@ def main():
                     '--cap-add', 'SYS_PTRACE', '--cap-add', 'DAC_OVERRIDE',
                     '--security-opt', 'apparmor=graphato-server', '--security-opt', 'no-new-privileges:true',
                     '--memory', '64m', '--memory-swap', '64m', '--cpus', '0.1', '--pids-limit', '32',
-                    '--mount', 'type=bind,src=' + str(ROOT / 'nas-passive-http.py') + ',dst=/observe.py,readonly',
+                    '--mount', 'type=bind,src=' + str(observer_script) + ',dst=/observe.py,readonly',
                     '--mount', 'type=bind,src=' + str(observer) + ',dst=/metadata',
                     '--entrypoint', 'python3', inputs['runtime_image_id'], '-B', '/observe.py',
                     '--output', '/metadata/http-metadata.jsonl', '--network-namespace-pid', str(server['State']['Pid']),
@@ -96,7 +133,6 @@ def main():
                 identity = docker(*command, timeout=20)
                 assert re.fullmatch('[a-f0-9]{64}', identity)
                 observation.update(started=True, container_id=identity, server_id=server['Id'])
-                return
         except (OSError, ValueError, AssertionError, subprocess.SubprocessError) as error:
             observation['errors'].append(type(error).__name__)
 
@@ -121,6 +157,8 @@ def main():
                 assert info['Config']['Labels'].get('io.leroy.nas-soak.case') == args.case
                 docker('stop', '--time', '5', identity, timeout=15)
                 observation['exit_code'] = json.loads(docker('inspect', identity))[0]['State']['ExitCode']
+                logs = subprocess.run(['docker', 'logs', '--tail', '60', identity], capture_output=True, text=True, timeout=15)
+                (observer / 'observer-console.log').write_text(logs.stdout + logs.stderr)
                 docker('rm', identity)
     artifacts = work / 'artifacts'
     result_path = artifacts / 'open/results.json'
@@ -148,7 +186,7 @@ def main():
             observation['metadata_sha256'] = hashlib.file_digest(stream, 'sha256').hexdigest()
         observation['ended_cleanly'] = bool(last) and last['kind'] == 'observer-end'
         observation['parser_counts'] = last.get('counts') if observation['ended_cleanly'] else None
-    result = {'case': args.case, 'commit': COMMIT, 'started_at_epoch': started, 'finished_at_epoch': time.time(),
+    result = {'case': args.case, 'series': args.series, 'commit': COMMIT, 'started_at_epoch': started, 'finished_at_epoch': time.time(),
               'inputs': inputs, 'original_case_executed': original_case_executed, 'case_result': outcome,
               'execution_error_type': execution_error, 'cleanup_complete': cleanup, 'lifecycle': lifecycle,
               'remaining_fixture_containers': remaining, 'observation': observation,
@@ -162,6 +200,10 @@ def main():
         selected += [case / 'browser-soak.log'] if (case / 'browser-soak.log').is_file() else []
         if metadata.is_file():
             selected.append(metadata)
+        if (observer / 'observer-console.log').is_file():
+            selected.append(observer / 'observer-console.log')
+        if (observer / 'startup-snapshots.jsonl').is_file():
+            selected.append(observer / 'startup-snapshots.jsonl')
         for path in selected:
             assert path.is_file() and not path.is_symlink() and path.stat().st_size < 64 * 1024**2
             if path.is_relative_to(artifacts):

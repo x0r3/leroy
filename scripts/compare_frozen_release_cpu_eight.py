@@ -6,28 +6,88 @@ import hashlib
 import json
 import re
 import time
-from contextlib import closing
+from contextlib import ExitStack, closing
 
 import compare_frozen_postdeploy_group as group
+import httpx
 from analyze_existing_host_nas_graphato import quality_tests
 from compare_nas_antares import client
 from nas_followup_support import inner, jenkins_api, production_jobs, start_jenkins
 from nas_gitea_target import idle
 from nas_measurement_guard import begin, finish, qualification_report
 from nas_ssh import ROOT
+from nas_test_environment import require_current_jenkins
 
 JOBS = {'graphato-release-acceptance', 'graphato-postdeploy-web', 'graphato-postdeploy-quality'}
 
 
-def leroy(folder, commit, baseline):
+def collect_final_target(folder, engine, commit):
+    """A stopped NAS target has explicit missing evidence, never a fabricated receipt."""
+    collector = getattr(group, 'capture_final_target', None)
+    if collector is not None:
+        return collector(folder, engine, commit)
+    group.write(folder / (engine + '-target-after.json'), group.target(commit))
+
+
+def observe_leroy_runs(folder, run_id, commit):
+    """Reuse authenticated reads; transient transport errors never redispatch CI."""
+    deadline = time.monotonic() + 9 * 3600
+    previous, api = None, None
+    with ExitStack() as connections:
+        while time.monotonic() < deadline:
+            try:
+                if api is None:
+                    api = connections.enter_context(closing(client()))
+                response = api.get('/api/runs/' + run_id)
+                response.raise_for_status()
+                parent = response.json()
+                runs = [parent]
+                for child in parent['children']:
+                    response = api.get('/api/runs/' + child['id'])
+                    response.raise_for_status()
+                    runs.append(response.json())
+            except (httpx.TransportError, httpx.HTTPStatusError) as error:
+                error_name = type(error).__name__
+                if isinstance(error, httpx.HTTPStatusError):
+                    if error.response.status_code != 401:
+                        raise
+                    # A saved session can expire during a long original build.
+                    # Renew authentication on the next read, never the CI job.
+                    connections.close()
+                    api = None
+                    error_name = 'HTTP401'
+                observation = {'at': group.timestamp(), 'engine': 'leroy',
+                               'original_parent': run_id, 'observation_error': error_name,
+                               'original_ci_restarted': False}
+                with (folder / 'leroy-observation-errors.jsonl').open('a', encoding='utf-8') as stream:
+                    stream.write(json.dumps(observation) + '\n')
+                print(json.dumps(observation), flush=True)
+                time.sleep(20)
+                continue
+            assert parent['commit'] == commit and parent['parent_id'] is None
+            assert all(row['commit'] == commit and row['pipeline_id'] in JOBS for row in runs)
+            assert all(row['parent_id'] == run_id for row in runs[1:])
+            state = {row['pipeline_id']: {'id': row['id'], 'status': row['status']} for row in runs}
+            group.write(folder / 'leroy-progress.json', {'at': group.timestamp(), 'runs': state})
+            if state != previous:
+                print(json.dumps({'engine': 'leroy', 'runs': state}), flush=True)
+                previous = state
+            if all(row['status'] not in group.ACTIVE for row in runs):
+                return runs, state
+            time.sleep(20)
+    raise TimeoutError('Retain active original release; no cancellation or implicit retry')
+
+
+def leroy(folder, commit, baseline, *, keep_private_jenkins=False):
     marker = folder / 'leroy-start.json'
-    if (folder / 'leroy-target-after.json').exists():
+    if any((folder / ('leroy-target-after' + suffix)).exists() for suffix in ('.json', '-unavailable.json')):
         finish(folder, 'leroy', group.read(marker).get('production_guard_before'))
         return
     if not marker.exists():
+        group.write(folder / 'comparison-environment.json', require_current_jenkins())
         group.restore(folder, 'leroy', commit, baseline)
         production_before = begin(folder, 'leroy')
-        assert inner('inspect', 'jenkins-parity', '--format', '{{.State.Running}}').strip() == 'false'
+        assert inner('inspect', 'jenkins-parity', '--format', '{{.State.Running}}').strip() == str(keep_private_jenkins).lower()
         with closing(client()) as api:
             assert not any(row['enabled'] for row in api.get('/api/pipelines').json())
             response = api.post('/api/pipelines/graphato-release-acceptance/runs',
@@ -37,26 +97,16 @@ def leroy(folder, commit, baseline):
         group.write(marker, started)
         print(json.dumps({'engine': 'leroy', 'release_started': started}), flush=True)
     run_id = group.read(marker)['id']
-    deadline = time.monotonic() + 9 * 3600
-    previous = None
-    while time.monotonic() < deadline:
-        with closing(client()) as api:
-            parent = api.get('/api/runs/' + run_id).json()
-            runs = [parent, *(api.get('/api/runs/' + row['id']).json() for row in parent['children'])]
-        assert parent['commit'] == commit and parent['parent_id'] is None
-        assert all(row['commit'] == commit and row['pipeline_id'] in JOBS for row in runs)
-        assert all(row['parent_id'] == run_id for row in runs[1:])
-        state = {row['pipeline_id']: {'id': row['id'], 'status': row['status']} for row in runs}
-        group.write(folder / 'leroy-progress.json', {'at': group.timestamp(), 'runs': state})
-        if state != previous:
-            print(json.dumps({'engine': 'leroy', 'runs': state}), flush=True)
-            previous = state
-        if all(row['status'] not in group.ACTIVE for row in runs):
-            break
-        time.sleep(20)
-    else:
-        raise TimeoutError('Retain active original release; no cancellation or implicit retry')
-    assert set(state) == JOBS, 'Incomplete release tree must be investigated'
+    runs, state = observe_leroy_runs(folder, run_id, commit)
+    parent = runs[0]
+    assert set(state) <= JOBS
+    if set(state) != JOBS:
+        assert parent['status'] in {'interrupted', 'failed', 'timed_out', 'cancelled'}, \
+            'Successful release has an incomplete run tree'
+        group.write(folder / 'leroy-incomplete-release-tree.json', {
+            'at': group.timestamp(), 'parent': run_id, 'parent_status': parent['status'],
+            'missing_original_pipelines': sorted(JOBS - set(state)),
+            'full_release_acceptance_complete': False, 'original_runs_restarted': False})
     for run in runs:
         destination = folder / run['pipeline_id']
         destination.mkdir(exist_ok=True)
@@ -67,19 +117,23 @@ def leroy(folder, commit, baseline):
                 response = api.get('/api/runs/' + run['id'] + '/logs/' + step['id'])
                 response.raise_for_status()
                 (destination / ('leroy-' + step['id'] + '.log')).write_text(response.json()['text'], encoding='utf-8')
-    group.write(folder / 'leroy-target-after.json', group.target(commit))
+    collect_final_target(folder, 'leroy', commit)
     finish(folder, 'leroy', group.read(marker).get('production_guard_before'))
 
 
-def jenkins(folder, commit, baseline):
+def jenkins(folder, commit, baseline, *, keep_private_jenkins=False):
     marker = folder / 'jenkins-start.json'
-    if (folder / 'jenkins-target-after.json').exists():
+    if any((folder / ('jenkins-target-after' + suffix)).exists() for suffix in ('.json', '-unavailable.json')):
         finish(folder, 'jenkins', group.read(marker).get('production_guard_before'))
         return
     if not marker.exists():
+        group.write(folder / 'comparison-environment.json', require_current_jenkins())
         group.restore(folder, 'jenkins', commit, baseline)
         production_before = begin(folder, 'jenkins')
-        start_jenkins()
+        if keep_private_jenkins:
+            assert require_current_jenkins()['running'], 'Start the matching CI background before restoring the target'
+        else:
+            start_jenkins()
         state = json.loads(jenkins_api('/api/json?tree=jobs[name,nextBuildNumber,lastBuild[building]]')['text'])
         assert not any((row.get('lastBuild') or {}).get('building') for row in state['jobs'])
         assert not json.loads(jenkins_api('/queue/api/json?tree=items[id]')['text'])['items']
@@ -92,23 +146,40 @@ def jenkins(folder, commit, baseline):
     deadline = time.monotonic() + 9 * 3600
     previous = None
     while time.monotonic() < deadline:
-        state = {job: group.original_jenkins_state(job, number) for job, number in builds.items()}
+        state = {job: group.observe_original_jenkins(folder, job, number) for job, number in builds.items()}
+        if any(row is None for row in state.values()):
+            time.sleep(20)
+            continue
         group.write(folder / 'jenkins-progress.json', {'at': group.timestamp(), 'builds': state})
         if state != previous:
             print(json.dumps({'engine': 'jenkins', 'builds': state}), flush=True)
             previous = state
         if all(row.get('started') and not row.get('building') for row in state.values()):
             break
+        parent = state['graphato-release-acceptance']
+        if parent.get('started') and not parent.get('building') and not any(
+                row.get('building') for row in state.values()):
+            queue = json.loads(jenkins_api('/queue/api/json?tree=items[id]')['text'])['items']
+            if not queue:
+                group.write(folder / 'jenkins-incomplete-release-tree.json', {
+                    'at': group.timestamp(), 'original_parent_number': builds['graphato-release-acceptance'],
+                    'original_parent_status': parent['result'],
+                    'missing_original_pipelines': sorted(job for job, row in state.items() if not row.get('started')),
+                    'full_release_acceptance_complete': False, 'original_ci_restarted': False})
+                finish(folder, 'jenkins', group.read(marker).get('production_guard_before'))
+                raise RuntimeError('Original Jenkins parent finished before all child jobs started; retain this failed attempt')
         time.sleep(20)
     else:
         raise TimeoutError('Retain active Jenkins release; no cancellation or implicit retry')
     for job, number in builds.items():
         destination = folder / job
         destination.mkdir(exist_ok=True)
-        group.collect_jenkins(destination, job, number, commit)
+        group.write(destination / 'jenkins-terminal-observed.json', {'at': group.timestamp(), 'job': job, **state[job]})
+        group.collect_original_jenkins(destination, job, number, commit, deadline)
     idle()
-    inner('stop', '--time', '120', 'jenkins-parity', timeout=150)
-    group.write(folder / 'jenkins-target-after.json', group.target(commit))
+    if not keep_private_jenkins:
+        inner('stop', '--time', '120', 'jenkins-parity', timeout=150)
+    collect_final_target(folder, 'jenkins', commit)
     finish(folder, 'jenkins', group.read(marker).get('production_guard_before'))
 
 

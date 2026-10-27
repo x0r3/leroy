@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "at_utc": "2026-10-26T21:56:45.868470+00:00",
+  "base_commit": "102691952df6f14a39f70682ad8d8c282c138ace",
+  "tested_git_file_set": {
+    "file_count": 549,
+    "bytes": 4677496,
+    "manifest_sha256": "7e1e55fd8c35dda5ce8deb2e5c12a2dd0091b907dd4ae07930edc0a540fdf101",
+    "source_loaded_from_isolated_copy": true,
+    "private_evidence_or_runtime_dependencies_copied": false,
+    "known_local_secret_matches": 0
+  },
+  "python_tests": {
+    "passed": 788,
+    "skipped": 43,
+    "failures": 0,
+    "errors": 0,
+    "same_result_without_private_local_evidence": true
+  },
+  "ruff_src_scripts_tests": "passed",
+  "svelte_check": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "frontend_production_build": "passed",
+  "current_ui_review": {
+    "screenshots": 6,
+    "direct_visual_review": true,
+    "artifact_hash_verified": true
+  },
+  "local_docker_or_vm_started": false,
+  "nas_acceptance_complete": false,
+  "production_ready": false
+}

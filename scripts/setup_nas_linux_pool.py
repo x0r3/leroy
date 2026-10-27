@@ -123,7 +123,7 @@ def server=Jenkins.get()
 if (server.getItem("antares-ci")==null) {
   new File("/fixtures/antares-ci.xml").withInputStream { server.createProjectFromXML("antares-ci",it) }
 }
-server.setNumExecutors(1)
+server.setNumExecutors(2)
 server.save()
 ''', newline="\n")
     yaml = (ROOT / ".local/nas-parity/fixtures/jenkins.yaml").read_text()
@@ -226,7 +226,7 @@ wait "$daemon"
            "--restart", "unless-stopped",
            "--memory", "128m", "--cpus", "0.5", "-v", "/sources:/sources:ro", "--entrypoint", "python3",
            "leroy-job:nas-parity", "-m", "http.server", "3000", "--directory", "/sources")
-    config = '''capacity = 1
+    config = '''capacity = 2
 [profiles.antares-linux]
 image = "leroy-job:nas-parity"
 network = "leroy-jobs"

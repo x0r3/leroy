@@ -17,7 +17,7 @@ COPY --from=frontend /web/dist web/dist/
 RUN useradd --uid 10001 --create-home leroy && mkdir /data && chown leroy:leroy /data
 USER leroy
 EXPOSE 8088
-CMD ["sh", "-c", "alembic upgrade head && uvicorn leroy.api:create_app --factory --host 0.0.0.0 --port 8088"]
+CMD ["sh", "-c", "alembic upgrade head && exec python -m leroy.server"]
 
 FROM docker:29.8.1-cli AS docker-cli
 FROM python:3.14.3-slim-bookworm AS runner

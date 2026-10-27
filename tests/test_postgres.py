@@ -82,6 +82,46 @@ def test_resource_lock_and_expired_attempt_do_not_retry_side_effects(database):
         assert claim(db, "runner", ["default"], 5)["id"] == second
 
 
+def test_reconciling_healthy_runs_does_not_block_their_heartbeat(database, tmp_path):
+    from concurrent.futures import TimeoutError as FutureTimeout
+
+    url, sessions = database
+    run_id = install(sessions)
+    with sessions.begin() as db:
+        assignment = claim(db, 'test', ['default'], 1)
+    headers = {'Authorization': 'Bearer ' + assignment['token']}
+    settings = Settings(url, tmp_path, {}, 'r' * 40, 'admin-password-for-tests', 'http://testserver', False)
+    responsive = False
+    with TestClient(create_app(settings)) as client, ThreadPoolExecutor(max_workers=1) as pool:
+        with sessions.begin() as db:
+            reconcile(db)
+            heartbeat = pool.submit(client.post, f'/internal/runs/{run_id}/heartbeat', headers=headers)
+            try:
+                response = heartbeat.result(timeout=1)
+                responsive = response.status_code == 200 and response.json()['cancel'] is False
+            except FutureTimeout:
+                pass
+        heartbeat.result(timeout=3).raise_for_status()
+    assert responsive, 'A reconciliation transaction held a healthy run lock needed by its heartbeat'
+
+
+def test_reconciliation_refreshes_a_concurrently_renewed_lease(database):
+    _, sessions = database
+    run_id = install(sessions)
+    with sessions.begin() as db:
+        claim(db, 'test', ['default'], 1)
+        db.get(Run, run_id).lease_until = now() - timedelta(seconds=1)
+    with sessions.begin() as observer:
+        stale = observer.get(Run, run_id)
+        assert stale.lease_until < now()
+        with sessions.begin() as heartbeat:
+            heartbeat.get(Run, run_id).lease_until = now() + timedelta(seconds=90)
+        reconcile(observer)
+    with sessions() as db:
+        assert db.get(Run, run_id).status == 'running'
+        assert db.get(Run, run_id).token_hash is not None
+
+
 def test_cancel_parent_cascades_and_enqueue_deduplicates(database):
     _, sessions = database
     parent = install(sessions)

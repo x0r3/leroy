@@ -140,7 +140,7 @@ def test_heartbeat_has_own_connection_pool_and_never_retries():
     reporter.client.close()
 
 
-def test_delayed_confirmation_does_not_restart_the_lease_clock(monkeypatch):
+def test_delayed_confirmation_does_not_restart_the_lease_clock(monkeypatch, capsys):
     clock, cancelled, reason = Clock(), threading.Event(), ["Cancelled"]
     monkeypatch.setattr(worker.time, "monotonic", lambda: clock.now)
 
@@ -151,6 +151,88 @@ def test_delayed_confirmation_does_not_restart_the_lease_clock(monkeypatch):
     worker.maintain_lease(send, clock, cancelled, reason)
     assert cancelled.is_set()
     assert clock.now == 70
+    output = capsys.readouterr().err
+    assert '"event":"slow_confirmation","request_seconds":70' in output
+    assert '"event":"local_deadline","unconfirmed_seconds":70' in output
+
+
+@pytest.mark.parametrize('delay,next_request', [(2, 3), (4, 4), (41.6, 41.6), (44.071, 44.071), (44.999, 44.999)])
+def test_successful_request_time_counts_towards_renewal_cadence(monkeypatch, delay, next_request):
+    clock, cancelled, reason = Clock(), threading.Event(), ['Cancelled']
+    monkeypatch.setattr(worker.time, 'monotonic', lambda: clock.now)
+    requests = []
+
+    def send():
+        requests.append(clock.now)
+        if len(requests) == 1:
+            clock.now += delay
+        else:
+            clock.stopped = True
+        return {'cancel': False}
+
+    worker.maintain_lease(send, clock, cancelled, reason)
+    assert requests == [0, next_request]
+    assert not cancelled.is_set(), 'A confirmed lease must not be lost while sleeping before renewal'
+
+
+def test_failed_followup_after_slow_confirmation_still_obeys_lease_cutoff(monkeypatch):
+    clock, cancelled, reason = Clock(), threading.Event(), ['Cancelled']
+    monkeypatch.setattr(worker.time, 'monotonic', lambda: clock.now)
+    requests = []
+
+    def send():
+        requests.append(clock.now)
+        if len(requests) == 1:
+            clock.now += 44.071
+            return {'cancel': False}
+        clock.now += 5
+        raise httpx.ReadTimeout('unavailable')
+
+    worker.maintain_lease(send, clock, cancelled, reason)
+    assert requests == [0, 44.071]
+    assert cancelled.is_set() and 'ReadTimeout' in reason[0]
+    assert 45 <= clock.now < 51
+
+
+def test_fast_failed_followup_cannot_spin_near_lease_cutoff(monkeypatch):
+    clock, cancelled, reason = Clock(), threading.Event(), ['Cancelled']
+    monkeypatch.setattr(worker.time, 'monotonic', lambda: clock.now)
+    requests = []
+
+    def send():
+        requests.append(clock.now)
+        if len(requests) == 1:
+            clock.now += 44.071
+            return {'cancel': False}
+        if len(requests) > 2:
+            pytest.fail('Failed requests must retain a bounded renewal cadence')
+        request = httpx.Request('POST', 'http://controller/heartbeat')
+        httpx.Response(503, request=request).raise_for_status()
+
+    worker.maintain_lease(send, clock, cancelled, reason)
+    assert requests == [0, 44.071]
+    assert cancelled.is_set() and 'HTTP 503' in reason[0]
+    assert clock.now == 47.071
+
+
+@pytest.mark.parametrize('status', [401, 403, 409])
+def test_fencing_after_slow_confirmation_still_cancels_immediately(monkeypatch, status):
+    clock, cancelled, reason = Clock(), threading.Event(), ['Cancelled']
+    monkeypatch.setattr(worker.time, 'monotonic', lambda: clock.now)
+    requests = []
+
+    def send():
+        requests.append(clock.now)
+        if len(requests) == 1:
+            clock.now += 44.071
+            return {'cancel': False}
+        request = httpx.Request('POST', 'http://controller/heartbeat')
+        httpx.Response(status, request=request).raise_for_status()
+
+    worker.maintain_lease(send, clock, cancelled, reason)
+    assert requests == [0, 44.071]
+    assert cancelled.is_set() and 'rejected' in reason[0]
+    assert clock.now == 44.071
 
 
 def test_docker_operations_have_a_timeout(monkeypatch):

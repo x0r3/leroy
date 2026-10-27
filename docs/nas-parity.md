@@ -1,7 +1,10 @@
 # Jenkins-/Leroy-Vergleich auf dem NAS
 
-Aktuelle Zusammenfassung und weiterer Plan: [status.md](status.md),
-Dokumentationsstand 9. Oktober 2026. Die verlinkten Detailquittungen unter
+**26. Oktober 2026: Der NAS-Testbetrieb ist auf Nutzerwunsch beendet.**
+Jenkins bleibt produktiv; die Ablöse wird nach Bereitstellung eines separaten
+Build-Servers fortgesetzt. Aktueller Stand und Plan:
+[Checkpoint](checkpoint-2026-10-26.md), [status.md](status.md).
+Die folgenden Ausführungen beschreiben historische Versuche. Die verlinkten Detailquittungen unter
 `test-results/` bleiben private lokale Nachweise und sind nicht mitgepusht.
 
 Am 7. Oktober ist die lokale Docker-Umgebung auf Nutzerwunsch angehalten, mit
@@ -13,8 +16,8 @@ Windows-Test-VM wird nicht erneut gestartet.
 [Lokale Docker-Bereinigung](../test-results/local-docker-cleanup/20261006T224728Z.json).
 [Abschließende lokale Prüfung](../test-results/local-docker-cleanup/final-verification.json).
 
-Der nächste Vergleich wird direkt im vorhandenen isolierten NAS-Testdaemon
-vorbereitet: Jenkins, Leroy, Leroy, Jenkins, mit frischen Fixtures pro Probe,
+Der Vergleich wird direkt im vorhandenen isolierten NAS-Testdaemon
+ausgeführt: Jenkins, Leroy, Leroy, Jenkins, mit frischen Fixtures pro Probe,
 dem ursprünglichen produktiven CI-#23-Runtime-Inhalt und einem einmalig gebauten
 Browser-Worker aus dem unveränderten Original-Dockerfile. Das ursprüngliche
 Quellarchiv ist einschließlich seines gespeicherten SHA-256 und aller 53 zuvor
@@ -43,12 +46,170 @@ Worker-Bau und die neuen Soak-Proben wurden zunächst hinter den produktiven
 Jenkins-Jobs zurückgestellt. Nach deren Ende scheitert der Materialisierungsversuch
 am 7. Oktober um 02:34 Uhr MESZ beim `docker load` im isolierten Testdaemon mit
 Exitcode 1. Die erhaltene Fehlerausgabe belegt noch keine Ursache des Imports.
-Die neue Soak-Serie hat keine Tests gestartet; Worker-Bau und vollständige
-Materialisierung sind nicht als erfolgreich nachgewiesen.
+Bei diesem Versuch wurden keine Soak-Tests gestartet. Seine Quittung bleibt
+als fehlgeschlagener Vorbereitungsversuch erhalten.
 [Importfehler](../test-results/nas-parity/followup/nas-native-soak-preparation/preparation-failure.json).
 [Lesende AppArmor-Vorprüfung](../test-results/nas-parity/followup/nas-native-soak-preparation/original-profile-preflight.json).
 [Erfolgreiche Vorprüfung im Testdaemon](../test-results/nas-parity/followup/nas-native-soak-preparation/original-profile-owned-parser-preflight.json),
 [Geprüfter Runtime-Transfer](../test-results/nas-parity/followup/nas-native-soak-preparation/runtime-transfer-verified.json).
+
+Am 11. Oktober ist die Ursache reproduziert: `docker exec` ohne `-i` reicht keine
+Standardeingabe an `docker load` weiter. Der Transportvergleich empfängt null
+beziehungsweise 1.152 Bytes; der ursprüngliche Import liefert mit demselben
+vollständigen Archiv `unrecognized image format`. Mit `-i` gelingt der Import.
+Das Archiv bleibt 2.406.604.800 Bytes groß mit SHA-256
+`5806b2d02f4b06dc0c66d4ba55a2e4231b823b87f9df3ebc8168741c1b90221e`.
+Alle 20 RootFS-DiffIDs, das ursprüngliche Config-Digest `5fac4247b679…` und das
+Serverprogramm `faab058b0006…` stimmen überein. Das lokale Docker-29-Image-ID
+`b00a432be807…` ist das Manifest-Digest; dessen Content-Store-Blob verweist auf
+das originale Config-Digest. Dieser Darstellungsunterschied ist keine Änderung
+des Runtime-Inhalts.
+[Transportfehler](../test-results/nas-parity/followup/nas-native-soak-import-recovery/missing-stdin-reproduction.json),
+[Runtime-Inhaltsprüfung](../test-results/nas-parity/followup/nas-native-soak-import-recovery/runtime-content-verified.json).
+
+Der Original-Worker wird erfolgreich auf dem NAS gebaut. Seine eingebauten
+Originalprüfungen bestehen; alle 53 festgehaltenen Test-/Treiberdateien sowie
+Node 24.14.1 und Playwright 1.63.0 stimmen überein. Beide Extraktionen enthalten
+die exakt geprüften 2.339 Quelldateien. Der Buildkit-Builder ist anschließend
+gestoppt. Die produktiven Jenkins-Jobs bleiben während der Wiederherstellung
+unverändert und die Messwächter bestätigen eine ruhige Produktionsphase.
+[Geprüfte Eingaben](../test-results/nas-parity/followup/nas-native-soak-preparation/prepared-inputs.json).
+
+Die erste Jenkins-Probe (`leroy-original-soak-nas`, Build 1) scheitert beim
+Fixture-Start mit `PostgreSQL operation failed (io)`. Sie führt keinen Soak-Fall
+aus, wird von Jenkins korrekt als fehlgeschlagen behalten und bestätigt
+vollständiges Cleanup. Ein separater Diagnoseversuch mit dem ursprünglichen
+Fixture-Helfer startet PostgreSQL und Graphato erfolgreich. Der erste Startfehler
+ist damit noch nicht erklärt. Die neue Serie und ihre Diagnosehelfer bekommen
+eigene Kennungen; vorherige Verzeichnisse und CI-Builds bleiben erhalten.
+Ein Fehler im erweiterten Vorprüfungshelfer (Image-Standardbenutzer statt explizitem
+Root für das private Diagnoseverzeichnis) wird vor dem nächsten Teststart behoben.
+Die vollständige Beobachtervorprüfung bestätigt Namespace-Eintritt, Kernel-Filter,
+Dateischreiben und geordnetes Beenden. Originalquellen und Tests bleiben unverändert.
+[Erster Startfehler](../test-results/nas-parity/followup/nas-original-soak-engine-comparison/jenkins-1/analysis.json),
+[Gesunder Startversuch](../test-results/nas-parity/followup/nas-native-startup-diagnostics/20261011T093546534356Z/startup-diagnostic.json).
+
+Die erste vollständige Serie `20261011-c` endet wie folgt:
+
+| Probe | Originalergebnis | Soak-Dauer |
+| --- | --- | --- |
+| Jenkins 1 | Fehlgeschlagen beim Senden eines Prompts | 18,427 s |
+| Leroy 1 | Bestanden: 120 Prompts, vier Tabs | 310,389 s |
+| Leroy 2 | Fehlgeschlagen beim Senden eines Prompts | 31,288 s |
+| Jenkins 2 | Bestanden: 120 Prompts, vier Tabs | 316,356 s |
+
+Alle vier Originalfälle werden tatsächlich ausgeführt und vollständig aufgeräumt.
+Die CI-Ergebnisse entsprechen jeweils dem Originaltest; Runtime und Worker bleiben
+identisch. Alle Produktionswächter bestätigen ruhige Jenkins-Fenster. Beide Engines
+zeigen in dieser Serie Erfolg und Fehler; sie belegt keine ausschließlich Leroy
+zugeordnete Abweichung und keine stabile vollständige Release-Abnahme.
+[Serienergebnis](../test-results/nas-parity/followup/nas-original-soak-engine-comparison-20261011-c/analysis.json).
+
+Die Antworterfassung dieser Serie ist unvollständig. Der Packet-Socket mit
+`ETH_P_IP` erfasst eingehenden Bridge-Verkehr, aber keine ausgehenden
+API-Antworten. Die im ursprünglichen Serienbericht positiven
+`server_boundary_metadata_qualified`-Flags prüfen noch keine Antwortabdeckung.
+Die ergänzende Qualifikation korrigiert diese Einordnung für alle vier Spuren:
+Keine Command-Antwort ist zugeordnet; null beobachtete 429 beweisen deshalb
+keine Abwesenheit von 429. Originalberichte und Rohartefakte werden nicht ersetzt.
+[Korrigierte Einordnung](../test-results/nas-parity/followup/nas-original-soak-engine-comparison-20261011-c/metadata-qualification.json).
+
+Die kontrollierte NAS-Netzwerkprobe vom 11. Oktober bestätigt den Fehler und
+isoliert seine Ursache: Der Originalbeobachter erkennt fünf Anfragen und null
+Antworten; nach alleiniger Änderung des Socket-Protokolls auf `ETH_P_ALL`
+werden fünf Antworten einschließlich einer vorgegebenen 429 erkannt. Auch die
+vollständig korrigierte Fassung besteht. Es werden keine Graphato-Tests oder
+Anwendungskommandos ausgeführt. Der IPv4-/TCP-8042-Kernelfilter bleibt aktiv;
+Rohpakete, Authentifizierungsheader und Argumentwerte werden nicht gespeichert.
+HTTP-Status wird beim Empfang der Header festgehalten; Paketzeitpunkte stammen
+aus Kernel-Zeitstempeln. Der Kernel-Egresspfad verwendet die
+[All-Protocol-Taps](https://github.com/torvalds/linux/blob/v6.12/net/core/dev.c#L2152).
+Die nachfolgenden Serien verwenden diese separat geprüfte Beobachtung; alle
+Anwendungs-/Test-/Image-Eingaben und Grenzwerte bleiben gleich.
+[Kontrollierte Transportprobe](../test-results/nas-parity/followup/nas-passive-transport/20261011T100835723658Z/result.json).
+
+Die Serie `20261011-d` scheitert bei ihrer ersten Jenkins-Fixture, bevor ein
+Soak ausgeführt wird. Die ursprüngliche Prüfung `pg_isready -U graphato -d graphato`
+akzeptiert bereits den temporären Unix-Socket-Server während der Initialisierung.
+Ihr positiver Healthcheck endet um 10:12:05,202 UTC; der temporäre Server wird
+um 10:12:05,955 UTC beendet. Graphato startet um 10:12:06,400 UTC und meldet
+den Datenbank-I/O-Fehler um 10:12:11,702 UTC. Erst um 10:12:12,419 UTC entsteht
+der endgültige TCP-Listener; die Datenbank wird um 10:12:13,035 UTC endgültig
+bereit. Dieser Start-Race ist anhand der unveränderten Compose-Datei,
+Docker-Healthlogs und PostgreSQL-/Graphato-Logs belegt. Die Ursache des älteren
+Starts ohne Datenbanklog wird dadurch nicht rückwirkend bewiesen. Der Healthcheck
+bleibt unverändert, Cleanup ist bestätigt, die nächste Serie heißt `20261011-e`.
+[Belegter Fixture-Start-Race](../test-results/nas-parity/followup/nas-original-soak-engine-comparison-20261011-d/jenkins-1/setup-failure-analysis.json).
+
+In `20261011-e` besteht die erste Jenkins-Probe nach 308,510 Sekunden. Die
+korrigierte Beobachtung ordnet alle 120 Prompt-Antworten als HTTP 200 zu. Die
+Gesamtspur bleibt wegen 122 Kernel-Paketverlusten, zehn Parserfehlern und
+unvollständiger Antwortabdeckung unqualifiziert für eine vollständige
+HTTP-Statusaussage. Null beobachtete 429 werden weiterhin nicht als Nachweis
+ihrer vollständigen Abwesenheit bewertet. Die nachfolgende Leroy-Fixture
+scheitert erneut vor der Testausführung beim Datenbankstart.
+Die Fortsetzung `20261011-f` übernimmt ausschließlich den bereits ausgeführten
+Jenkins-Fall mit identischen Quellen-/Image-/Helferprüfsummen und bestätigtem
+Cleanup und Produktionsfenster. Sie wiederholt keinen ausgeführten Test.
+Der Setup-Fehler bleibt im vorherigen Verzeichnis erhalten. Der Test-Jenkins
+startet zwischen diesen Versuchen erneut; gleiche kontinuierliche Controller-
+Ausgangsbedingungen werden deshalb nicht behauptet.
+[Jenkins mit Antworterfassung](../test-results/nas-parity/followup/nas-original-soak-engine-comparison-20261011-e/jenkins-1/analysis.json),
+[Explizite Fortsetzung](../test-results/nas-parity/followup/nas-original-soak-engine-comparison-20261011-f/continuation-receipt.json).
+
+Die fortgesetzte Serie ist mit vier erfolgreichen Originalfällen abgeschlossen:
+
+| Probe | Originalergebnis / CI-Ergebnis | Soak-Dauer | Erfasste Prompt-Antworten | Verlorene Kernel-Pakete |
+| --- | --- | --- | --- | --- |
+| Jenkins 1 aus `20261011-e` | Bestanden / `SUCCESS` | 308,510 s | 120 × HTTP 200 | 122 |
+| Leroy 1 | Bestanden / `succeeded` | 315,857 s | 120 × HTTP 200 | 117 |
+| Leroy 2 | Bestanden / `succeeded` | 309,201 s | 120 × HTTP 200 | 155 |
+| Jenkins 2 | Bestanden / `SUCCESS` | 309,814 s | 120 × HTTP 200 | 159 |
+
+Alle vier Originalfälle bestätigen Cleanup ohne OOM; alle Produktionsfenster
+sind lesend als ruhig qualifiziert. Die Eingaben bleiben bytegleich. Die Zeiten
+bezeichnen den originalen Soak-Fall, nicht die gesamte CI-Laufzeit einschließlich
+Fixture-Start und Cleanup. Die vollständige HTTP-Statusabdeckung ist trotz der
+zugeordneten Prompt-Antworten weiterhin nicht belegt: Paketverluste, unvollständige
+TCP-Ströme und fehlende Antwortzuordnungen bleiben in allen vier Gesamtspuren.
+Null beobachtete 429 beweisen ihre Abwesenheit deshalb nicht.
+[Abgeschlossener Original-Soak-Vergleich](../test-results/nas-parity/followup/nas-original-soak-engine-comparison-20261011-f/analysis.json).
+
+Während der letzten Jenkins-Probe läuft eine lesende SSH-Abfrage der produktiven
+Historie in ein Zeitlimit. Der bestehende Testbuild wird nicht abgebrochen und
+nicht erneut gestartet. `recover_nas_original_soak_observation.py` sammelt genau
+diesen Build und vervollständigt dessen ursprünglichen Vorher-/Nachher-Wächter.
+Eine fehlende Zwischenbeobachtung gilt nicht als ruhige Lastphase. Die erfolgreiche
+Abschlussqualifikation bestätigt das gesamte ursprüngliche Fenster. Der eigene
+Test-Jenkins ist anschließend wieder gestoppt, das temporäre Profil ohne aktive
+Nutzer entfernt und die übrigen AppArmor-Profile unverändert.
+[Wiederaufnahme ohne erneuten Teststart](../test-results/nas-parity/followup/nas-original-soak-engine-comparison-20261011-f/observation-recovery.jsonl),
+[Controller wieder gestoppt](../test-results/nas-parity/followup/nas-original-soak-engine-comparison-20261011-f/jenkins-controller-restored.json),
+[Profil bereinigt](../test-results/nas-parity/followup/nas-original-soak-engine-comparison-20261011-f/temporary-profile-removed.json).
+
+Die Abschlussprüfung bestätigt einen bereiten Leroy-Controller, alle 16
+Katalogeinträge deaktiviert, keine aktiven oder wartenden Leroy-Läufe, keine
+laufenden Fixtures, Beobachter oder Koordinatoren und keine aktiven produktiven
+Jenkins-Builds. Eine leere produktive Jenkins-Warteschlange wird nicht behauptet.
+[Abschlusszustand](../test-results/nas-parity/followup/nas-original-soak-engine-comparison-20261011-f/final-state.json).
+
+Nach Ende der Messläufe werden die realen Leroy-Läufe visuell geprüft: zwei
+Erfolge (`dc697e0a…`, `dbf96612…`), ein ausgeführter Soak-Fehler (`25d685b6…`)
+und ein Fixture-Startfehler (`1c00aeca…`). Graph/Konsole, Ergebnisse und Artefakte
+sind jeweils bei 1.440 und 390 Pixel Breite geprüft. Alle 24 Screenshots werden
+visuell kontrolliert; Status, Zeitachsenfarben, Textumbruch und Artefaktlisten
+passen, ohne Seitenüberlauf oder Browserfehler. Die Größe und SHA-256 aller
+16 Artefakt-Downloads stimmen mit den Metadaten überein. Der leere strukturierte
+Ergebnisbereich ist bei diesen Diagnosebefehlen erwartbar: Sie hinterlegen die
+Originalquittungen als Artefakte und melden das Ergebnis zusätzlich in der Konsole.
+[Erfolgreiche Laufansichten](../test-results/nas-parity/original-soak-success-ui-20261011/report.json),
+[Fehleransichten](../test-results/nas-parity/original-soak-failure-ui-20261011/report.json).
+
+Damit ist der aktuelle Import-/Soak-Diagnoseauftrag abgeschlossen. Beide Engines
+führen den unveränderten Test erfolgreich aus; die erste vollständige Serie
+zeigt weiterhin beide Ergebnisarten unter beiden Engines. Weder die Ursache aller
+früheren Fehler noch die historische Qualitätsabweichung sind damit bewiesen.
+Die vollständige Graphato-Release-Abnahme und Produktionsfreigabe bleiben offen.
 
 Produktive Jenkins-Builds dürfen während dieser Abnahme weiterlaufen, auch für
 neue `master`-Commits. Die Vergleichsläufe bleiben auf `0ad540dd5780` gebunden;

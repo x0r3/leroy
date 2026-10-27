@@ -89,6 +89,10 @@ def client():
         result = api.post(
             "/api/auth/login",
             json={"username": "admin", "password": (LOCAL / "config/admin_password").read_text()},
+            # Administrative password verification took 32 seconds under the
+            # isolated VM's NAS pressure. Keep this separate from CI transport
+            # and all ordinary status reads, which retain their existing limit.
+            timeout=120,
         )
         result.raise_for_status()
         # Reuse the private test session instead of repeatedly hashing its password

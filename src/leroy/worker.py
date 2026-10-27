@@ -13,6 +13,7 @@ from pathlib import Path
 
 import httpx
 
+from .lease_trace import LeaseTransportTrace, announce_thread
 from .schema import Pipeline
 
 
@@ -84,6 +85,8 @@ class Redactor:
 
 class Reporter:
     def __init__(self, url, run, token):
+        self.trace_lease = os.environ.get("LEROY_LEASE_TRACE") == "1"
+        self.trace_announced = False
         self.base = url.rstrip("/") + "/internal/runs/" + run
         self.client = httpx.Client(headers={"Authorization": "Bearer " + token}, timeout=30)
         # Artifact uploads and log retries must not occupy the lease connection.
@@ -94,8 +97,18 @@ class Reporter:
         )
 
     def heartbeat(self):
-        # One bounded attempt: the monitor owns the retry budget, not send().
-        response = self.heartbeat_client.post(self.base + "/heartbeat")
+        # One attempt; tracing must not change retries, timeouts or lease clocks.
+        if not self.trace_lease:
+            return self._heartbeat()
+        if not self.trace_announced:
+            announce_thread(self.base)
+            self.trace_announced = True
+        with LeaseTransportTrace() as trace:
+            return self._heartbeat(trace)
+
+    def _heartbeat(self, trace=None):
+        options = {} if trace is None else {"extensions": {"trace": trace}}
+        response = self.heartbeat_client.post(self.base + "/heartbeat", **options)
         response.raise_for_status()
         return response.json()
 
@@ -123,8 +136,17 @@ def maintain_lease(send, stop, cancelled, reason):
     """Stop work before the 90s server lease expires when renewal is uncertain."""
     confirmed = time.monotonic()
     last_failure = None
+    last_request_seconds = None
+    previous_loop = confirmed
+    loop_gap_seconds = 0
+
+    def timing(event, **values):
+        print('Leroy lease timing: ' + json.dumps({'event': event, **values}, separators=(',', ':')),
+              file=sys.stderr, flush=True)
 
     def lose_lease():
+        timing('local_deadline', unconfirmed_seconds=round(time.monotonic() - confirmed, 3),
+               last_request_seconds=last_request_seconds, loop_gap_seconds=round(loop_gap_seconds, 3))
         reason[0] = "Controller lease could not be renewed"
         if last_failure:
             reason[0] += " (last failure: " + last_failure + ")"
@@ -133,11 +155,17 @@ def maintain_lease(send, stop, cancelled, reason):
 
     while not stop.is_set():
         started = time.monotonic()
+        loop_gap_seconds = started - previous_loop
+        previous_loop = started
         if started - confirmed >= 45:
             lose_lease()
             return
         try:
             data = send()
+            last_request_seconds = round(time.monotonic() - started, 3)
+            if last_request_seconds >= 3:
+                timing('slow_confirmation', request_seconds=last_request_seconds,
+                       previous_confirmation_age_seconds=round(started - confirmed, 3))
             if data["cancel"]:
                 reason[0] = data.get("reason") or "Cancelled"
                 cancelled.set()
@@ -149,6 +177,7 @@ def maintain_lease(send, stop, cancelled, reason):
             confirmed = started
             last_failure = None
         except httpx.HTTPStatusError as exc:
+            last_request_seconds = round(time.monotonic() - started, 3)
             last_failure = "HTTP " + str(exc.response.status_code)
             print("Leroy lease renewal failed: " + last_failure, file=sys.stderr, flush=True)
             if exc.response.status_code in (401, 403, 409):
@@ -156,6 +185,7 @@ def maintain_lease(send, stop, cancelled, reason):
                 cancelled.set()
                 return
         except Exception as exc:
+            last_request_seconds = round(time.monotonic() - started, 3)
             # URLs, response bodies and exception messages may contain secrets.
             # Retain only the type and timing needed to diagnose transport stalls.
             last_failure = type(exc).__name__
@@ -165,7 +195,9 @@ def maintain_lease(send, stop, cancelled, reason):
         if time.monotonic() - confirmed >= 45:
             lose_lease()
             return
-        stop.wait(3)
+        # Keep the renewal cadence measured from request start. Sleeping another
+        # interval after a slow success can consume the remaining 45s window.
+        stop.wait(max(0, 3 - (time.monotonic() - started)))
 
 
 def child_inputs(step, context):
@@ -305,7 +337,12 @@ def main():
             else:
                 status = "succeeded"
             output = {step.id + "_child": child["id"], step.id + "_result": child["status"]}
-            reason = "" if status == "succeeded" else "Child job did not succeed"
+            reason = (
+                "" if status == "succeeded" else
+                cancellation_reason[0] if status == "cancelled" else
+                "Child pipeline timeout exceeded" if status == "timed_out" else
+                "Child job did not succeed"
+            )
             reporter.send(
                 "/steps/" + step.id,
                 body={
